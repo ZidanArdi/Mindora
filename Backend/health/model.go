@@ -1,4 +1,4 @@
-package models
+package health
 
 // Health represents the health status of the application
 type Health struct {

@@ -10,10 +10,11 @@ type Config struct {
 	Port        string
 	Env         string
 	FrontendURL string
+	DatabaseURL string
 }
 
 func LoadConfig() *Config {
-	// Attempt to load .env file if it exists
+	// Load environment variables from .env if available.
 	_ = godotenv.Load()
 
 	port := os.Getenv("APP_PORT")
@@ -35,5 +36,6 @@ func LoadConfig() *Config {
 		Port:        port,
 		Env:         env,
 		FrontendURL: frontendURL,
+		DatabaseURL: os.Getenv("DATABASE_URL"),
 	}
 }
