@@ -1,14 +1,22 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import RootLayout from './layouts/RootLayout';
-import HomePage from './pages/HomePage';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { UserDashboardPage, AdminDashboardPage, LoginPage } from './pages';
 
 export default function App() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/" element={<RootLayout />}>
-          <Route index element={<HomePage />} />
-        </Route>
+        {/* Main User Productivity Dashboard */}
+        <Route path="/" element={<UserDashboardPage />} />
+        <Route path="/dashboard" element={<Navigate to="/" replace />} />
+
+        {/* Authentication / Login Page */}
+        <Route path="/login" element={<LoginPage />} />
+
+        {/* Admin Console Dashboard */}
+        <Route path="/admin" element={<AdminDashboardPage />} />
+
+        {/* Catch-all route */}
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </BrowserRouter>
   );
