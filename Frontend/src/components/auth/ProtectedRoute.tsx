@@ -33,15 +33,7 @@ export const ProtectedRoute = ({ children, allowedRoles }: ProtectedRouteProps) 
 
   // Check role authorization
   if (allowedRoles && !allowedRoles.includes(user.role)) {
-    // If student user tries to access admin routes, redirect to student workspace
-    if (user.role === 'user') {
-      return <Navigate to="/dashboard" replace />;
-    }
-    // If admin tries to access user-only routes, redirect to admin console
-    if (user.role === 'admin') {
-      return <Navigate to="/admin" replace />;
-    }
-    return <Navigate to="/login" replace />;
+    return <Navigate to="/forbidden" replace />;
   }
 
   return <>{children}</>;

@@ -1,6 +1,7 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import type { NavCategory, WorkspaceItem, UserProfile } from '../../types';
+import { useAuth } from '../../hooks';
 import {
   GridIcon,
   ListIcon,
@@ -40,15 +41,25 @@ export const Sidebar = ({
   onClose,
   className,
 }: SidebarProps) => {
+  const navigate = useNavigate();
+  const { logout } = useAuth();
   const [activeItem, setActiveItem] = useState(
     role === 'user' ? 'Dashboard' : 'Overview'
   );
 
+  const handleLogout = async () => {
+    try {
+      await logout();
+    } finally {
+      navigate('/login');
+    }
+  };
+
   const userNavItems = [
-    { label: 'Dashboard', icon: <GridIcon className="w-4 h-4" />, href: '/' },
-    { label: 'List', icon: <ListIcon className="w-4 h-4" />, href: '/#list' },
-    { label: 'Calendar', icon: <CalendarIcon className="w-4 h-4" />, href: '/#calendar' },
-    { label: 'Messages', icon: <MessageSquareIcon className="w-4 h-4" />, href: '/#messages' },
+    { label: 'Dashboard', icon: <GridIcon className="w-4 h-4" />, href: '/dashboard' },
+    { label: 'List', icon: <ListIcon className="w-4 h-4" />, href: '/dashboard#list' },
+    { label: 'Calendar', icon: <CalendarIcon className="w-4 h-4" />, href: '/dashboard#calendar' },
+    { label: 'Messages', icon: <MessageSquareIcon className="w-4 h-4" />, href: '/dashboard#messages' },
   ];
 
   const adminNavItemsWorkspace = [
@@ -83,7 +94,7 @@ export const Sidebar = ({
         <div className="space-y-6">
           {/* Logo Header */}
           <div className="flex items-center justify-between">
-            <Link to={role === 'user' ? '/' : '/admin'} className="flex items-center gap-2.5">
+            <Link to={role === 'user' ? '/dashboard' : '/admin'} className="flex items-center gap-2.5">
               <img src="/logo.png" alt="Mindora Logo" className="w-8 h-8 object-contain" />
               <div>
                 <span className="text-lg font-bold tracking-tight text-primary-900 block leading-tight">
@@ -271,11 +282,11 @@ export const Sidebar = ({
               {/* Back to main app button */}
               <div className="pt-2 border-t border-border-subtle">
                 <Link
-                  to="/"
+                  to="/dashboard"
                   className="flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-semibold text-text-secondary hover:text-primary hover:bg-surface-muted transition-colors border border-border"
                 >
                   <ChevronLeftIcon className="w-4 h-4" />
-                  <span>Back to main app</span>
+                  <span>Back to workspace</span>
                 </Link>
               </div>
             </div>
@@ -296,9 +307,15 @@ export const Sidebar = ({
                 </p>
               </div>
             </div>
-            <Link to="/login" title="Logout" className="p-1 text-text-secondary hover:text-red-600 transition-colors">
+            <button
+              type="button"
+              onClick={handleLogout}
+              title="Logout"
+              className="p-1 text-text-secondary hover:text-red-600 transition-colors cursor-pointer"
+              aria-label="Logout"
+            >
               <LogoutIcon className="w-4 h-4" />
-            </Link>
+            </button>
           </div>
         </div>
       </aside>
