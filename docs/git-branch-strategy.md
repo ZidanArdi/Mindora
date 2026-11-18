@@ -40,10 +40,12 @@ Message     : fix(frontend): update web favicon and branding with official Mindo
 ### 2.2 Branch Topology & Tree Representation
 
 ```
-* 82016dc (frontend) feat(frontend): implement Mindora authentication interface
+* 2b0fa08 (frontend) docs: add git branch separation and source control strategy
+* 82016dc feat(frontend): implement Mindora authentication interface
 |   [Frontend/ active, Backend/ frozen at 36a179b]
 |
-| * 5fdaac7 (backend) feat(backend): implement Mindora authentication and RBAC
+| * f1d3211 (backend) docs: add git branch separation and source control strategy
+| * 5fdaac7 feat(backend): implement Mindora authentication and RBAC
 |/    [Backend/ active, Frontend/ frozen at 36a179b]
 |
 * 36a179b (origin/frontend) fix(frontend): update web favicon and branding with official Mindora logo
@@ -67,7 +69,7 @@ In addition, an immutable backup branch has been created to preserve the unified
 
 ### 3.1 Branch `frontend`
 
-- **Branch Head:** `82016dc`
+- **Branch Head:** `2b0fa08` (feature commit: `82016dc`)
 - **Parent Commit:** `36a179b`
 - **Ownership Scope:**
   - `Frontend/**` (React 18 + Vite + TypeScript + Tailwind CSS)
@@ -87,7 +89,7 @@ In addition, an immutable backup branch has been created to preserve the unified
 
 ### 3.2 Branch `backend`
 
-- **Branch Head:** `5fdaac7`
+- **Branch Head:** `f1d3211` (feature commit: `5fdaac7`)
 - **Parent Commit:** `36a179b`
 - **Ownership Scope:**
   - `Backend/**` (Go 1.23+ Fiber v2, GORM, PostgreSQL 18.6)
