@@ -7,3 +7,4 @@ export * from './Icons';
 export * from './Input';
 export * from './PulseDot';
 export * from './Text';
+export * from './TurnstileWidget';

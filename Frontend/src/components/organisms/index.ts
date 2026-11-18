@@ -4,6 +4,7 @@ export * from './AdminOverviewRow';
 export * from './AIAssistantWidget';
 export * from './FocusTimerWidget';
 export * from './LoginForm';
+export * from './RegisterForm';
 export * from './Sidebar';
 export * from './StatusCard';
 export * from './TaskSection';
