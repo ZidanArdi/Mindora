@@ -9,6 +9,8 @@ dist/
 
 # Backend
 vendor/
+bin/
+*.exe
 
 # Logs
 *.log
