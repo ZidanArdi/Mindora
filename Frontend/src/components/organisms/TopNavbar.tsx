@@ -1,9 +1,10 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Button, BellIcon, ClockIcon, LogoutIcon, ExportIcon, PlusIcon, MenuIcon, Avatar } from '../atoms';
 import { SearchInput } from '../molecules';
 import type { UserProfile } from '../../types';
 import { cn } from '../../utils';
-import { Link } from 'react-router-dom';
+import { useAuth } from '../../hooks';
 
 export interface TopNavbarProps {
   role: 'user' | 'admin';
@@ -19,6 +20,16 @@ export const TopNavbar = ({
   className,
 }: TopNavbarProps) => {
   const [hasUnread] = useState(true);
+  const navigate = useNavigate();
+  const { logout } = useAuth();
+
+  const handleLogout = async () => {
+    try {
+      await logout();
+    } finally {
+      navigate('/login');
+    }
+  };
 
   return (
     <header
@@ -88,14 +99,15 @@ export const TopNavbar = ({
             )}
           </button>
 
-          <Link
-            to="/login"
-            className="p-2 rounded-xl text-text-secondary hover:text-red-600 hover:bg-surface-muted transition-colors hidden sm:flex"
+          <button
+            type="button"
+            onClick={handleLogout}
+            className="p-2 rounded-xl text-text-secondary hover:text-red-600 hover:bg-surface-muted transition-colors hidden sm:flex cursor-pointer"
             title="Sign out"
             aria-label="Sign out"
           >
             <LogoutIcon className="w-4 h-4" />
-          </Link>
+          </button>
 
           <Avatar initials={currentUser.avatarText} size="md" className="ml-1 cursor-pointer" />
         </div>

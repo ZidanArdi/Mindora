@@ -6,6 +6,36 @@ export interface ApiResponse<T = unknown> {
 
 export type UserRole = 'user' | 'admin';
 
+export interface UserResponse {
+  id: string;
+  name: string;
+  email: string;
+  role: UserRole;
+  status: string;
+  created_at: string;
+  permissions?: string[];
+}
+
+export interface AuthResult {
+  access_token: string;
+  token_type: string;
+  expires_in: number;
+  user: UserResponse;
+}
+
+export interface LoginPayload {
+  email: string;
+  password: string;
+  turnstile_token?: string;
+}
+
+export interface RegisterPayload {
+  name: string;
+  email: string;
+  password: string;
+  turnstile_token?: string;
+}
+
 export interface UserProfile {
   id: string;
   name: string;

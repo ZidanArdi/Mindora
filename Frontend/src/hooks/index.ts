@@ -1,2 +1,1 @@
-// Custom React hooks for Mindora Frontend
-export {};
+export * from './useAuth';

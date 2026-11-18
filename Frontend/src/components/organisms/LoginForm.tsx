@@ -1,9 +1,22 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { UserIcon, ShieldIcon, MailIcon, LockIcon, EyeIcon, EyeOffIcon, ChevronRightIcon, Button } from '../atoms';
+import { useState, useEffect } from 'react';
+import { useNavigate, useSearchParams, Link } from 'react-router-dom';
+import {
+  UserIcon,
+  ShieldIcon,
+  MailIcon,
+  LockIcon,
+  EyeIcon,
+  EyeOffIcon,
+  ChevronRightIcon,
+  GoogleIcon,
+  Button,
+  Checkbox,
+  TurnstileWidget,
+} from '../atoms';
 import { FormField } from '../molecules';
-import { Checkbox } from '../atoms';
 import { cn } from '../../utils';
+import { useAuth } from '../../hooks';
+import { FEATURES } from '../../config/features';
 
 export interface LoginFormProps {
   className?: string;
@@ -11,34 +24,97 @@ export interface LoginFormProps {
 
 export const LoginForm = ({ className }: LoginFormProps) => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const { login, loginWithGoogle, isAuthenticated, user } = useAuth();
+
   const [role, setRole] = useState<'user' | 'admin'>('user');
-  const [email, setEmail] = useState('john@mindora.app');
-  const [password, setPassword] = useState('••••••••••••');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(true);
+  const [turnstileToken, setTurnstileToken] = useState('1x0000000000000000000000000000000AA');
+  
   const [loading, setLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(() => {
+    return searchParams.get('session_expired') === 'true'
+      ? 'Your session has expired. Please log in again to continue.'
+      : null;
+  });
+  const [infoMessage, setInfoMessage] = useState<string | null>(null);
+  const [showForgotModal, setShowForgotModal] = useState(false);
+
+  // If already authenticated, redirect to appropriate workspace
+  useEffect(() => {
+    if (isAuthenticated && user) {
+      if (user.role === 'admin' && role === 'admin') {
+        navigate('/admin');
+      } else {
+        navigate('/dashboard');
+      }
+    }
+  }, [isAuthenticated, user, navigate, role]);
 
   const handleRoleChange = (newRole: 'user' | 'admin') => {
     setRole(newRole);
-    if (newRole === 'admin') {
-      setEmail('john.admin@mindora.app');
-    } else {
-      setEmail('john@mindora.app');
+    setErrorMessage(null);
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setErrorMessage(null);
+    setInfoMessage(null);
+
+    if (!email.trim()) {
+      setErrorMessage('Please enter your email address');
+      return;
+    }
+    if (!password) {
+      setErrorMessage('Please enter your password');
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      const result = await login({
+        email: email.trim(),
+        password,
+        turnstile_token: turnstileToken,
+      });
+
+      // Role check and routing
+      if (role === 'admin') {
+        if (result.user.role === 'admin') {
+          navigate('/admin');
+        } else {
+          // User tried to log into admin console with user credentials
+          setInfoMessage('Your account has student permissions. Routing to user workspace...');
+          setTimeout(() => navigate('/dashboard'), 800);
+        }
+      } else {
+        navigate('/dashboard');
+      }
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        if (err.message.includes('Failed to fetch') || err.message.includes('NetworkError')) {
+          setErrorMessage('Backend server is unreachable at http://localhost:8080. Please ensure the backend is running.');
+        } else {
+          setErrorMessage(err.message);
+        }
+      } else {
+        setErrorMessage('Failed to sign in. Please verify your credentials and try again.');
+      }
+    } finally {
+      setLoading(false);
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-
-    setTimeout(() => {
-      setLoading(false);
-      if (role === 'admin') {
-        navigate('/admin');
-      } else {
-        navigate('/');
-      }
-    }, 400);
+  const handleGoogleClick = () => {
+    if (!FEATURES.ENABLE_GOOGLE_OAUTH) {
+      setInfoMessage('Google OAuth integration is temporarily disabled during development.');
+      return;
+    }
+    loginWithGoogle(turnstileToken);
   };
 
   return (
@@ -87,6 +163,49 @@ export const LoginForm = ({ className }: LoginFormProps) => {
         </button>
       </div>
 
+      {/* Error / Alert Banner */}
+      {errorMessage && (
+        <div className="p-3.5 rounded-xl bg-red-50/90 border border-red-200 text-red-700 text-xs font-medium flex items-start gap-2.5 animate-fadeIn">
+          <span className="font-bold text-red-800">Error:</span>
+          <span>{errorMessage}</span>
+        </div>
+      )}
+
+      {/* Info Notice Banner */}
+      {infoMessage && (
+        <div className="p-3.5 rounded-xl bg-nature-mint border border-primary/20 text-primary-900 text-xs font-medium flex items-start gap-2.5">
+          <span className="font-bold">Notice:</span>
+          <span>{infoMessage}</span>
+        </div>
+      )}
+
+      {/* Google OAuth Initiation (Explicit Feature Flag Controlled) */}
+      {FEATURES.ENABLE_GOOGLE_OAUTH && (
+        <>
+          <div>
+            <Button
+              type="button"
+              variant="outline"
+              size="lg"
+              onClick={handleGoogleClick}
+              disabled={loading}
+              className="w-full gap-3 text-xs sm:text-sm font-semibold justify-center hover:bg-surface-muted border-border shadow-soft-sm"
+            >
+              <GoogleIcon className="w-4 h-4" />
+              <span>Continue with Google</span>
+            </Button>
+          </div>
+
+          {/* Divider */}
+          <div className="relative flex items-center justify-center">
+            <div className="w-full border-t border-border"></div>
+            <span className="absolute bg-surface-card px-3 text-[11px] font-semibold text-text-muted uppercase tracking-wider">
+              Or continue with email
+            </span>
+          </div>
+        </>
+      )}
+
       {/* Form Body */}
       <form onSubmit={handleSubmit} className="space-y-4">
         {/* Email Field */}
@@ -95,7 +214,7 @@ export const LoginForm = ({ className }: LoginFormProps) => {
           type="email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          placeholder="your.email@mindora.app"
+          placeholder={role === 'admin' ? 'admin@mindora.app' : 'student@mindora.app'}
           required
           leftIcon={<MailIcon className="w-4 h-4 text-text-secondary" />}
         />
@@ -106,7 +225,7 @@ export const LoginForm = ({ className }: LoginFormProps) => {
           type={showPassword ? 'text' : 'password'}
           value={password}
           onChange={(e) => setPassword(e.target.value)}
-          placeholder="Enter password"
+          placeholder="Enter your password"
           required
           leftIcon={<LockIcon className="w-4 h-4 text-text-secondary" />}
           rightIcon={
@@ -129,13 +248,20 @@ export const LoginForm = ({ className }: LoginFormProps) => {
             onChange={(e) => setRememberMe(e.target.checked)}
           />
 
-          <a
-            href="#forgot-password"
-            className="text-xs font-semibold text-primary hover:text-primary-hover transition-colors"
+          <button
+            type="button"
+            onClick={() => setShowForgotModal(true)}
+            className="text-xs font-semibold text-primary hover:text-primary-hover transition-colors cursor-pointer"
           >
             Forgot password?
-          </a>
+          </button>
         </div>
+
+        {/* Turnstile Security Widget */}
+        <TurnstileWidget
+          action="login"
+          onVerify={(token) => setTurnstileToken(token)}
+        />
 
         {/* Primary Submit Button */}
         <div className="pt-2">
@@ -146,7 +272,7 @@ export const LoginForm = ({ className }: LoginFormProps) => {
             disabled={loading}
             className="w-full gap-2 text-sm font-bold justify-center shadow-soft-md"
           >
-            <span>{loading ? 'Signing in...' : `Sign in to ${role === 'admin' ? 'console' : 'workspace'}`}</span>
+            <span>{loading ? 'Authenticating...' : `Sign in to ${role === 'admin' ? 'console' : 'workspace'}`}</span>
             <ChevronRightIcon className="w-4 h-4" />
           </Button>
         </div>
@@ -156,19 +282,47 @@ export const LoginForm = ({ className }: LoginFormProps) => {
       <div className="text-center space-y-4 pt-2">
         <p className="text-xs text-text-secondary font-medium">
           New to Mindora?{' '}
-          <a
-            href="#create-account"
+          <Link
+            to="/register"
             className="font-bold text-primary hover:text-primary-hover transition-colors"
           >
             Create an account
-          </a>
+          </Link>
         </p>
 
-        {/* Non-intrusive footnote */}
         <p className="text-[11px] text-text-muted">
-          Frontend preview · Authentication will be enabled after the backend is connected.
+          Secured with JWT authentication, refresh token rotation & Cloudflare Turnstile.
         </p>
       </div>
+
+      {/* Forgot Password Modal (Pending Backend Implementation) */}
+      {showForgotModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-fadeIn">
+          <div className="bg-surface-card border border-border rounded-2xl p-6 max-w-sm w-full space-y-4 shadow-soft-xl">
+            <div className="w-10 h-10 rounded-xl bg-nature-mint text-primary flex items-center justify-center mx-auto">
+              <LockIcon className="w-5 h-5" />
+            </div>
+            <div className="text-center space-y-2">
+              <h3 className="text-base font-bold text-text-primary">Password Reset Notice</h3>
+              <p className="text-xs text-text-secondary leading-relaxed">
+                Self-service password recovery is currently pending administrative rollout in accordance with institutional security policies.
+              </p>
+              <p className="text-xs text-text-muted">
+                Please contact your campus administrator or write to <span className="font-semibold text-primary">support@mindora.app</span> to request credential verification.
+              </p>
+            </div>
+            <Button
+              type="button"
+              variant="primary"
+              size="md"
+              onClick={() => setShowForgotModal(false)}
+              className="w-full text-xs font-bold"
+            >
+              Understood
+            </Button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
