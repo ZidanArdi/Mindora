@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { DashboardTemplate } from '../components/templates';
 import { Button, Input } from '../components/atoms';
 import { productivityService } from '../services/productivityService';
@@ -27,7 +27,7 @@ export default function LifestyleTrackingPage() {
       };
 
   // Selected date in YYYY-MM-DD format
-  const todayString = useMemo(() => new Date().toISOString().split('T')[0], []);
+  const [todayString] = useState(() => new Date().toISOString().split('T')[0]);
   const [selectedDate, setSelectedDate] = useState<string>(todayString);
 
   // 8 Canonical Lifestyle Variables (stored as string in form to preserve empty/NULL state)

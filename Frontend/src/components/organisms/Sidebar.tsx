@@ -4,6 +4,8 @@ import { useAuth } from '../../hooks';
 import {
   GridIcon,
   ListIcon,
+  CalendarIcon,
+  MessageSquareIcon,
   ClockIcon,
   SparklesIcon,
   ChartBarIcon,
@@ -53,14 +55,41 @@ export const Sidebar = ({
 
   const isItemActive = (href: string) => {
     if (href === '/dashboard') {
-      return location.pathname === '/dashboard';
+      return location.pathname === '/dashboard' && !location.hash;
+    }
+    if (href === '/tasks') {
+      return (
+        location.pathname === '/tasks' ||
+        location.pathname === '/list' ||
+        (location.pathname === '/dashboard' && location.hash === '#list')
+      );
+    }
+    if (href === '/calendar') {
+      return (
+        location.pathname === '/calendar' ||
+        (location.pathname === '/dashboard' && location.hash === '#calendar')
+      );
+    }
+    if (href === '/messages') {
+      return (
+        location.pathname === '/messages' ||
+        (location.pathname === '/dashboard' && location.hash === '#messages')
+      );
+    }
+    if (href.startsWith('/admin#')) {
+      const hashPart = href.replace('/admin', '');
+      return location.pathname === '/admin' && location.hash === hashPart;
+    }
+    if (href === '/admin') {
+      return location.pathname === '/admin' && (!location.hash || location.hash === '');
     }
     return location.pathname.startsWith(href);
   };
 
   const userCoreNavItems = [
     { label: 'Dashboard', icon: <GridIcon className="w-4 h-4" />, href: '/dashboard' },
-    { label: 'Tasks', icon: <ListIcon className="w-4 h-4" />, href: '/tasks' },
+    { label: 'List / Tasks', icon: <ListIcon className="w-4 h-4" />, href: '/tasks' },
+    { label: 'Calendar', icon: <CalendarIcon className="w-4 h-4" />, href: '/calendar' },
     { label: 'Study Tracking', icon: <ClockIcon className="w-4 h-4" />, href: '/study' },
     {
       label: 'Focus',
@@ -87,6 +116,7 @@ export const Sidebar = ({
 
   const userInsightsNavItems = [
     { label: 'Analytics', icon: <ChartBarIcon className="w-4 h-4" />, href: '/analytics' },
+    { label: 'Messages', icon: <MessageSquareIcon className="w-4 h-4" />, href: '/messages', tag: 'Phase 4' },
     { label: 'Reports', icon: <ExportIcon className="w-4 h-4" />, href: '/reports', tag: 'Phase 4' },
     { label: 'Recommendations', icon: <SparklesIcon className="w-4 h-4" />, href: '/recommendations', tag: 'Phase 4' },
   ];

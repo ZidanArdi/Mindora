@@ -1,5 +1,7 @@
-import { API_BASE_URL, apiFetch, setAccessToken, clearAuth } from './api';
+import { API_BASE_URL, apiFetch, setAccessToken, getAccessToken, clearAuth } from './api';
 import type { AuthResult, LoginPayload, RegisterPayload, UserResponse } from '../types';
+
+let inFlightRefreshPromise: Promise<AuthResult> | null = null;
 
 export const authService = {
   /**
@@ -51,30 +53,53 @@ export const authService = {
 
   /**
    * Refresh session using HttpOnly cookie and operation ID for distributed idempotency.
+   * Deduplicates concurrent in-flight requests (e.g. React StrictMode double mounts).
    */
   refreshToken: async (): Promise<AuthResult> => {
-    const operationId = typeof crypto !== 'undefined' && crypto.randomUUID
-      ? crypto.randomUUID()
-      : 'op_' + Math.random().toString(36).substring(2) + Date.now().toString(36);
-
-    const res = await fetch(`${API_BASE_URL}/auth/refresh`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-Operation-ID': operationId,
-      },
-      credentials: 'include',
-      body: JSON.stringify({ operation_id: operationId }),
-    });
-
-    const json = await res.json();
-    if (!res.ok || !json.success) {
-      clearAuth();
-      throw new Error(json.message || 'Session refresh failed');
+    if (inFlightRefreshPromise) {
+      return inFlightRefreshPromise;
     }
 
-    setAccessToken(json.data.access_token);
-    return json.data;
+    inFlightRefreshPromise = (async () => {
+      try {
+        const operationId =
+          typeof crypto !== 'undefined' && crypto.randomUUID
+            ? crypto.randomUUID()
+            : 'op_' + Math.random().toString(36).substring(2) + Date.now().toString(36);
+
+        const res = await fetch(`${API_BASE_URL}/auth/refresh`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          credentials: 'include',
+          body: JSON.stringify({ operation_id: operationId }),
+        });
+
+        if (res.status === 409) {
+          // If another concurrent call already refreshed, wait 150ms and check token
+          await new Promise((r) => setTimeout(r, 150));
+          const currentToken = getAccessToken();
+          if (currentToken) {
+            const profile = await authService.getProfile();
+            return { access_token: currentToken, token_type: 'Bearer', expires_in: 900, user: profile };
+          }
+        }
+
+        const json = await res.json();
+        if (!res.ok || !json.success) {
+          clearAuth();
+          throw new Error(json.message || 'Session refresh failed');
+        }
+
+        setAccessToken(json.data.access_token);
+        return json.data;
+      } finally {
+        inFlightRefreshPromise = null;
+      }
+    })();
+
+    return inFlightRefreshPromise;
   },
 
   /**

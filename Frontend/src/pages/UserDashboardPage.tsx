@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { DashboardTemplate } from '../components/templates';
 import { UserHeroBanner, AIAssistantWidget, FocusTimerWidget } from '../components/organisms';
 import { CalendarWidget } from '../components/molecules';
@@ -10,7 +10,19 @@ import { useAuth } from '../hooks';
 
 export default function UserDashboardPage() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { user } = useAuth();
+
+  // Redirect legacy hash anchors to dedicated routes so the dashboard is not stuck
+  useEffect(() => {
+    if (location.hash === '#list') {
+      navigate('/tasks', { replace: true });
+    } else if (location.hash === '#calendar') {
+      navigate('/calendar', { replace: true });
+    } else if (location.hash === '#messages') {
+      navigate('/messages', { replace: true });
+    }
+  }, [location.hash, navigate]);
 
   const isAdminViewingUserWorkspace = user?.role === 'admin';
   const [summary, setSummary] = useState<DashboardSummary | null>(null);

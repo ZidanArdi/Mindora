@@ -7,6 +7,7 @@ import {
   HomePage,
   ForbiddenPage,
   TasksPage,
+  CalendarPage,
   StudyTrackingPage,
   FocusTrackingPage,
   LifestyleTrackingPage,
@@ -15,6 +16,15 @@ import {
 } from './pages';
 import { AuthProvider } from './context/AuthContext';
 import { ProtectedRoute } from './components/auth/ProtectedRoute';
+import { useAuth } from './hooks';
+
+function UnknownRouteRedirect() {
+  const { user, isAuthenticated } = useAuth();
+  if (isAuthenticated && user) {
+    return <Navigate to={user.role === 'admin' ? '/admin' : '/dashboard'} replace />;
+  }
+  return <Navigate to="/" replace />;
+}
 
 export default function App() {
   return (
@@ -41,6 +51,17 @@ export default function App() {
             element={
               <ProtectedRoute allowedRoles={['user', 'admin']}>
                 <TasksPage />
+              </ProtectedRoute>
+            }
+          />
+          {/* Legacy & Shortcut Alias for Tasks */}
+          <Route path="/list" element={<Navigate to="/tasks" replace />} />
+
+          <Route
+            path="/calendar"
+            element={
+              <ProtectedRoute allowedRoles={['user', 'admin']}>
+                <CalendarPage />
               </ProtectedRoute>
             }
           />
@@ -75,6 +96,16 @@ export default function App() {
             element={
               <ProtectedRoute allowedRoles={['user', 'admin']}>
                 <AnalyticsPage />
+              </ProtectedRoute>
+            }
+          />
+
+          {/* Phase 4 Modules Placeholders (Guarded: User & Admin) */}
+          <Route
+            path="/messages"
+            element={
+              <ProtectedRoute allowedRoles={['user', 'admin']}>
+                <PlaceholderModulePage />
               </ProtectedRoute>
             }
           />
@@ -120,9 +151,17 @@ export default function App() {
               </ProtectedRoute>
             }
           />
+          <Route
+            path="/admin/*"
+            element={
+              <ProtectedRoute allowedRoles={['admin']}>
+                <AdminDashboardPage />
+              </ProtectedRoute>
+            }
+          />
 
-          {/* Catch-all route: redirect unknown paths to landing page */}
-          <Route path="*" element={<Navigate to="/" replace />} />
+          {/* Catch-all route: smart redirect based on session status */}
+          <Route path="*" element={<UnknownRouteRedirect />} />
         </Routes>
       </AuthProvider>
     </BrowserRouter>

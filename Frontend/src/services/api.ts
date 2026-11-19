@@ -59,7 +59,6 @@ const getSharedRefreshToken = async (): Promise<string> => {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'X-Operation-ID': operationId,
         },
         credentials: 'include', // Includes HttpOnly refresh_token cookie
         body: JSON.stringify({ operation_id: operationId }),

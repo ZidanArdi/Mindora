@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import {
   UserIcon,
@@ -23,7 +23,14 @@ export interface RegisterFormProps {
 
 export const RegisterForm = ({ className }: RegisterFormProps) => {
   const navigate = useNavigate();
-  const { register, loginWithGoogle } = useAuth();
+  const { register, loginWithGoogle, isAuthenticated, user } = useAuth();
+
+  // Redirect authenticated user to workspace
+  useEffect(() => {
+    if (isAuthenticated && user) {
+      navigate(user.role === 'admin' ? '/admin' : '/dashboard', { replace: true });
+    }
+  }, [isAuthenticated, user, navigate]);
 
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');

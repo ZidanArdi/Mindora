@@ -44,6 +44,21 @@ const moduleConfigs: Record<string, ModuleConfig> = {
     ],
     icon: '📑',
   },
+  '/messages': {
+    title: 'Study Groups & Messages',
+    subtitle: 'Peer collaboration, study group discussions, and academic messaging.',
+    phase: 'Phase 4',
+    badge: 'Coming in Phase 4',
+    description:
+      'Connect with classmates, share study room invites, and collaborate on group assignments with real-time peer messaging.',
+    expectedFeatures: [
+      'Course-based peer study group channels',
+      'Direct peer-to-peer messaging',
+      'Study session invitations and shared focus rooms',
+      'Assignment file attachments and peer reviews',
+    ],
+    icon: '💬',
+  },
   '/recommendations': {
     title: 'AI Productivity Recommendations',
     subtitle: 'Machine learning suggestions based on your personal habit calibration.',

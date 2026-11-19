@@ -9,4 +9,5 @@ export { default as StudyTrackingPage } from './StudyTrackingPage';
 export { default as FocusTrackingPage } from './FocusTrackingPage';
 export { default as LifestyleTrackingPage } from './LifestyleTrackingPage';
 export { default as AnalyticsPage } from './AnalyticsPage';
+export { default as CalendarPage } from './CalendarPage';
 export { default as PlaceholderModulePage } from './PlaceholderModulePage';
