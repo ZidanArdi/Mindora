@@ -10,6 +10,7 @@ import {
   StudyTrackingPage,
   FocusTrackingPage,
   LifestyleTrackingPage,
+  AnalyticsPage,
   PlaceholderModulePage,
 } from './pages';
 import { AuthProvider } from './context/AuthContext';
@@ -68,12 +69,12 @@ export default function App() {
             }
           />
 
-          {/* Future Modules Placeholders (Guarded: User & Admin) */}
+          {/* Phase 3 Analytics & ML Prediction (Guarded: User & Admin) */}
           <Route
             path="/analytics"
             element={
               <ProtectedRoute allowedRoles={['user', 'admin']}>
-                <PlaceholderModulePage />
+                <AnalyticsPage />
               </ProtectedRoute>
             }
           />

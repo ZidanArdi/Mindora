@@ -5,7 +5,7 @@ import { UserHeroBanner, AIAssistantWidget, FocusTimerWidget } from '../componen
 import { CalendarWidget } from '../components/molecules';
 import { ShieldIcon, Button, CheckIcon } from '../components/atoms';
 import { productivityService } from '../services/productivityService';
-import type { DashboardSummary, UserProfile, TaskStatus } from '../types';
+import type { DashboardSummary, UserProfile, TaskStatus, ProductivityPrediction } from '../types';
 import { useAuth } from '../hooks';
 
 export default function UserDashboardPage() {
@@ -14,6 +14,7 @@ export default function UserDashboardPage() {
 
   const isAdminViewingUserWorkspace = user?.role === 'admin';
   const [summary, setSummary] = useState<DashboardSummary | null>(null);
+  const [latestPrediction, setLatestPrediction] = useState<ProductivityPrediction | null>(null);
   const [loading, setLoading] = useState(() => !isAdminViewingUserWorkspace);
 
   const displayUser: UserProfile = user
@@ -45,9 +46,15 @@ export default function UserDashboardPage() {
     const fetchSummary = async () => {
       try {
         setLoading(true);
-        const data = await productivityService.getDashboardSummary();
+        const [data, predRes] = await Promise.all([
+          productivityService.getDashboardSummary(),
+          productivityService.listPredictions({ page: 1, limit: 1 }).catch(() => null),
+        ]);
         if (isMounted) {
           setSummary(data);
+          if (predRes && predRes.items && predRes.items.length > 0) {
+            setLatestPrediction(predRes.items[0]);
+          }
         }
       } catch (err: unknown) {
         console.error('Failed to load dashboard summary:', err);
@@ -328,8 +335,38 @@ export default function UserDashboardPage() {
               </div>
             </div>
 
-            {/* Right Column (4 cols): Calendar & Focus Quickstart */}
+            {/* Right Column (4 cols): Prediction, Calendar & Focus Quickstart */}
             <div className="lg:col-span-4 space-y-6">
+              {/* ML Productivity Estimate Quick Card */}
+              <div className="bg-gradient-to-br from-[#123C32] to-[#0A261F] text-white rounded-3xl p-5 shadow-soft-xs space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-300 bg-white/10 px-2 py-0.5 rounded-full">
+                    ML Productivity Estimate
+                  </span>
+                  <span className="text-[10px] font-mono text-white/60">Ridge v1.0.0</span>
+                </div>
+                <div className="flex items-baseline justify-between pt-1">
+                  <div>
+                    <div className="text-3xl font-black text-emerald-400">
+                      {latestPrediction ? Math.round(latestPrediction.predicted_score) : '--'}
+                      <span className="text-sm font-normal text-white/50">/100</span>
+                    </div>
+                    <span className="text-[11px] text-white/70 block mt-0.5">
+                      {latestPrediction ? `For ${latestPrediction.prediction_date}` : 'No estimate recorded today'}
+                    </span>
+                  </div>
+                  <Link
+                    to="/analytics"
+                    className="text-xs font-bold text-emerald-300 hover:text-white transition-colors"
+                  >
+                    Full Analytics →
+                  </Link>
+                </div>
+                <p className="text-[10px] text-white/60 border-t border-white/10 pt-2 leading-relaxed">
+                  Estimated from habit patterns (study, sleep, phone, stress). Strictly not an objective grade.
+                </p>
+              </div>
+
               <CalendarWidget />
               <FocusTimerWidget />
             </div>

@@ -13,6 +13,13 @@ import type {
   LifestyleRecord,
   UpsertLifestylePayload,
   DashboardSummary,
+  DailyAnalytics,
+  WeeklyAnalytics,
+  MonthlyAnalytics,
+  AnalyticsSummary,
+  ProductivityPrediction,
+  PredictionInput,
+  PredictionHistoryResponse,
 } from '../types';
 
 export const productivityService = {
@@ -348,6 +355,114 @@ export const productivityService = {
     }
     const data: ApiResponse<DashboardSummary> = await res.json();
     if (!data.data) throw new Error('No summary returned');
+    return data.data;
+  },
+
+  // =========================================================================
+  // 6. Productivity Analytics APIs (Phase 3)
+  // =========================================================================
+  async getDailyAnalytics(date?: string, tz?: string): Promise<DailyAnalytics> {
+    const params = new URLSearchParams();
+    if (date) params.set('date', date);
+    if (tz) params.set('tz', tz);
+    const query = params.toString() ? `?${params.toString()}` : '';
+
+    const res = await apiFetch(`/analytics/daily${query}`);
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.message || 'Failed to fetch daily analytics');
+    }
+    const data: ApiResponse<DailyAnalytics> = await res.json();
+    if (!data.data) throw new Error('No daily analytics returned');
+    return data.data;
+  },
+
+  async getWeeklyAnalytics(endDate?: string, tz?: string): Promise<WeeklyAnalytics> {
+    const params = new URLSearchParams();
+    if (endDate) params.set('end_date', endDate);
+    if (tz) params.set('tz', tz);
+    const query = params.toString() ? `?${params.toString()}` : '';
+
+    const res = await apiFetch(`/analytics/weekly${query}`);
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.message || 'Failed to fetch weekly analytics');
+    }
+    const data: ApiResponse<WeeklyAnalytics> = await res.json();
+    if (!data.data) throw new Error('No weekly analytics returned');
+    return data.data;
+  },
+
+  async getMonthlyAnalytics(endDate?: string, tz?: string): Promise<MonthlyAnalytics> {
+    const params = new URLSearchParams();
+    if (endDate) params.set('end_date', endDate);
+    if (tz) params.set('tz', tz);
+    const query = params.toString() ? `?${params.toString()}` : '';
+
+    const res = await apiFetch(`/analytics/monthly${query}`);
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.message || 'Failed to fetch monthly analytics');
+    }
+    const data: ApiResponse<MonthlyAnalytics> = await res.json();
+    if (!data.data) throw new Error('No monthly analytics returned');
+    return data.data;
+  },
+
+  async getAnalyticsSummary(tz?: string): Promise<AnalyticsSummary> {
+    const query = tz ? `?tz=${encodeURIComponent(tz)}` : '';
+    const res = await apiFetch(`/analytics/summary${query}`);
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.message || 'Failed to fetch analytics summary');
+    }
+    const data: ApiResponse<AnalyticsSummary> = await res.json();
+    if (!data.data) throw new Error('No analytics summary returned');
+    return data.data;
+  },
+
+  // =========================================================================
+  // 7. ML Productivity Prediction APIs (Phase 3)
+  // =========================================================================
+  async createPrediction(input?: PredictionInput): Promise<ProductivityPrediction> {
+    const res = await apiFetch('/predictions', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(input || {}),
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.message || 'Failed to generate productivity prediction');
+    }
+    const data: ApiResponse<ProductivityPrediction> = await res.json();
+    if (!data.data) throw new Error('No prediction returned');
+    return data.data;
+  },
+
+  async listPredictions(params: { page?: number; limit?: number } = {}): Promise<PredictionHistoryResponse> {
+    const q = new URLSearchParams();
+    if (params.page) q.set('page', params.page.toString());
+    if (params.limit) q.set('limit', params.limit.toString());
+    const query = q.toString() ? `?${q.toString()}` : '';
+
+    const res = await apiFetch(`/predictions${query}`);
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.message || 'Failed to fetch prediction history');
+    }
+    const data: ApiResponse<PredictionHistoryResponse> = await res.json();
+    if (!data.data) throw new Error('No prediction history returned');
+    return data.data;
+  },
+
+  async getPredictionById(id: string): Promise<ProductivityPrediction> {
+    const res = await apiFetch(`/predictions/${id}`);
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.message || 'Failed to fetch prediction details');
+    }
+    const data: ApiResponse<ProductivityPrediction> = await res.json();
+    if (!data.data) throw new Error('No prediction found');
     return data.data;
   },
 };

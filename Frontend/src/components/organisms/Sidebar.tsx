@@ -86,9 +86,9 @@ export const Sidebar = ({
   ];
 
   const userInsightsNavItems = [
-    { label: 'Analytics', icon: <ChartBarIcon className="w-4 h-4" />, href: '/analytics', tag: 'Phase 3' },
+    { label: 'Analytics', icon: <ChartBarIcon className="w-4 h-4" />, href: '/analytics' },
     { label: 'Reports', icon: <ExportIcon className="w-4 h-4" />, href: '/reports', tag: 'Phase 4' },
-    { label: 'Recommendations', icon: <SparklesIcon className="w-4 h-4" />, href: '/recommendations', tag: 'Phase 3' },
+    { label: 'Recommendations', icon: <SparklesIcon className="w-4 h-4" />, href: '/recommendations', tag: 'Phase 4' },
   ];
 
   const userSettingsNavItems = [

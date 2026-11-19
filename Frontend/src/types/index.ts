@@ -238,3 +238,115 @@ export interface ProductivityChartData {
   completed: number;
   created: number;
 }
+
+// =============================================================================
+// Phase 3: Machine Learning & Productivity Analytics Types
+// =============================================================================
+
+export interface ProductivityPrediction {
+  id: string;
+  user_id: string;
+  predicted_score: number;
+  model_version: string;
+  algorithm?: string;
+  study_hours: number;
+  sleep_hours?: number;
+  phone_usage_hours?: number;
+  stress_level?: number;
+  features_snapshot?: Record<string, unknown> | string;
+  prediction_date: string;
+  disclaimer?: string;
+  created_at: string;
+}
+
+export interface PredictionInput {
+  date?: string;
+  timezone?: string;
+  study_hours?: number;
+  sleep_hours?: number;
+  phone_usage_hours?: number;
+  stress_level?: number;
+}
+
+export interface PredictionHistoryResponse {
+  items: ProductivityPrediction[];
+  total: number;
+  page: number;
+  limit: number;
+  total_pages: number;
+  model_version: string;
+  disclaimer: string;
+}
+
+export interface DailyAnalytics {
+  date: string;
+  total_study_seconds: number;
+  total_study_formatted: string;
+  total_focus_minutes: number;
+  total_break_minutes: number;
+  completed_study_sessions: number;
+  completed_focus_count: number;
+  completed_breaks_count: number;
+  total_interruptions: number;
+  completed_tasks_count: number;
+  lifestyle?: LifestyleRecord;
+  latest_prediction?: ProductivityPrediction;
+}
+
+export interface DailyMetricPoint {
+  date: string;
+  study_duration_hours: number;
+  focus_duration_hours: number;
+  break_duration_hours: number;
+  completed_tasks_count: number;
+  sleep_hours?: number;
+  phone_usage_hours?: number;
+  stress_level?: number;
+}
+
+export interface WeeklyAnalytics {
+  start_date: string;
+  end_date: string;
+  total_study_seconds: number;
+  total_study_formatted: string;
+  total_focus_minutes: number;
+  total_break_minutes: number;
+  total_completed_tasks: number;
+  study_consistency_percentage: number;
+  daily_points: DailyMetricPoint[];
+  average_sleep_hours?: number;
+  average_phone_usage_hours?: number;
+  average_stress_level?: number;
+}
+
+export interface MonthlyAnalytics {
+  start_date: string;
+  end_date: string;
+  total_study_seconds: number;
+  total_study_formatted: string;
+  total_focus_minutes: number;
+  total_break_minutes: number;
+  total_completed_tasks: number;
+  study_consistency_percentage: number;
+  daily_points: DailyMetricPoint[];
+  average_sleep_hours?: number;
+  average_phone_usage_hours?: number;
+  average_stress_level?: number;
+}
+
+export interface AnalyticsSummary {
+  today_study_seconds: number;
+  today_study_formatted: string;
+  today_focus_minutes: number;
+  today_completed_tasks: number;
+  week_study_seconds: number;
+  week_study_formatted: string;
+  week_focus_minutes: number;
+  week_completed_tasks: number;
+  study_consistency_percentage: number;
+  latest_prediction?: ProductivityPrediction;
+  today_lifestyle_logged: boolean;
+  active_study_session?: StudySession;
+  active_focus_session?: FocusSession;
+}
+
