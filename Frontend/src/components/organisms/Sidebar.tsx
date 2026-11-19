@@ -283,17 +283,6 @@ export const Sidebar = ({
                   })}
                 </nav>
               </div>
-
-              {/* Quick switch to Admin demo */}
-              <div className="pt-2 border-t border-border-subtle">
-                <Link
-                  to="/admin"
-                  className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold text-emerald-800 bg-emerald-50 hover:bg-emerald-100 transition-colors border border-emerald-200"
-                >
-                  <ShieldIcon className="w-4 h-4 text-emerald-600" />
-                  <span>Switch to Admin Console</span>
-                </Link>
-              </div>
             </div>
           ) : (
             /* Admin Mode Navigation */

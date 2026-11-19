@@ -1,9 +1,121 @@
 import { useState, useEffect, useCallback } from 'react';
 import { DashboardTemplate } from '../components/templates';
-import { Button, Input } from '../components/atoms';
+import { Button } from '../components/atoms';
 import { productivityService } from '../services/productivityService';
 import type { LifestyleRecord, UpsertLifestylePayload, UserProfile } from '../types';
 import { useAuth } from '../hooks';
+
+interface DropdownOption {
+  value: string;
+  label: string;
+}
+
+// 1. Sleep Duration Options (midpoints: 2.0, 4.5, 5.5, 6.5, 7.5, 8.5; open-ended: 9.5)
+const SLEEP_OPTIONS: DropdownOption[] = [
+  { value: '', label: 'Not recorded' },
+  { value: '2.0', label: '0–4 hours' },
+  { value: '4.5', label: '4–5 hours' },
+  { value: '5.5', label: '5–6 hours' },
+  { value: '6.5', label: '6–7 hours' },
+  { value: '7.5', label: '7–8 hours' },
+  { value: '8.5', label: '8–9 hours' },
+  { value: '9.5', label: '9+ hours' },
+];
+
+// 2. Phone Screen Time Options (midpoints: 0.5, 1.5, 2.5, 3.5, 4.5, 5.5; open-ended: 6.5)
+const PHONE_OPTIONS: DropdownOption[] = [
+  { value: '', label: 'Not recorded' },
+  { value: '0.5', label: '0–1 hours' },
+  { value: '1.5', label: '1–2 hours' },
+  { value: '2.5', label: '2–3 hours' },
+  { value: '3.5', label: '3–4 hours' },
+  { value: '4.5', label: '4–5 hours' },
+  { value: '5.5', label: '5–6 hours' },
+  { value: '6.5', label: '6+ hours' },
+];
+
+// 3. Social Media Options (midpoints: 0.5, 1.5, 2.5, 3.5; open-ended: 4.5)
+const SOCIAL_OPTIONS: DropdownOption[] = [
+  { value: '', label: 'Not recorded' },
+  { value: '0.5', label: '0–1 hours' },
+  { value: '1.5', label: '1–2 hours' },
+  { value: '2.5', label: '2–3 hours' },
+  { value: '3.5', label: '3–4 hours' },
+  { value: '4.5', label: '4+ hours' },
+];
+
+// 4. YouTube Stream Options (midpoints: 0.5, 1.5, 2.5, 3.5; open-ended: 4.5)
+const YOUTUBE_OPTIONS: DropdownOption[] = [
+  { value: '', label: 'Not recorded' },
+  { value: '0.5', label: '0–1 hours' },
+  { value: '1.5', label: '1–2 hours' },
+  { value: '2.5', label: '2–3 hours' },
+  { value: '3.5', label: '3–4 hours' },
+  { value: '4.5', label: '4+ hours' },
+];
+
+// 5. Gaming Time Options (exact 0; midpoints: 1.5, 2.5, 3.5; open-ended: 4.5)
+const GAMING_OPTIONS: DropdownOption[] = [
+  { value: '', label: 'Not recorded' },
+  { value: '0', label: '0 hours' },
+  { value: '1.5', label: '1–2 hours' },
+  { value: '2.5', label: '2–3 hours' },
+  { value: '3.5', label: '3–4 hours' },
+  { value: '4.5', label: '4+ hours' },
+];
+
+// 6. Caffeine Intake Options (exact 0; integer midpoints in mg: 25, 75, 125, 175, 250; open-ended: 350)
+const CAFFEINE_OPTIONS: DropdownOption[] = [
+  { value: '', label: 'Not recorded' },
+  { value: '0', label: '0 mg' },
+  { value: '25', label: '1–50 mg' },
+  { value: '75', label: '51–100 mg' },
+  { value: '125', label: '101–150 mg' },
+  { value: '175', label: '151–200 mg' },
+  { value: '250', label: '201–300 mg' },
+  { value: '350', label: '300+ mg' },
+];
+
+// 7. Exercise / Workout Options (exact 0; midpoints: 8, 23, 38, 53, 75; open-ended: 105)
+const EXERCISE_OPTIONS: DropdownOption[] = [
+  { value: '', label: 'Not recorded' },
+  { value: '0', label: '0 minutes' },
+  { value: '8', label: '1–15 minutes' },
+  { value: '23', label: '16–30 minutes' },
+  { value: '38', label: '31–45 minutes' },
+  { value: '53', label: '46–60 minutes' },
+  { value: '75', label: '61–90 minutes' },
+  { value: '105', label: '90+ minutes' },
+];
+
+// 8. Perceived Stress Options (1 through 10)
+const STRESS_OPTIONS: DropdownOption[] = [
+  { value: '', label: 'Not recorded' },
+  { value: '1', label: '1 - Low / Calm' },
+  { value: '2', label: '2' },
+  { value: '3', label: '3' },
+  { value: '4', label: '4' },
+  { value: '5', label: '5 - Moderate' },
+  { value: '6', label: '6' },
+  { value: '7', label: '7' },
+  { value: '8', label: '8' },
+  { value: '9', label: '9' },
+  { value: '10', label: '10 - High / Overwhelmed' },
+];
+
+/**
+ * Safely preserves and renders existing numeric values that may not match predefined midpoints.
+ */
+function getOptionsWithCustom(options: DropdownOption[], currentValue: string, unit: string): DropdownOption[] {
+  if (!currentValue || options.some((opt) => opt.value === currentValue)) {
+    return options;
+  }
+  const customOption: DropdownOption = {
+    value: currentValue,
+    label: `Custom: ${currentValue} ${unit}`,
+  };
+  return [...options, customOption];
+}
 
 export default function LifestyleTrackingPage() {
   const { user } = useAuth();
@@ -38,7 +150,7 @@ export default function LifestyleTrackingPage() {
   const [gamingHours, setGamingHours] = useState<string>('');
   const [coffeeIntakeMg, setCoffeeIntakeMg] = useState<string>('');
   const [exerciseMinutes, setExerciseMinutes] = useState<string>('');
-  const [stressLevel, setStressLevel] = useState<number | ''>('');
+  const [stressLevel, setStressLevel] = useState<string>('');
   const [notes, setNotes] = useState<string>('');
 
   const [loadingRecord, setLoadingRecord] = useState(false);
@@ -68,7 +180,7 @@ export default function LifestyleTrackingPage() {
         setGamingHours(record.gaming_hours !== null && record.gaming_hours !== undefined ? String(record.gaming_hours) : '');
         setCoffeeIntakeMg(record.coffee_intake_mg !== null && record.coffee_intake_mg !== undefined ? String(record.coffee_intake_mg) : '');
         setExerciseMinutes(record.exercise_minutes !== null && record.exercise_minutes !== undefined ? String(record.exercise_minutes) : '');
-        setStressLevel(record.stress_level !== null && record.stress_level !== undefined ? record.stress_level : '');
+        setStressLevel(record.stress_level !== null && record.stress_level !== undefined ? String(record.stress_level) : '');
         setNotes(record.notes || '');
       } else {
         // Reset form to blank (preserving NULL/unrecorded)
@@ -121,9 +233,9 @@ export default function LifestyleTrackingPage() {
       social_media_hours: parseNum(socialMediaHours),
       youtube_hours: parseNum(youtubeHours),
       gaming_hours: parseNum(gamingHours),
-      coffee_intake_mg: parseNum(coffeeIntakeMg),
+      coffee_intake_mg: parseIntVal(coffeeIntakeMg),
       exercise_minutes: parseIntVal(exerciseMinutes),
-      stress_level: typeof stressLevel === 'number' ? stressLevel : undefined,
+      stress_level: parseIntVal(stressLevel),
       notes: notes.trim() || undefined,
     };
 
@@ -216,195 +328,260 @@ export default function LifestyleTrackingPage() {
 
             {/* 8 Canonical Variables in a responsive 2/4-column grid */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-              {/* 1. Sleep Hours */}
+              {/* 1. Sleep Duration */}
               <div className="p-4 rounded-2xl bg-slate-50/70 border border-slate-200/60 space-y-2">
                 <div className="flex items-center justify-between">
-                  <label className="text-xs font-bold text-[#123C32]">Sleep Duration</label>
+                  <label htmlFor="select-sleep" className="text-xs font-bold text-[#123C32]">
+                    Sleep Duration
+                  </label>
                   <span className="text-[11px] font-semibold text-teal-700 bg-teal-50 px-2 py-0.5 rounded-full border border-teal-200">
                     Hours
                   </span>
                 </div>
-                <Input
-                  type="number"
-                  step="0.1"
-                  min="0"
-                  max="24"
-                  placeholder="e.g. 7.5"
+                <select
+                  id="select-sleep"
                   value={sleepHours}
                   onChange={(e) => setSleepHours(e.target.value)}
-                  className="bg-white"
-                />
+                  className="w-full h-10 px-3 rounded-xl border border-border bg-white text-xs font-semibold text-text-primary focus:outline-none focus:ring-2 focus:ring-primary/20 cursor-pointer"
+                >
+                  {getOptionsWithCustom(SLEEP_OPTIONS, sleepHours, 'hrs').map((opt) => (
+                    <option key={opt.value} value={opt.value}>
+                      {opt.label}
+                    </option>
+                  ))}
+                </select>
                 <p className="text-[10px] text-text-secondary leading-tight">
-                  Total sleep including deep restorative sleep & naps (0–24 hrs).
+                  Total sleep including deep sleep & naps.
+                  {sleepHours !== '' && (
+                    <span className="text-[#138F78] font-bold block mt-0.5">
+                      Calibrates as {sleepHours}h
+                    </span>
+                  )}
                 </p>
               </div>
 
-              {/* 2. Phone Usage Hours */}
+              {/* 2. Phone Screen Time */}
               <div className="p-4 rounded-2xl bg-slate-50/70 border border-slate-200/60 space-y-2">
                 <div className="flex items-center justify-between">
-                  <label className="text-xs font-bold text-[#123C32]">Phone Screen Time</label>
+                  <label htmlFor="select-phone" className="text-xs font-bold text-[#123C32]">
+                    Phone Screen Time
+                  </label>
                   <span className="text-[11px] font-semibold text-teal-700 bg-teal-50 px-2 py-0.5 rounded-full border border-teal-200">
                     Hours
                   </span>
                 </div>
-                <Input
-                  type="number"
-                  step="0.1"
-                  min="0"
-                  max="24"
-                  placeholder="e.g. 3.2"
+                <select
+                  id="select-phone"
                   value={phoneUsageHours}
                   onChange={(e) => setPhoneUsageHours(e.target.value)}
-                  className="bg-white"
-                />
+                  className="w-full h-10 px-3 rounded-xl border border-border bg-white text-xs font-semibold text-text-primary focus:outline-none focus:ring-2 focus:ring-primary/20 cursor-pointer"
+                >
+                  {getOptionsWithCustom(PHONE_OPTIONS, phoneUsageHours, 'hrs').map((opt) => (
+                    <option key={opt.value} value={opt.value}>
+                      {opt.label}
+                    </option>
+                  ))}
+                </select>
                 <p className="text-[10px] text-text-secondary leading-tight">
-                  Total smartphone active screen-on time (from Digital Wellbeing).
+                  Smartphone active screen-on time.
+                  {phoneUsageHours !== '' && (
+                    <span className="text-[#138F78] font-bold block mt-0.5">
+                      Calibrates as {phoneUsageHours}h
+                    </span>
+                  )}
                 </p>
               </div>
 
-              {/* 3. Social Media Hours */}
+              {/* 3. Social Media */}
               <div className="p-4 rounded-2xl bg-slate-50/70 border border-slate-200/60 space-y-2">
                 <div className="flex items-center justify-between">
-                  <label className="text-xs font-bold text-[#123C32]">Social Media</label>
+                  <label htmlFor="select-social" className="text-xs font-bold text-[#123C32]">
+                    Social Media
+                  </label>
                   <span className="text-[11px] font-semibold text-teal-700 bg-teal-50 px-2 py-0.5 rounded-full border border-teal-200">
                     Hours
                   </span>
                 </div>
-                <Input
-                  type="number"
-                  step="0.1"
-                  min="0"
-                  max="24"
-                  placeholder="e.g. 1.5"
+                <select
+                  id="select-social"
                   value={socialMediaHours}
                   onChange={(e) => setSocialMediaHours(e.target.value)}
-                  className="bg-white"
-                />
+                  className="w-full h-10 px-3 rounded-xl border border-border bg-white text-xs font-semibold text-text-primary focus:outline-none focus:ring-2 focus:ring-primary/20 cursor-pointer"
+                >
+                  {getOptionsWithCustom(SOCIAL_OPTIONS, socialMediaHours, 'hrs').map((opt) => (
+                    <option key={opt.value} value={opt.value}>
+                      {opt.label}
+                    </option>
+                  ))}
+                </select>
                 <p className="text-[10px] text-text-secondary leading-tight">
-                  Instagram, TikTok, Twitter/X, and social browsing feeds.
+                  Instagram, TikTok, Twitter/X, and feeds.
+                  {socialMediaHours !== '' && (
+                    <span className="text-[#138F78] font-bold block mt-0.5">
+                      Calibrates as {socialMediaHours}h
+                    </span>
+                  )}
                 </p>
               </div>
 
-              {/* 4. YouTube Hours */}
+              {/* 4. YouTube Stream */}
               <div className="p-4 rounded-2xl bg-slate-50/70 border border-slate-200/60 space-y-2">
                 <div className="flex items-center justify-between">
-                  <label className="text-xs font-bold text-[#123C32]">YouTube Stream</label>
+                  <label htmlFor="select-youtube" className="text-xs font-bold text-[#123C32]">
+                    YouTube Stream
+                  </label>
                   <span className="text-[11px] font-semibold text-teal-700 bg-teal-50 px-2 py-0.5 rounded-full border border-teal-200">
                     Hours
                   </span>
                 </div>
-                <Input
-                  type="number"
-                  step="0.1"
-                  min="0"
-                  max="24"
-                  placeholder="e.g. 2.0"
+                <select
+                  id="select-youtube"
                   value={youtubeHours}
                   onChange={(e) => setYoutubeHours(e.target.value)}
-                  className="bg-white"
-                />
+                  className="w-full h-10 px-3 rounded-xl border border-border bg-white text-xs font-semibold text-text-primary focus:outline-none focus:ring-2 focus:ring-primary/20 cursor-pointer"
+                >
+                  {getOptionsWithCustom(YOUTUBE_OPTIONS, youtubeHours, 'hrs').map((opt) => (
+                    <option key={opt.value} value={opt.value}>
+                      {opt.label}
+                    </option>
+                  ))}
+                </select>
                 <p className="text-[10px] text-text-secondary leading-tight">
-                  Video consumption duration on desktop or mobile YouTube.
+                  Video streaming duration on desktop or mobile.
+                  {youtubeHours !== '' && (
+                    <span className="text-[#138F78] font-bold block mt-0.5">
+                      Calibrates as {youtubeHours}h
+                    </span>
+                  )}
                 </p>
               </div>
 
-              {/* 5. Gaming Hours */}
+              {/* 5. Gaming Time */}
               <div className="p-4 rounded-2xl bg-slate-50/70 border border-slate-200/60 space-y-2">
                 <div className="flex items-center justify-between">
-                  <label className="text-xs font-bold text-[#123C32]">Gaming Time</label>
+                  <label htmlFor="select-gaming" className="text-xs font-bold text-[#123C32]">
+                    Gaming Time
+                  </label>
                   <span className="text-[11px] font-semibold text-teal-700 bg-teal-50 px-2 py-0.5 rounded-full border border-teal-200">
                     Hours
                   </span>
                 </div>
-                <Input
-                  type="number"
-                  step="0.1"
-                  min="0"
-                  max="24"
-                  placeholder="e.g. 0.0"
+                <select
+                  id="select-gaming"
                   value={gamingHours}
                   onChange={(e) => setGamingHours(e.target.value)}
-                  className="bg-white"
-                />
+                  className="w-full h-10 px-3 rounded-xl border border-border bg-white text-xs font-semibold text-text-primary focus:outline-none focus:ring-2 focus:ring-primary/20 cursor-pointer"
+                >
+                  {getOptionsWithCustom(GAMING_OPTIONS, gamingHours, 'hrs').map((opt) => (
+                    <option key={opt.value} value={opt.value}>
+                      {opt.label}
+                    </option>
+                  ))}
+                </select>
                 <p className="text-[10px] text-text-secondary leading-tight">
-                  Console, PC, or mobile game play time.
+                  Console, PC, or mobile gameplay duration.
+                  {gamingHours !== '' && (
+                    <span className="text-[#138F78] font-bold block mt-0.5">
+                      Calibrates as {gamingHours}h
+                    </span>
+                  )}
                 </p>
               </div>
 
               {/* 6. Coffee Intake (mg) */}
               <div className="p-4 rounded-2xl bg-slate-50/70 border border-slate-200/60 space-y-2">
                 <div className="flex items-center justify-between">
-                  <label className="text-xs font-bold text-[#123C32]">Caffeine Intake</label>
+                  <label htmlFor="select-caffeine" className="text-xs font-bold text-[#123C32]">
+                    Caffeine Intake
+                  </label>
                   <span className="text-[11px] font-semibold text-amber-700 bg-amber-50 px-2 py-0.5 rounded-full border border-amber-200">
                     Milligrams (mg)
                   </span>
                 </div>
-                <Input
-                  type="number"
-                  step="10"
-                  min="0"
-                  max="2000"
-                  placeholder="e.g. 160"
+                <select
+                  id="select-caffeine"
                   value={coffeeIntakeMg}
                   onChange={(e) => setCoffeeIntakeMg(e.target.value)}
-                  className="bg-white"
-                />
+                  className="w-full h-10 px-3 rounded-xl border border-border bg-white text-xs font-semibold text-text-primary focus:outline-none focus:ring-2 focus:ring-primary/20 cursor-pointer"
+                >
+                  {getOptionsWithCustom(CAFFEINE_OPTIONS, coffeeIntakeMg, 'mg').map((opt) => (
+                    <option key={opt.value} value={opt.value}>
+                      {opt.label}
+                    </option>
+                  ))}
+                </select>
                 <p className="text-[10px] text-text-secondary leading-tight">
-                  1 cup brewed coffee ≈ 80–100mg; 1 espresso ≈ 64mg.
+                  1 brewed cup ≈ 80–100mg; 1 espresso ≈ 64mg.
+                  {coffeeIntakeMg !== '' && (
+                    <span className="text-amber-700 font-bold block mt-0.5">
+                      Calibrates as {coffeeIntakeMg}mg
+                    </span>
+                  )}
                 </p>
               </div>
 
               {/* 7. Exercise Minutes */}
               <div className="p-4 rounded-2xl bg-slate-50/70 border border-slate-200/60 space-y-2">
                 <div className="flex items-center justify-between">
-                  <label className="text-xs font-bold text-[#123C32]">Exercise / Workout</label>
+                  <label htmlFor="select-exercise" className="text-xs font-bold text-[#123C32]">
+                    Exercise / Workout
+                  </label>
                   <span className="text-[11px] font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
                     Minutes
                   </span>
                 </div>
-                <Input
-                  type="number"
-                  step="5"
-                  min="0"
-                  max="1440"
-                  placeholder="e.g. 45"
+                <select
+                  id="select-exercise"
                   value={exerciseMinutes}
                   onChange={(e) => setExerciseMinutes(e.target.value)}
-                  className="bg-white"
-                />
+                  className="w-full h-10 px-3 rounded-xl border border-border bg-white text-xs font-semibold text-text-primary focus:outline-none focus:ring-2 focus:ring-primary/20 cursor-pointer"
+                >
+                  {getOptionsWithCustom(EXERCISE_OPTIONS, exerciseMinutes, 'mins').map((opt) => (
+                    <option key={opt.value} value={opt.value}>
+                      {opt.label}
+                    </option>
+                  ))}
+                </select>
                 <p className="text-[10px] text-text-secondary leading-tight">
-                  Running, gym, cycling, yoga, or brisk walking duration.
+                  Running, gym, cycling, yoga, or brisk walking.
+                  {exerciseMinutes !== '' && (
+                    <span className="text-emerald-700 font-bold block mt-0.5">
+                      Calibrates as {exerciseMinutes}m
+                    </span>
+                  )}
                 </p>
               </div>
 
-              {/* 8. Stress Level (1-10) */}
+              {/* 8. Perceived Stress (1-10) */}
               <div className="p-4 rounded-2xl bg-slate-50/70 border border-slate-200/60 space-y-2">
                 <div className="flex items-center justify-between">
-                  <label className="text-xs font-bold text-[#123C32]">Perceived Stress</label>
+                  <label htmlFor="select-stress" className="text-xs font-bold text-[#123C32]">
+                    Perceived Stress
+                  </label>
                   <span className="text-[11px] font-semibold text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded-full border border-indigo-200">
                     Scale 1–10
                   </span>
                 </div>
-                <div className="flex items-center justify-between gap-1 pt-1">
-                  {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((num) => (
-                    <button
-                      key={num}
-                      type="button"
-                      onClick={() => setStressLevel(num)}
-                      className={`w-6 h-8 rounded-lg text-xs font-black transition-all border ${
-                        stressLevel === num
-                          ? 'bg-[#123C32] text-white border-[#123C32] scale-105'
-                          : 'bg-white text-text-secondary border-border hover:border-emerald-300'
-                      }`}
-                    >
-                      {num}
-                    </button>
+                <select
+                  id="select-stress"
+                  value={stressLevel}
+                  onChange={(e) => setStressLevel(e.target.value)}
+                  className="w-full h-10 px-3 rounded-xl border border-border bg-white text-xs font-semibold text-text-primary focus:outline-none focus:ring-2 focus:ring-primary/20 cursor-pointer"
+                >
+                  {getOptionsWithCustom(STRESS_OPTIONS, stressLevel, 'scale').map((opt) => (
+                    <option key={opt.value} value={opt.value}>
+                      {opt.label}
+                    </option>
                   ))}
-                </div>
-                <div className="flex justify-between text-[10px] text-text-muted px-0.5">
-                  <span>1 (Calm)</span>
-                  <span>10 (Overwhelmed)</span>
-                </div>
+                </select>
+                <p className="text-[10px] text-text-secondary leading-tight">
+                  Subjective stress level (1 = Calm, 10 = Overwhelmed).
+                  {stressLevel !== '' && (
+                    <span className="text-indigo-700 font-bold block mt-0.5">
+                      Calibrates as Level {stressLevel}/10
+                    </span>
+                  )}
+                </p>
               </div>
             </div>
 
