@@ -1,20 +1,18 @@
-import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import type { NavCategory, WorkspaceItem, UserProfile } from '../../types';
 import { useAuth } from '../../hooks';
 import {
   GridIcon,
   ListIcon,
-  CalendarIcon,
-  MessageSquareIcon,
-  PaletteIcon,
-  HashIcon,
-  PlusIcon,
+  ClockIcon,
+  SparklesIcon,
+  ChartBarIcon,
+  UserIcon,
+  SettingsIcon,
+  ExportIcon,
   UsersIcon,
   FolderIcon,
-  ChartBarIcon,
   ShieldIcon,
-  SettingsIcon,
   LogoutIcon,
   ChevronLeftIcon,
   CloseIcon,
@@ -35,17 +33,15 @@ export interface SidebarProps {
 export const Sidebar = ({
   role,
   currentUser,
-  myLists = [],
-  workspaces = [],
+  myLists: _myLists = [],
+  workspaces: _workspaces = [],
   isOpen,
   onClose,
   className,
 }: SidebarProps) => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { logout } = useAuth();
-  const [activeItem, setActiveItem] = useState(
-    role === 'user' ? 'Dashboard' : 'Overview'
-  );
 
   const handleLogout = async () => {
     try {
@@ -55,11 +51,49 @@ export const Sidebar = ({
     }
   };
 
-  const userNavItems = [
+  const isItemActive = (href: string) => {
+    if (href === '/dashboard') {
+      return location.pathname === '/dashboard';
+    }
+    return location.pathname.startsWith(href);
+  };
+
+  const userCoreNavItems = [
     { label: 'Dashboard', icon: <GridIcon className="w-4 h-4" />, href: '/dashboard' },
-    { label: 'List', icon: <ListIcon className="w-4 h-4" />, href: '/dashboard#list' },
-    { label: 'Calendar', icon: <CalendarIcon className="w-4 h-4" />, href: '/dashboard#calendar' },
-    { label: 'Messages', icon: <MessageSquareIcon className="w-4 h-4" />, href: '/dashboard#messages' },
+    { label: 'Tasks', icon: <ListIcon className="w-4 h-4" />, href: '/tasks' },
+    { label: 'Study Tracking', icon: <ClockIcon className="w-4 h-4" />, href: '/study' },
+    {
+      label: 'Focus',
+      icon: (
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4">
+          <circle cx="12" cy="12" r="10" />
+          <circle cx="12" cy="12" r="6" />
+          <circle cx="12" cy="12" r="2" />
+        </svg>
+      ),
+      href: '/focus',
+    },
+    {
+      label: 'Lifestyle Tracking',
+      icon: (
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4">
+          <path d="M12 2a10 10 0 1 0 10 10c0-4.42-3-8-7-9.5" />
+          <path d="M12 2c2 3 2 7 0 10" />
+        </svg>
+      ),
+      href: '/lifestyle',
+    },
+  ];
+
+  const userInsightsNavItems = [
+    { label: 'Analytics', icon: <ChartBarIcon className="w-4 h-4" />, href: '/analytics', tag: 'Phase 3' },
+    { label: 'Reports', icon: <ExportIcon className="w-4 h-4" />, href: '/reports', tag: 'Phase 4' },
+    { label: 'Recommendations', icon: <SparklesIcon className="w-4 h-4" />, href: '/recommendations', tag: 'Phase 3' },
+  ];
+
+  const userSettingsNavItems = [
+    { label: 'Profile', icon: <UserIcon className="w-4 h-4" />, href: '/profile' },
+    { label: 'Settings', icon: <SettingsIcon className="w-4 h-4" />, href: '/settings' },
   ];
 
   const adminNavItemsWorkspace = [
@@ -122,87 +156,102 @@ export const Sidebar = ({
 
           {/* User Mode Navigation */}
           {role === 'user' ? (
-            <div className="space-y-6">
-              {/* Main Nav */}
-              <nav className="space-y-1">
-                {userNavItems.map((item) => {
-                  const isActive = activeItem === item.label;
-                  return (
-                    <Link
-                      key={item.label}
-                      to={item.href}
-                      onClick={() => setActiveItem(item.label)}
-                      className={cn(
-                        'flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-medium transition-all',
-                        isActive
-                          ? 'bg-primary-100 text-primary-900 font-semibold shadow-soft-sm'
-                          : 'text-text-secondary hover:text-text-primary hover:bg-surface-muted'
-                      )}
-                    >
-                      <span className={cn(isActive ? 'text-primary' : 'text-text-secondary')}>
-                        {item.icon}
-                      </span>
-                      <span>{item.label}</span>
-                    </Link>
-                  );
-                })}
-              </nav>
-
-              {/* My List Section */}
-              <div className="space-y-2">
-                <div className="flex items-center justify-between px-3 text-xs font-semibold text-text-secondary uppercase tracking-wider">
-                  <span>My list</span>
-                  <button type="button" className="text-text-secondary hover:text-text-primary p-0.5" aria-label="Add list">
-                    <PlusIcon className="w-3.5 h-3.5" />
-                  </button>
-                </div>
-                <div className="space-y-1">
-                  {myLists.map((cat) => (
-                    <button
-                      key={cat.id}
-                      type="button"
-                      className="w-full flex items-center justify-between px-3 py-1.5 rounded-xl text-sm text-text-secondary hover:text-text-primary hover:bg-surface-muted transition-colors cursor-pointer"
-                    >
-                      <div className="flex items-center gap-3">
-                        <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: cat.color }} />
-                        <span className="font-medium text-sm">{cat.name}</span>
-                      </div>
-                      {cat.count !== undefined && (
-                        <span className="text-[11px] font-semibold text-text-muted bg-surface-muted px-2 py-0.5 rounded-full">
-                          {cat.count}
+            <div className="space-y-5">
+              {/* Core Productivity Modules */}
+              <div className="space-y-1">
+                <span className="px-3 text-[11px] font-bold text-text-secondary uppercase tracking-wider block">
+                  Productivity
+                </span>
+                <nav className="space-y-0.5 pt-1">
+                  {userCoreNavItems.map((item) => {
+                    const active = isItemActive(item.href);
+                    return (
+                      <Link
+                        key={item.label}
+                        to={item.href}
+                        onClick={onClose}
+                        className={cn(
+                          'flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-medium transition-all',
+                          active
+                            ? 'bg-emerald-50 text-[#123C32] font-bold shadow-soft-xs border border-emerald-200/60'
+                            : 'text-text-secondary hover:text-[#123C32] hover:bg-surface-muted'
+                        )}
+                      >
+                        <span className={cn(active ? 'text-[#138F78]' : 'text-text-secondary')}>
+                          {item.icon}
                         </span>
-                      )}
-                    </button>
-                  ))}
-                </div>
+                        <span>{item.label}</span>
+                      </Link>
+                    );
+                  })}
+                </nav>
               </div>
 
-              {/* Workspace Section */}
-              <div className="space-y-2">
-                <div className="flex items-center justify-between px-3 text-xs font-semibold text-text-secondary uppercase tracking-wider">
-                  <span>Workspace</span>
-                  <button type="button" className="text-text-secondary hover:text-text-primary p-0.5" aria-label="Add workspace">
-                    <PlusIcon className="w-3.5 h-3.5" />
-                  </button>
-                </div>
-                <div className="space-y-1">
-                  {workspaces.map((ws) => (
-                    <button
-                      key={ws.id}
-                      type="button"
-                      className="w-full flex items-center gap-3 px-3 py-1.5 rounded-xl text-sm text-text-secondary hover:text-text-primary hover:bg-surface-muted transition-colors cursor-pointer"
-                    >
-                      <span className="text-text-secondary">
-                        {ws.iconType === 'palette' ? (
-                          <PaletteIcon className="w-4 h-4 text-emerald-600" />
-                        ) : (
-                          <HashIcon className="w-4 h-4 text-teal-600" />
+              {/* Insights & Future Modules */}
+              <div className="space-y-1">
+                <span className="px-3 text-[11px] font-bold text-text-secondary uppercase tracking-wider block">
+                  Insights & AI
+                </span>
+                <nav className="space-y-0.5 pt-1">
+                  {userInsightsNavItems.map((item) => {
+                    const active = isItemActive(item.href);
+                    return (
+                      <Link
+                        key={item.label}
+                        to={item.href}
+                        onClick={onClose}
+                        className={cn(
+                          'flex items-center justify-between px-3 py-2 rounded-xl text-sm font-medium transition-all',
+                          active
+                            ? 'bg-emerald-50 text-[#123C32] font-bold shadow-soft-xs border border-emerald-200/60'
+                            : 'text-text-secondary hover:text-[#123C32] hover:bg-surface-muted'
                         )}
-                      </span>
-                      <span className="font-medium text-sm">{ws.name}</span>
-                    </button>
-                  ))}
-                </div>
+                      >
+                        <div className="flex items-center gap-3">
+                          <span className={cn(active ? 'text-[#138F78]' : 'text-text-secondary')}>
+                            {item.icon}
+                          </span>
+                          <span>{item.label}</span>
+                        </div>
+                        {item.tag && (
+                          <span className="text-[10px] font-bold text-teal-800 bg-teal-50 px-1.5 py-0.5 rounded border border-teal-200">
+                            {item.tag}
+                          </span>
+                        )}
+                      </Link>
+                    );
+                  })}
+                </nav>
+              </div>
+
+              {/* Preferences & Settings */}
+              <div className="space-y-1">
+                <span className="px-3 text-[11px] font-bold text-text-secondary uppercase tracking-wider block">
+                  Settings
+                </span>
+                <nav className="space-y-0.5 pt-1">
+                  {userSettingsNavItems.map((item) => {
+                    const active = isItemActive(item.href);
+                    return (
+                      <Link
+                        key={item.label}
+                        to={item.href}
+                        onClick={onClose}
+                        className={cn(
+                          'flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-medium transition-all',
+                          active
+                            ? 'bg-emerald-50 text-[#123C32] font-bold shadow-soft-xs border border-emerald-200/60'
+                            : 'text-text-secondary hover:text-[#123C32] hover:bg-surface-muted'
+                        )}
+                      >
+                        <span className={cn(active ? 'text-[#138F78]' : 'text-text-secondary')}>
+                          {item.icon}
+                        </span>
+                        <span>{item.label}</span>
+                      </Link>
+                    );
+                  })}
+                </nav>
               </div>
 
               {/* Quick switch to Admin demo */}
@@ -226,20 +275,20 @@ export const Sidebar = ({
                 </span>
                 <nav className="space-y-1">
                   {adminNavItemsWorkspace.map((item) => {
-                    const isActive = activeItem === item.label;
+                    const active = isItemActive(item.href);
                     return (
                       <Link
                         key={item.label}
                         to={item.href}
-                        onClick={() => setActiveItem(item.label)}
+                        onClick={onClose}
                         className={cn(
                           'flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-medium transition-all',
-                          isActive
+                          active
                             ? 'bg-primary-100 text-primary-900 font-semibold shadow-soft-sm'
                             : 'text-text-secondary hover:text-text-primary hover:bg-surface-muted'
                         )}
                       >
-                        <span className={cn(isActive ? 'text-primary' : 'text-text-secondary')}>
+                        <span className={cn(active ? 'text-primary' : 'text-text-secondary')}>
                           {item.icon}
                         </span>
                         <span>{item.label}</span>
@@ -256,20 +305,20 @@ export const Sidebar = ({
                 </span>
                 <nav className="space-y-1">
                   {adminNavItemsManagement.map((item) => {
-                    const isActive = activeItem === item.label;
+                    const active = isItemActive(item.href);
                     return (
                       <Link
                         key={item.label}
                         to={item.href}
-                        onClick={() => setActiveItem(item.label)}
+                        onClick={onClose}
                         className={cn(
                           'flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-medium transition-all',
-                          isActive
+                          active
                             ? 'bg-primary-100 text-primary-900 font-semibold shadow-soft-sm'
                             : 'text-text-secondary hover:text-text-primary hover:bg-surface-muted'
                         )}
                       >
-                        <span className={cn(isActive ? 'text-primary' : 'text-text-secondary')}>
+                        <span className={cn(active ? 'text-primary' : 'text-text-secondary')}>
                           {item.icon}
                         </span>
                         <span>{item.label}</span>

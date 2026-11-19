@@ -45,22 +45,144 @@ export interface UserProfile {
   workspaceName?: string;
 }
 
+// =========================================================================
+// Phase 2: Core Productivity Types
+// =========================================================================
+
+export type TaskPriority = 'low' | 'medium' | 'high' | 'urgent';
+export type TaskStatus = 'pending' | 'in_progress' | 'completed' | 'cancelled';
+
 export interface TaskItem {
   id: string;
+  user_id?: string;
   title: string;
+  description?: string;
   category: string;
-  categoryColor: string;
-  time: string;
-  completed: boolean;
-  priority?: 'low' | 'medium' | 'high';
+  priority?: TaskPriority;
+  status?: TaskStatus;
+  deadline?: string;
+  completed_at?: string;
+  created_at?: string;
+  updated_at?: string;
+
+  // Backward compatibility fields with prototype/mock UI:
+  categoryColor?: string;
+  time?: string;
+  completed?: boolean;
 }
 
-export interface UpcomingSchedule {
-  id: string;
+export interface CreateTaskPayload {
   title: string;
-  timeRange: string;
   description?: string;
-  type?: 'meeting' | 'study' | 'review';
+  category?: string;
+  priority?: TaskPriority;
+  deadline?: string;
+}
+
+export interface UpdateTaskPayload {
+  title?: string;
+  description?: string;
+  category?: string;
+  priority?: TaskPriority;
+  status?: TaskStatus;
+  deadline?: string;
+}
+
+export type StudySessionStatus = 'active' | 'paused' | 'completed' | 'cancelled';
+
+export interface StudySession {
+  id: string;
+  user_id: string;
+  task_id?: string;
+  subject: string;
+  duration_seconds: number;
+  status: StudySessionStatus;
+  started_at: string;
+  ended_at?: string;
+  created_at: string;
+  task?: TaskItem;
+}
+
+export interface StudyDailyStats {
+  total_completed_seconds: number;
+  completed_sessions_count: number;
+}
+
+export type FocusSessionType = 'focus' | 'break';
+export type FocusSessionStatus = 'active' | 'completed' | 'abandoned';
+
+export interface FocusSession {
+  id: string;
+  user_id: string;
+  task_id?: string;
+  session_type: FocusSessionType;
+  started_at: string;
+  ended_at?: string;
+  duration_minutes: number;
+  status: FocusSessionStatus;
+  interruption_count: number;
+  created_at: string;
+  updated_at?: string;
+  task?: TaskItem;
+
+  // Helper calculation field
+  target_minutes?: number;
+}
+
+export interface FocusDailyStats {
+  completed_focus_minutes: number;
+  completed_focus_count: number;
+  completed_breaks_count: number;
+  total_interruptions: number;
+}
+
+export interface LifestyleRecord {
+  id: string;
+  user_id: string;
+  record_date: string;
+  sleep_hours?: number;
+  phone_usage_hours?: number;
+  social_media_hours?: number;
+  youtube_hours?: number;
+  gaming_hours?: number;
+  coffee_intake_mg?: number;
+  exercise_minutes?: number;
+  stress_level?: number;
+  notes?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface UpsertLifestylePayload {
+  record_date: string;
+  sleep_hours?: number;
+  phone_usage_hours?: number;
+  social_media_hours?: number;
+  youtube_hours?: number;
+  gaming_hours?: number;
+  coffee_intake_mg?: number;
+  exercise_minutes?: number;
+  stress_level?: number;
+  notes?: string;
+}
+
+export interface DashboardSummary {
+  total_tasks: number;
+  completed_tasks: number;
+  pending_tasks: number;
+  in_progress_tasks: number;
+  completion_percentage: number;
+  total_study_seconds: number;
+  total_study_formatted: string;
+  completed_study_sessions: number;
+  completed_focus_minutes: number;
+  completed_focus_count: number;
+  completed_breaks_count: number;
+  total_interruptions: number;
+  recent_tasks: TaskItem[];
+  upcoming_deadlines: TaskItem[];
+  today_lifestyle_logged: boolean;
+  today_lifestyle?: LifestyleRecord;
 }
 
 export interface NavCategory {
@@ -74,6 +196,14 @@ export interface WorkspaceItem {
   id: string;
   name: string;
   iconType: 'palette' | 'hash' | 'folder';
+}
+
+export interface UpcomingSchedule {
+  id: string;
+  title: string;
+  timeRange: string;
+  description?: string;
+  type?: 'meeting' | 'study' | 'review';
 }
 
 export interface KPICardData {

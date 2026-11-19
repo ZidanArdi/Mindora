@@ -4,3 +4,8 @@ export { default as HomePage } from './HomePage';
 export { default as LoginPage } from './LoginPage';
 export { default as RegisterPage } from './RegisterPage';
 export { default as UserDashboardPage } from './UserDashboardPage';
+export { default as TasksPage } from './TasksPage';
+export { default as StudyTrackingPage } from './StudyTrackingPage';
+export { default as FocusTrackingPage } from './FocusTrackingPage';
+export { default as LifestyleTrackingPage } from './LifestyleTrackingPage';
+export { default as PlaceholderModulePage } from './PlaceholderModulePage';
