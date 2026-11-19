@@ -16,6 +16,7 @@ var (
 
 type FocusDailyStats struct {
 	CompletedFocusMinutes int64 `json:"completed_focus_minutes"`
+	CompletedBreakMinutes int64 `json:"completed_break_minutes"`
 	CompletedFocusCount   int64 `json:"completed_focus_count"`
 	CompletedBreaksCount  int64 `json:"completed_breaks_count"`
 	TotalInterruptions    int64 `json:"total_interruptions"`
@@ -26,6 +27,7 @@ type FocusRepository interface {
 	FindIntervalByID(ctx context.Context, id uuid.UUID, userID uuid.UUID) (*models.FocusSession, error)
 	FindActiveInterval(ctx context.Context, userID uuid.UUID) (*models.FocusSession, error)
 	FindHistory(ctx context.Context, userID uuid.UUID, sessionType string, limit, offset int) ([]models.FocusSession, int64, error)
+	FindCompletedIntervals(ctx context.Context, userID uuid.UUID, start, end time.Time) ([]models.FocusSession, error)
 	UpdateInterval(ctx context.Context, interval *models.FocusSession) error
 	GetDailyStatistics(ctx context.Context, userID uuid.UUID, start, end time.Time) (*FocusDailyStats, error)
 	CountCompletedBreaks(ctx context.Context, userID uuid.UUID, start, end time.Time) (int64, error)
@@ -153,11 +155,22 @@ func (r *focusRepository) GetDailyStatistics(ctx context.Context, userID uuid.UU
 			stats.CompletedFocusCount = row.Count
 			stats.TotalInterruptions += row.TotalInterr
 		} else if row.SessionType == models.FocusTypeBreak {
+			stats.CompletedBreakMinutes = row.TotalMins
 			stats.CompletedBreaksCount = row.Count
 			stats.TotalInterruptions += row.TotalInterr
 		}
 	}
 	return stats, nil
+}
+
+func (r *focusRepository) FindCompletedIntervals(ctx context.Context, userID uuid.UUID, start, end time.Time) ([]models.FocusSession, error) {
+	var intervals []models.FocusSession
+	err := r.db.WithContext(ctx).
+		Where("user_id = ? AND status = ? AND started_at >= ? AND started_at <= ?",
+			userID, models.FocusStatusCompleted, start, end).
+		Order("started_at ASC").
+		Find(&intervals).Error
+	return intervals, err
 }
 
 func (r *focusRepository) CountCompletedBreaks(ctx context.Context, userID uuid.UUID, start, end time.Time) (int64, error) {

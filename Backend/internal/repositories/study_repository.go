@@ -24,6 +24,7 @@ type StudyRepository interface {
 	FindSessionByID(ctx context.Context, id uuid.UUID, userID uuid.UUID) (*models.StudySession, error)
 	FindActiveOrPausedSession(ctx context.Context, userID uuid.UUID) (*models.StudySession, error)
 	FindSessions(ctx context.Context, userID uuid.UUID, startDate, endDate *time.Time, limit, offset int) ([]models.StudySession, int64, error)
+	FindCompletedSessions(ctx context.Context, userID uuid.UUID, start, end time.Time) ([]models.StudySession, error)
 	UpdateSession(ctx context.Context, session *models.StudySession) error
 	GetCompletedDuration(ctx context.Context, userID uuid.UUID, start, end time.Time) (int64, error)
 	GetDailyStatistics(ctx context.Context, userID uuid.UUID, start, end time.Time) (*StudyDailyStats, error)
@@ -160,4 +161,14 @@ func (r *studyRepository) GetDailyStatistics(ctx context.Context, userID uuid.UU
 		TotalCompletedSeconds: res.TotalSec,
 		CompletedSessionsCount: res.Count,
 	}, nil
+}
+
+func (r *studyRepository) FindCompletedSessions(ctx context.Context, userID uuid.UUID, start, end time.Time) ([]models.StudySession, error) {
+	var sessions []models.StudySession
+	err := r.db.WithContext(ctx).
+		Where("user_id = ? AND status = ? AND started_at >= ? AND started_at <= ?",
+			userID, models.StudyStatusCompleted, start, end).
+		Order("started_at ASC").
+		Find(&sessions).Error
+	return sessions, err
 }

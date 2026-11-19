@@ -36,6 +36,7 @@ type TaskRepository interface {
 	SoftDelete(ctx context.Context, id uuid.UUID, userID uuid.UUID) error
 	CountByStatus(ctx context.Context, userID uuid.UUID) (map[string]int64, error)
 	CountCompletedByDateRange(ctx context.Context, userID uuid.UUID, start, end time.Time) (int64, error)
+	FindCompletedTasksByDateRange(ctx context.Context, userID uuid.UUID, start, end time.Time) ([]models.Task, error)
 }
 
 type taskRepository struct {
@@ -222,4 +223,13 @@ func (r *taskRepository) CountCompletedByDateRange(ctx context.Context, userID u
 		Where("user_id = ? AND status = ? AND completed_at >= ? AND completed_at <= ?", userID, models.TaskStatusCompleted, start, end).
 		Count(&count).Error
 	return count, err
+}
+
+func (r *taskRepository) FindCompletedTasksByDateRange(ctx context.Context, userID uuid.UUID, start, end time.Time) ([]models.Task, error) {
+	var tasks []models.Task
+	err := r.db.WithContext(ctx).
+		Where("user_id = ? AND status = ? AND completed_at >= ? AND completed_at <= ?", userID, models.TaskStatusCompleted, start, end).
+		Order("completed_at ASC").
+		Find(&tasks).Error
+	return tasks, err
 }

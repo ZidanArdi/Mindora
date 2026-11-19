@@ -39,6 +39,7 @@ func SetupRoutes(app *fiber.App, db *database.Database, cfg *config.Config) {
 	studyRepo := repositories.NewStudyRepository(db.DB)
 	focusRepo := repositories.NewFocusRepository(db.DB)
 	lifestyleRepo := repositories.NewLifestyleRepository(db.DB)
+	predictionRepo := repositories.NewPredictionRepository(db.DB)
 
 	// Utilities & Providers
 	hasher := hash.NewBcryptHasher(cfg.BcryptCost)
@@ -109,12 +110,16 @@ func SetupRoutes(app *fiber.App, db *database.Database, cfg *config.Config) {
 	focusService := services.NewFocusService(focusRepo, taskRepo)
 	lifestyleService := services.NewLifestyleService(lifestyleRepo)
 	dashboardService := services.NewDashboardService(taskRepo, studyRepo, focusRepo, lifestyleRepo)
+	predictionService := services.NewPredictionService(predictionRepo, studyRepo, lifestyleRepo)
+	analyticsService := services.NewAnalyticsService(studyRepo, focusRepo, taskRepo, lifestyleRepo, predictionRepo)
 
 	taskHandler := handlers.NewTaskHandler(taskService)
 	studyHandler := handlers.NewStudyHandler(studyService)
 	focusHandler := handlers.NewFocusHandler(focusService)
 	lifestyleHandler := handlers.NewLifestyleHandler(lifestyleService)
 	dashboardHandler := handlers.NewDashboardHandler(dashboardService)
+	predictionHandler := handlers.NewPredictionHandler(predictionService)
+	analyticsHandler := handlers.NewAnalyticsHandler(analyticsService)
 
 	// 1. Tasks Management
 	tasks := v1.Group("/tasks", jwtAuth, middleware.RequireRole("user", "admin"))
@@ -156,4 +161,32 @@ func SetupRoutes(app *fiber.App, db *database.Database, cfg *config.Config) {
 	// 5. Dashboard Summary
 	dashboard := v1.Group("/dashboard", jwtAuth, middleware.RequireRole("user", "admin"))
 	dashboard.Get("/summary", dashboardHandler.GetSummary)
+
+	// =========================================================================
+	// Phase 3: Productivity Analytics & Machine Learning Prediction
+	// =========================================================================
+	// 6. Productivity Analytics
+	analytics := v1.Group("/analytics", jwtAuth, middleware.RequireRole("user", "admin"))
+	analytics.Get("/daily", analyticsHandler.GetDaily)
+	analytics.Get("/weekly", analyticsHandler.GetWeekly)
+	analytics.Get("/monthly", analyticsHandler.GetMonthly)
+	analytics.Get("/summary", analyticsHandler.GetSummary)
+
+	// 7. Productivity Prediction
+	predictions := v1.Group("/predictions", jwtAuth, middleware.RequireRole("user", "admin"))
+	predictions.Post("/", predictionHandler.Create)
+	predictions.Get("/", predictionHandler.List)
+	predictions.Get("/:id", predictionHandler.GetByID)
+
+	// Root /api aliases for contract compatibility
+	apiAnalytics := api.Group("/analytics", jwtAuth, middleware.RequireRole("user", "admin"))
+	apiAnalytics.Get("/daily", analyticsHandler.GetDaily)
+	apiAnalytics.Get("/weekly", analyticsHandler.GetWeekly)
+	apiAnalytics.Get("/monthly", analyticsHandler.GetMonthly)
+	apiAnalytics.Get("/summary", analyticsHandler.GetSummary)
+
+	apiPredictions := api.Group("/predictions", jwtAuth, middleware.RequireRole("user", "admin"))
+	apiPredictions.Post("/", predictionHandler.Create)
+	apiPredictions.Get("/", predictionHandler.List)
+	apiPredictions.Get("/:id", predictionHandler.GetByID)
 }
