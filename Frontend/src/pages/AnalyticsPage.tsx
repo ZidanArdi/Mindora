@@ -251,8 +251,15 @@ export default function AnalyticsPage() {
           <div className="p-6 rounded-2xl bg-gradient-to-br from-[#123C32] to-[#0A261F] text-white shadow-soft-md flex flex-col justify-between">
             <div>
               <div className="flex items-center justify-between">
-                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-white/10 text-emerald-300">
-                  ML Prediction Engine
+                <span
+                  className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${
+                    latestPrediction?.is_baseline || latestPrediction?.prediction_state === 'baseline'
+                      ? 'bg-amber-400/20 text-amber-300 border border-amber-400/30'
+                      : 'bg-emerald-400/20 text-emerald-300 border border-emerald-400/30'
+                  }`}
+                >
+                  {latestPrediction?.state_label ||
+                    (latestPrediction?.is_baseline ? 'Baseline Estimate' : 'Personalized Estimate')}
                 </span>
                 <span className="text-[10px] font-mono text-white/60">
                   {latestPrediction?.model_version || 'mindora-productivity-ridge-v1.0.0'}
@@ -263,8 +270,25 @@ export default function AnalyticsPage() {
                 Estimated Productivity Score
               </h2>
               <p className="text-xs text-white/70 mt-1 leading-relaxed">
-                Evaluated by regularized Ridge Regression based on verified study duration, sleep duration, phone usage, and self-reported stress.
+                {latestPrediction?.state_description ||
+                  (latestPrediction?.is_baseline
+                    ? 'This estimate uses reference values for one or more unrecorded habits. Record your daily habits to obtain a more personalized estimate.'
+                    : 'This estimate is calculated using your recorded study duration, sleep, phone usage, and stress level.')}
               </p>
+
+              {/* Cold-Start & Unrecorded Habits Transparency Box */}
+              {latestPrediction?.is_baseline &&
+                latestPrediction?.unrecorded_features &&
+                latestPrediction.unrecorded_features.length > 0 && (
+                  <div className="mt-3 p-3 rounded-xl bg-amber-500/10 border border-amber-500/20 text-[11px] text-amber-200/90 leading-snug">
+                    <span className="font-bold text-amber-300">Reference Values Applied:</span>{' '}
+                    Unrecorded habits (
+                    {latestPrediction.unrecorded_features
+                      .map((f) => f.replace(/_/g, ' '))
+                      .join(', ')}
+                    ) were imputed using population reference defaults. Complete your logs in Study Tracking and Lifestyle Tracking to obtain a personalized estimate.
+                  </div>
+                )}
 
               {/* Score Display */}
               <div className="my-6 text-center py-4 rounded-xl bg-white/5 border border-white/10">
@@ -319,6 +343,7 @@ export default function AnalyticsPage() {
                     <thead>
                       <tr className="border-b border-slate-100 text-[11px] uppercase tracking-wider text-text-muted font-bold">
                         <th className="py-2.5 px-3">Date</th>
+                        <th className="py-2.5 px-3">Type</th>
                         <th className="py-2.5 px-3">Score</th>
                         <th className="py-2.5 px-3">Study</th>
                         <th className="py-2.5 px-3">Sleep</th>
@@ -332,6 +357,19 @@ export default function AnalyticsPage() {
                         <tr key={item.id} className="hover:bg-slate-50/60 transition-colors">
                           <td className="py-2.5 px-3 font-semibold text-text-primary">
                             {item.prediction_date}
+                          </td>
+                          <td className="py-2.5 px-3">
+                            <span
+                              className={`inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider ${
+                                item.is_baseline || item.prediction_state === 'baseline'
+                                  ? 'bg-amber-100 text-amber-800'
+                                  : 'bg-emerald-100 text-emerald-800'
+                              }`}
+                            >
+                              {item.is_baseline || item.prediction_state === 'baseline'
+                                ? 'Baseline'
+                                : 'Personalized'}
+                            </span>
                           </td>
                           <td className="py-2.5 px-3 font-bold text-primary">
                             {item.predicted_score}

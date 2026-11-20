@@ -352,8 +352,15 @@ export default function UserDashboardPage() {
               {/* ML Productivity Estimate Quick Card */}
               <div className="bg-gradient-to-br from-[#123C32] to-[#0A261F] text-white rounded-3xl p-5 shadow-soft-xs space-y-3">
                 <div className="flex items-center justify-between">
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-300 bg-white/10 px-2 py-0.5 rounded-full">
-                    ML Productivity Estimate
+                  <span
+                    className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full ${
+                      latestPrediction?.is_baseline || latestPrediction?.prediction_state === 'baseline'
+                        ? 'bg-amber-400/20 text-amber-300'
+                        : 'bg-white/10 text-emerald-300'
+                    }`}
+                  >
+                    {latestPrediction?.state_label ||
+                      (latestPrediction?.is_baseline ? 'Baseline Estimate' : 'Personalized Estimate')}
                   </span>
                   <span className="text-[10px] font-mono text-white/60">Ridge v1.0.0</span>
                 </div>
@@ -375,7 +382,8 @@ export default function UserDashboardPage() {
                   </Link>
                 </div>
                 <p className="text-[10px] text-white/60 border-t border-white/10 pt-2 leading-relaxed">
-                  Estimated from habit patterns (study, sleep, phone, stress). Strictly not an objective grade.
+                  {latestPrediction?.state_description ||
+                    'Estimated from habit patterns (study, sleep, phone, stress). Strictly not an objective grade.'}
                 </p>
               </div>
 

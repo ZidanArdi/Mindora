@@ -257,6 +257,11 @@ export interface ProductivityPrediction {
   prediction_date: string;
   disclaimer?: string;
   created_at: string;
+  prediction_state?: 'baseline' | 'personalized';
+  state_label?: string;
+  state_description?: string;
+  is_baseline?: boolean;
+  unrecorded_features?: string[];
 }
 
 export interface PredictionInput {
