@@ -4,10 +4,12 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"math"
 	"time"
 
 	"github.com/google/uuid"
+	"gorm.io/gorm"
 	"mindora/backend/internal/models"
 	"mindora/backend/internal/repositories"
 )
@@ -20,6 +22,15 @@ const (
 	ModelVersionCurrent = "mindora-productivity-ridge-v1.0.0"
 	ModelAlgorithmName  = "Ridge Regression (L2-Regularized OLS)"
 	ModelDisclaimerText = "Predictions are mathematical estimates based on daily behavioral habits and must NOT be interpreted as actual measured productivity."
+
+	StateBaseline     = "baseline"
+	StatePersonalized = "personalized"
+
+	LabelBaseline     = "Baseline Estimate"
+	LabelPersonalized = "Personalized Estimate"
+
+	DescBaseline     = "This estimate uses reference values for one or more unrecorded habits. Record your daily habits to obtain a more personalized estimate."
+	DescPersonalized = "This estimate is calculated using your recorded study duration, sleep, phone usage, and stress level."
 
 	// Model Weights & Preprocessing Parameters (Fitted strictly on 70% training split of dataset)
 	ModelIntercept = 50.23716964285723
@@ -54,18 +65,23 @@ type PredictionRequest struct {
 
 // PredictionResponse represents the verified prediction output.
 type PredictionResponse struct {
-	ID               uuid.UUID              `json:"id"`
-	PredictedScore   float64                `json:"predicted_score"`
-	ModelVersion     string                 `json:"model_version"`
-	Algorithm        string                 `json:"algorithm"`
-	PredictionDate   string                 `json:"prediction_date"`
-	StudyHours       float64                `json:"study_hours"`
-	SleepHours       *float64               `json:"sleep_hours,omitempty"`
-	PhoneUsageHours  *float64               `json:"phone_usage_hours,omitempty"`
-	StressLevel      *int                   `json:"stress_level,omitempty"`
-	FeaturesSnapshot map[string]interface{} `json:"features_snapshot"`
-	Disclaimer       string                 `json:"disclaimer"`
-	CreatedAt        time.Time              `json:"created_at"`
+	ID                 uuid.UUID              `json:"id"`
+	PredictedScore     float64                `json:"predicted_score"`
+	ModelVersion       string                 `json:"model_version"`
+	Algorithm          string                 `json:"algorithm"`
+	PredictionDate     string                 `json:"prediction_date"`
+	StudyHours         float64                `json:"study_hours"`
+	SleepHours         *float64               `json:"sleep_hours,omitempty"`
+	PhoneUsageHours    *float64               `json:"phone_usage_hours,omitempty"`
+	StressLevel        *int                   `json:"stress_level,omitempty"`
+	PredictionState    string                 `json:"prediction_state"`
+	StateLabel         string                 `json:"state_label"`
+	StateDescription   string                 `json:"state_description"`
+	IsBaseline         bool                   `json:"is_baseline"`
+	UnrecordedFeatures []string               `json:"unrecorded_features"`
+	FeaturesSnapshot   map[string]interface{} `json:"features_snapshot"`
+	Disclaimer         string                 `json:"disclaimer"`
+	CreatedAt          time.Time              `json:"created_at"`
 }
 
 type PredictionService interface {
@@ -123,82 +139,150 @@ func (s *predictionService) Predict(ctx context.Context, userID uuid.UUID, req P
 	endOfDay := time.Date(targetDate.Year(), targetDate.Month(), targetDate.Day(), 23, 59, 59, 999999999, loc).UTC()
 
 	// 1. Resolve Study Hours
-	var studyHours float64
+	var studyHoursSupplied float64
+	var studyHoursObserved *float64
 	var studyImputed bool
+
 	if req.StudyHours != nil {
 		if *req.StudyHours < 0 || *req.StudyHours > 24 {
 			return nil, ErrInvalidPredictionInput
 		}
-		studyHours = *req.StudyHours
+		studyHoursSupplied = *req.StudyHours
+		studyHoursObserved = req.StudyHours
+		studyImputed = false
 	} else {
 		// Aggregate from actual completed study sessions
-		durationSec, err := s.studyRepo.GetCompletedDuration(ctx, userID, startOfDay, endOfDay)
-		if err == nil && durationSec > 0 {
-			studyHours = math.Round((float64(durationSec)/3600.0)*100) / 100
+		stats, err := s.studyRepo.GetDailyStatistics(ctx, userID, startOfDay, endOfDay)
+		if err != nil {
+			return nil, fmt.Errorf("failed to retrieve daily study statistics: %w", err)
+		}
+		if stats == nil {
+			return nil, errors.New("study repository returned unexpected nil statistics")
+		}
+
+		if stats.CompletedSessionsCount > 0 {
+			// Observed study session exists on this day
+			if stats.TotalCompletedSeconds > 0 {
+				studyHoursSupplied = math.Round((float64(stats.TotalCompletedSeconds)/3600.0)*100) / 100
+			} else {
+				studyHoursSupplied = 0.0
+			}
+			studyHoursObserved = &studyHoursSupplied
+			studyImputed = false
 		} else {
-			// If no study session recorded, study hours is 0.0
-			studyHours = 0.0
+			// Missing / unrecorded: User has no completed study records for this date
+			studyHoursSupplied = math.Round(StudyHoursMean*100) / 100
+			studyHoursObserved = nil
+			studyImputed = true
 		}
 	}
 
 	// 2. Resolve Lifestyle Metrics (Sleep, Phone, Stress)
-	lifestyleRecord, _ := s.lifestyleRepo.FindByDate(ctx, userID, targetDate)
+	lifestyleRecord, err := s.lifestyleRepo.FindByDate(ctx, userID, targetDate)
+	if err != nil && !errors.Is(err, repositories.ErrLifestyleRecordNotFound) && !errors.Is(err, gorm.ErrRecordNotFound) {
+		return nil, fmt.Errorf("failed to retrieve daily lifestyle record: %w", err)
+	}
 
-	var sleepHours *float64
+	var sleepHoursSupplied float64
+	var sleepHoursObserved *float64
 	var sleepImputed bool
+
 	if req.SleepHours != nil {
 		if *req.SleepHours < 0 || *req.SleepHours > 24 {
 			return nil, ErrInvalidPredictionInput
 		}
-		sleepHours = req.SleepHours
+		sleepHoursSupplied = *req.SleepHours
+		sleepHoursObserved = req.SleepHours
+		sleepImputed = false
 	} else if lifestyleRecord != nil && lifestyleRecord.SleepHours != nil {
-		sleepHours = lifestyleRecord.SleepHours
+		sleepHoursSupplied = *lifestyleRecord.SleepHours
+		sleepHoursObserved = lifestyleRecord.SleepHours
+		sleepImputed = false
 	} else {
 		// Impute using training population mean
-		defaultSleep := math.Round(SleepHoursMean*100) / 100
-		sleepHours = &defaultSleep
+		sleepHoursSupplied = math.Round(SleepHoursMean*100) / 100
+		sleepHoursObserved = nil
 		sleepImputed = true
 	}
 
-	var phoneHours *float64
+	var phoneHoursSupplied float64
+	var phoneHoursObserved *float64
 	var phoneImputed bool
+
 	if req.PhoneUsageHours != nil {
 		if *req.PhoneUsageHours < 0 || *req.PhoneUsageHours > 24 {
 			return nil, ErrInvalidPredictionInput
 		}
-		phoneHours = req.PhoneUsageHours
+		phoneHoursSupplied = *req.PhoneUsageHours
+		phoneHoursObserved = req.PhoneUsageHours
+		phoneImputed = false
 	} else if lifestyleRecord != nil && lifestyleRecord.PhoneUsageHours != nil {
-		phoneHours = lifestyleRecord.PhoneUsageHours
+		phoneHoursSupplied = *lifestyleRecord.PhoneUsageHours
+		phoneHoursObserved = lifestyleRecord.PhoneUsageHours
+		phoneImputed = false
 	} else {
-		defaultPhone := math.Round(PhoneHoursMean*100) / 100
-		phoneHours = &defaultPhone
+		// Impute using training population mean
+		phoneHoursSupplied = math.Round(PhoneHoursMean*100) / 100
+		phoneHoursObserved = nil
 		phoneImputed = true
 	}
 
-	var stressLevel *int
+	var stressLevelSupplied int
+	var stressLevelObserved *int
 	var stressImputed bool
+
 	if req.StressLevel != nil {
 		if *req.StressLevel < 1 || *req.StressLevel > 10 {
 			return nil, ErrInvalidPredictionInput
 		}
-		stressLevel = req.StressLevel
+		stressLevelSupplied = *req.StressLevel
+		stressLevelObserved = req.StressLevel
+		stressImputed = false
 	} else if lifestyleRecord != nil && lifestyleRecord.StressLevel != nil {
-		stressLevel = lifestyleRecord.StressLevel
+		stressLevelSupplied = *lifestyleRecord.StressLevel
+		stressLevelObserved = lifestyleRecord.StressLevel
+		stressImputed = false
 	} else {
-		defaultStress := int(math.Round(StressLevelMean))
-		stressLevel = &defaultStress
+		// Impute using training population mean
+		stressLevelSupplied = int(math.Round(StressLevelMean))
+		stressLevelObserved = nil
 		stressImputed = true
+	}
+
+	// Determine Prediction State and List Unrecorded Features
+	var unrecordedFeatures []string
+	if studyImputed {
+		unrecordedFeatures = append(unrecordedFeatures, "study_hours")
+	}
+	if sleepImputed {
+		unrecordedFeatures = append(unrecordedFeatures, "sleep_hours")
+	}
+	if phoneImputed {
+		unrecordedFeatures = append(unrecordedFeatures, "phone_usage_hours")
+	}
+	if stressImputed {
+		unrecordedFeatures = append(unrecordedFeatures, "stress_level")
+	}
+
+	isBaseline := len(unrecordedFeatures) > 0
+	predState := StatePersonalized
+	stateLabel := LabelPersonalized
+	stateDesc := DescPersonalized
+	if isBaseline {
+		predState = StateBaseline
+		stateLabel = LabelBaseline
+		stateDesc = DescBaseline
 	}
 
 	// 3. Compute Ridge Regression Score
 	// Feature 0: study_hours_per_day
-	scaledStudy := (studyHours - StudyHoursMean) / StudyHoursScale
+	scaledStudy := (studyHoursSupplied - StudyHoursMean) / StudyHoursScale
 	// Feature 1: sleep_hours
-	scaledSleep := (*sleepHours - SleepHoursMean) / SleepHoursScale
+	scaledSleep := (sleepHoursSupplied - SleepHoursMean) / SleepHoursScale
 	// Feature 2: phone_usage_hours
-	scaledPhone := (*phoneHours - PhoneHoursMean) / PhoneHoursScale
+	scaledPhone := (phoneHoursSupplied - PhoneHoursMean) / PhoneHoursScale
 	// Feature 3: stress_level
-	scaledStress := (float64(*stressLevel) - StressLevelMean) / StressLevelScale
+	scaledStress := (float64(stressLevelSupplied) - StressLevelMean) / StressLevelScale
 
 	rawScore := ModelIntercept +
 		(scaledStudy * StudyHoursCoef) +
@@ -211,36 +295,77 @@ func (s *predictionService) Predict(ctx context.Context, userID uuid.UUID, req P
 	predictedScore = math.Round(predictedScore*100) / 100
 
 	// 4. Construct Features Snapshot JSON
+	var studyObsVal interface{}
+	if studyHoursObserved != nil {
+		studyObsVal = *studyHoursObserved
+	}
+	var sleepObsVal interface{}
+	if sleepHoursObserved != nil {
+		sleepObsVal = *sleepHoursObserved
+	}
+	var phoneObsVal interface{}
+	if phoneHoursObserved != nil {
+		phoneObsVal = *phoneHoursObserved
+	}
+	var stressObsVal interface{}
+	if stressLevelObserved != nil {
+		stressObsVal = *stressLevelObserved
+	}
+
 	featuresSnapshot := map[string]interface{}{
-		"study_hours":               studyHours,
-		"study_hours_imputed":       studyImputed,
-		"sleep_hours":               *sleepHours,
-		"sleep_hours_imputed":       sleepImputed,
-		"phone_usage_hours":         *phoneHours,
-		"phone_usage_hours_imputed": phoneImputed,
-		"stress_level":              *stressLevel,
-		"stress_level_imputed":      stressImputed,
-		"model_version":             ModelVersionCurrent,
-		"algorithm":                 ModelAlgorithmName,
-		"raw_score":                 math.Round(rawScore*10000) / 10000,
-		"disclaimer":                ModelDisclaimerText,
+		"study_hours":          studyHoursSupplied,
+		"study_hours_supplied": studyHoursSupplied,
+		"study_hours_observed": studyObsVal,
+		"study_hours_imputed":  studyImputed,
+
+		"sleep_hours":          sleepHoursSupplied,
+		"sleep_hours_supplied": sleepHoursSupplied,
+		"sleep_hours_observed": sleepObsVal,
+		"sleep_hours_imputed":  sleepImputed,
+
+		"phone_usage_hours":          phoneHoursSupplied,
+		"phone_usage_hours_supplied": phoneHoursSupplied,
+		"phone_usage_hours_observed": phoneObsVal,
+		"phone_usage_hours_imputed":  phoneImputed,
+
+		"stress_level":          stressLevelSupplied,
+		"stress_level_supplied": stressLevelSupplied,
+		"stress_level_observed": stressObsVal,
+		"stress_level_imputed":  stressImputed,
+
+		"prediction_state":    predState,
+		"state_label":         stateLabel,
+		"state_description":   stateDesc,
+		"is_baseline":         isBaseline,
+		"unrecorded_features": unrecordedFeatures,
+
+		"model_version":        ModelVersionCurrent,
+		"algorithm":            ModelAlgorithmName,
+		"raw_score":            math.Round(rawScore*10000) / 10000,
+		"disclaimer":           ModelDisclaimerText,
+		"prediction_timestamp": time.Now().UTC().Format(time.RFC3339),
 	}
 
 	snapshotJSON, _ := json.Marshal(featuresSnapshot)
 
 	// 5. Persist Prediction Record
 	predictionModel := &models.ProductivityPrediction{
-		ID:               uuid.New(),
-		UserID:           userID,
-		PredictedScore:   predictedScore,
-		ModelVersion:     ModelVersionCurrent,
-		StudyHours:       studyHours,
-		SleepHours:       sleepHours,
-		PhoneUsageHours:  phoneHours,
-		StressLevel:      stressLevel,
-		FeaturesSnapshot: string(snapshotJSON),
-		PredictionDate:   targetDate,
-		CreatedAt:        time.Now().UTC(),
+		ID:                 uuid.New(),
+		UserID:             userID,
+		PredictedScore:     predictedScore,
+		ModelVersion:       ModelVersionCurrent,
+		StudyHours:         studyHoursSupplied,
+		SleepHours:         sleepHoursObserved,
+		PhoneUsageHours:    phoneHoursObserved,
+		StressLevel:        stressLevelObserved,
+		FeaturesSnapshot:   string(snapshotJSON),
+		PredictionDate:     targetDate,
+		CreatedAt:          time.Now().UTC(),
+		PredictionState:    predState,
+		StateLabel:         stateLabel,
+		StateDescription:   stateDesc,
+		IsBaseline:         isBaseline,
+		UnrecordedFeatures: unrecordedFeatures,
 	}
 
 	if err := s.predictionRepo.Create(ctx, predictionModel); err != nil {
@@ -248,18 +373,23 @@ func (s *predictionService) Predict(ctx context.Context, userID uuid.UUID, req P
 	}
 
 	return &PredictionResponse{
-		ID:               predictionModel.ID,
-		PredictedScore:   predictionModel.PredictedScore,
-		ModelVersion:     predictionModel.ModelVersion,
-		Algorithm:        ModelAlgorithmName,
-		PredictionDate:   targetDate.Format("2006-01-02"),
-		StudyHours:       studyHours,
-		SleepHours:       sleepHours,
-		PhoneUsageHours:  phoneHours,
-		StressLevel:      stressLevel,
-		FeaturesSnapshot: featuresSnapshot,
-		Disclaimer:       ModelDisclaimerText,
-		CreatedAt:        predictionModel.CreatedAt,
+		ID:                 predictionModel.ID,
+		PredictedScore:     predictionModel.PredictedScore,
+		ModelVersion:       predictionModel.ModelVersion,
+		Algorithm:          ModelAlgorithmName,
+		PredictionDate:     targetDate.Format("2006-01-02"),
+		StudyHours:         studyHoursSupplied,
+		SleepHours:         sleepHoursObserved,
+		PhoneUsageHours:    phoneHoursObserved,
+		StressLevel:        stressLevelObserved,
+		PredictionState:    predState,
+		StateLabel:         stateLabel,
+		StateDescription:   stateDesc,
+		IsBaseline:         isBaseline,
+		UnrecordedFeatures: unrecordedFeatures,
+		FeaturesSnapshot:   featuresSnapshot,
+		Disclaimer:         ModelDisclaimerText,
+		CreatedAt:          predictionModel.CreatedAt,
 	}, nil
 }
 

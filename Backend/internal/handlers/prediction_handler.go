@@ -1,6 +1,8 @@
 package handlers
 
 import (
+	"errors"
+	"log"
 	"strconv"
 
 	"github.com/gofiber/fiber/v2"
@@ -37,10 +39,11 @@ func (h *PredictionHandler) Create(c *fiber.Ctx) error {
 
 	pred, err := h.predictionService.Predict(c.Context(), userID, req)
 	if err != nil {
-		if err == services.ErrInvalidPredictionInput {
+		if errors.Is(err, services.ErrInvalidPredictionInput) {
 			return c.Status(fiber.StatusBadRequest).JSON(response.Error("Invalid input parameter range for prediction features"))
 		}
-		return c.Status(fiber.StatusInternalServerError).JSON(response.Error("Failed to compute productivity prediction: " + err.Error()))
+		log.Printf("[ERROR] [PredictionHandler.Create] user_id=%s failed to compute productivity prediction: %v", userID, err)
+		return c.Status(fiber.StatusInternalServerError).JSON(response.Error("Failed to compute productivity prediction"))
 	}
 
 	return c.Status(fiber.StatusCreated).JSON(response.Success("Productivity prediction generated successfully", pred))
@@ -59,7 +62,8 @@ func (h *PredictionHandler) List(c *fiber.Ctx) error {
 
 	history, total, err := h.predictionService.GetHistory(c.Context(), userID, page, limit)
 	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(response.Error("Failed to fetch prediction history: " + err.Error()))
+		log.Printf("[ERROR] [PredictionHandler.List] user_id=%s failed to fetch prediction history: %v", userID, err)
+		return c.Status(fiber.StatusInternalServerError).JSON(response.Error("Failed to fetch prediction history"))
 	}
 
 	totalPages := int((total + int64(limit) - 1) / int64(limit))

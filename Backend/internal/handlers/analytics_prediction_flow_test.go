@@ -2,17 +2,27 @@ package handlers_test
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
+	"log"
 	"net/http"
 	"net/http/httptest"
+	"os"
+	"strings"
 	"testing"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/google/uuid"
 	"mindora/backend/internal/config"
 	"mindora/backend/internal/database"
+	"mindora/backend/internal/handlers"
+	"mindora/backend/internal/models"
+	"mindora/backend/internal/repositories"
 	"mindora/backend/internal/routes"
+	"mindora/backend/internal/services"
 )
 
 func TestAnalyticsAndPredictionFlow(t *testing.T) {
@@ -292,10 +302,15 @@ func TestAnalyticsAndPredictionFlow(t *testing.T) {
 
 	var predEnvelope struct {
 		Data struct {
-			ID             string  `json:"id"`
-			PredictedScore float64 `json:"predicted_score"`
-			ModelVersion   string  `json:"model_version"`
-			StudyHours     float64 `json:"study_hours"`
+			ID                 string   `json:"id"`
+			PredictedScore     float64  `json:"predicted_score"`
+			ModelVersion       string   `json:"model_version"`
+			StudyHours         float64  `json:"study_hours"`
+			PredictionState    string   `json:"prediction_state"`
+			StateLabel         string   `json:"state_label"`
+			StateDescription   string   `json:"state_description"`
+			IsBaseline         bool     `json:"is_baseline"`
+			UnrecordedFeatures []string `json:"unrecorded_features"`
 		} `json:"data"`
 	}
 	_ = json.NewDecoder(predResp.Body).Decode(&predEnvelope)
@@ -306,6 +321,50 @@ func TestAnalyticsAndPredictionFlow(t *testing.T) {
 	}
 	if predEnvelope.Data.StudyHours != 1.0 {
 		t.Errorf("expected 1.0 study hour aggregated from completed session, got %v", predEnvelope.Data.StudyHours)
+	}
+	if predEnvelope.Data.IsBaseline != false {
+		t.Errorf("expected Personalized Estimate for User A (is_baseline=false), got true")
+	}
+	if predEnvelope.Data.PredictionState != "personalized" {
+		t.Errorf("expected prediction_state 'personalized', got %v", predEnvelope.Data.PredictionState)
+	}
+	if predEnvelope.Data.StateLabel != "Personalized Estimate" {
+		t.Errorf("expected state_label 'Personalized Estimate', got %v", predEnvelope.Data.StateLabel)
+	}
+	if len(predEnvelope.Data.UnrecordedFeatures) != 0 {
+		t.Errorf("expected 0 unrecorded features for fully tracked User A, got %v", predEnvelope.Data.UnrecordedFeatures)
+	}
+
+	// 5.1b POST /api/v1/predictions for User B (Cold Start: zero tracking records)
+	predReqCold := httptest.NewRequest(http.MethodPost, "/api/v1/predictions", bytes.NewReader([]byte(`{}`)))
+	predReqCold.Header.Set("Content-Type", "application/json")
+	predReqCold.Header.Set("Authorization", "Bearer "+tokenB)
+	predRespCold, _ := app.Test(predReqCold, 5000)
+	if predRespCold.StatusCode != fiber.StatusCreated {
+		t.Fatalf("expected 201 Created on User B cold-start /predictions, got %d", predRespCold.StatusCode)
+	}
+
+	var predEnvelopeCold struct {
+		Data struct {
+			PredictedScore     float64  `json:"predicted_score"`
+			PredictionState    string   `json:"prediction_state"`
+			StateLabel         string   `json:"state_label"`
+			IsBaseline         bool     `json:"is_baseline"`
+			UnrecordedFeatures []string `json:"unrecorded_features"`
+		} `json:"data"`
+	}
+	_ = json.NewDecoder(predRespCold.Body).Decode(&predEnvelopeCold)
+	if !predEnvelopeCold.Data.IsBaseline {
+		t.Errorf("expected User B cold start to be Baseline Estimate (is_baseline=true)")
+	}
+	if predEnvelopeCold.Data.PredictionState != "baseline" {
+		t.Errorf("expected User B state 'baseline', got %s", predEnvelopeCold.Data.PredictionState)
+	}
+	if predEnvelopeCold.Data.StateLabel != "Baseline Estimate" {
+		t.Errorf("expected User B label 'Baseline Estimate', got %s", predEnvelopeCold.Data.StateLabel)
+	}
+	if len(predEnvelopeCold.Data.UnrecordedFeatures) != 4 {
+		t.Errorf("expected 4 unrecorded features for cold start User B, got %v", predEnvelopeCold.Data.UnrecordedFeatures)
 	}
 
 	// 5.2 GET /api/v1/predictions (History)
@@ -340,4 +399,331 @@ func TestAnalyticsAndPredictionFlow(t *testing.T) {
 	if invalidPredResp.StatusCode != fiber.StatusBadRequest {
 		t.Errorf("expected 400 Bad Request on invalid study hours (>24), got %d", invalidPredResp.StatusCode)
 	}
+}
+
+// Mocks for Handler Repository Error Tests (Phase 3.2.1)
+type mockHandlerPredRepo struct {
+	records []models.ProductivityPrediction
+}
+
+func (m *mockHandlerPredRepo) Create(ctx context.Context, p *models.ProductivityPrediction) error {
+	m.records = append(m.records, *p)
+	return nil
+}
+func (m *mockHandlerPredRepo) FindByID(ctx context.Context, id, userID uuid.UUID) (*models.ProductivityPrediction, error) {
+	return nil, nil
+}
+func (m *mockHandlerPredRepo) FindHistory(ctx context.Context, userID uuid.UUID, l, o int) ([]models.ProductivityPrediction, int64, error) {
+	return nil, 0, nil
+}
+func (m *mockHandlerPredRepo) FindLatest(ctx context.Context, userID uuid.UUID) (*models.ProductivityPrediction, error) {
+	return nil, nil
+}
+func (m *mockHandlerPredRepo) FindByDate(ctx context.Context, userID uuid.UUID, d time.Time) (*models.ProductivityPrediction, error) {
+	return nil, nil
+}
+
+type mockHandlerStudyRepo struct {
+	returnNilStats bool
+	err            error
+}
+
+func (m *mockHandlerStudyRepo) CreateSession(ctx context.Context, s *models.StudySession) error {
+	return nil
+}
+func (m *mockHandlerStudyRepo) FindSessionByID(ctx context.Context, id, uID uuid.UUID) (*models.StudySession, error) {
+	return nil, nil
+}
+func (m *mockHandlerStudyRepo) FindActiveOrPausedSession(ctx context.Context, uID uuid.UUID) (*models.StudySession, error) {
+	return nil, nil
+}
+func (m *mockHandlerStudyRepo) FindSessions(ctx context.Context, uID uuid.UUID, s, e *time.Time, l, o int) ([]models.StudySession, int64, error) {
+	return nil, 0, nil
+}
+func (m *mockHandlerStudyRepo) FindCompletedSessions(ctx context.Context, uID uuid.UUID, s, e time.Time) ([]models.StudySession, error) {
+	return nil, nil
+}
+func (m *mockHandlerStudyRepo) UpdateSession(ctx context.Context, s *models.StudySession) error {
+	return nil
+}
+func (m *mockHandlerStudyRepo) GetCompletedDuration(ctx context.Context, uID uuid.UUID, s, e time.Time) (int64, error) {
+	return 0, nil
+}
+func (m *mockHandlerStudyRepo) GetDailyStatistics(ctx context.Context, uID uuid.UUID, s, e time.Time) (*repositories.StudyDailyStats, error) {
+	if m.err != nil {
+		return nil, m.err
+	}
+	if m.returnNilStats {
+		return nil, nil
+	}
+	return &repositories.StudyDailyStats{TotalCompletedSeconds: 0, CompletedSessionsCount: 0}, nil
+}
+
+type mockHandlerLifestyleRepo struct {
+	err    error
+	record *models.LifestyleRecord
+}
+
+func (m *mockHandlerLifestyleRepo) FindByDate(ctx context.Context, uID uuid.UUID, d time.Time) (*models.LifestyleRecord, error) {
+	if m.err != nil {
+		return nil, m.err
+	}
+	return m.record, nil
+}
+func (m *mockHandlerLifestyleRepo) UpsertDailyRecord(ctx context.Context, r *models.LifestyleRecord) error {
+	return nil
+}
+func (m *mockHandlerLifestyleRepo) FindHistory(ctx context.Context, uID uuid.UUID, l, o int) ([]models.LifestyleRecord, int64, error) {
+	return nil, 0, nil
+}
+func (m *mockHandlerLifestyleRepo) FindByDateRange(ctx context.Context, uID uuid.UUID, s, e time.Time) ([]models.LifestyleRecord, error) {
+	return nil, nil
+}
+
+// TestPredictionHandler_RepositoryDatabaseErrorHandling validates that repository failures
+// return 500 Internal Server Error, do not leak internal database details, log errors server-side,
+// do not persist predictions, and handle wrapped input validation errors as 400.
+func TestPredictionHandler_RepositoryDatabaseErrorHandling(t *testing.T) {
+	testUserID := uuid.New()
+
+	t.Run("Study repo query failure returns generic 500, hides DB details, and logs error", func(t *testing.T) {
+		var logBuf bytes.Buffer
+		log.SetOutput(&logBuf)
+		defer log.SetOutput(os.Stderr)
+
+		predRepo := &mockHandlerPredRepo{}
+		studyRepo := &mockHandlerStudyRepo{err: errors.New("pq: connection reset by peer")}
+		lifestyleRepo := &mockHandlerLifestyleRepo{}
+
+		predSvc := services.NewPredictionService(predRepo, studyRepo, lifestyleRepo)
+		handler := handlers.NewPredictionHandler(predSvc)
+
+		app := fiber.New()
+		app.Use(func(c *fiber.Ctx) error {
+			c.Locals("userID", testUserID)
+			return c.Next()
+		})
+		app.Post("/api/v1/predictions", handler.Create)
+
+		req := httptest.NewRequest(http.MethodPost, "/api/v1/predictions", bytes.NewReader([]byte(`{}`)))
+		req.Header.Set("Content-Type", "application/json")
+		resp, err := app.Test(req, 2000)
+		if err != nil {
+			t.Fatalf("request failed: %v", err)
+		}
+
+		if resp.StatusCode != fiber.StatusInternalServerError {
+			t.Errorf("expected status 500 Internal Server Error, got %d", resp.StatusCode)
+		}
+
+		var body map[string]interface{}
+		_ = json.NewDecoder(resp.Body).Decode(&body)
+		if body["success"] != false {
+			t.Errorf("expected success: false in response, got %v", body["success"])
+		}
+		msg, _ := body["message"].(string)
+		if msg != "Failed to compute productivity prediction" {
+			t.Errorf("expected generic error message 'Failed to compute productivity prediction', got: %s", msg)
+		}
+		// Security Assertion: Ensure internal database details are NOT exposed to HTTP client
+		if strings.Contains(msg, "pq:") || strings.Contains(msg, "failed to retrieve") {
+			t.Errorf("SECURITY LEAK: raw database error exposed in HTTP response body: %s", msg)
+		}
+
+		// Security Assertion: Ensure detailed error IS captured in server logs
+		if !strings.Contains(logBuf.String(), "pq: connection reset by peer") {
+			t.Errorf("expected detailed error logged server-side, got log: %s", logBuf.String())
+		}
+		if !strings.Contains(logBuf.String(), testUserID.String()) {
+			t.Errorf("expected user ID in server log, got log: %s", logBuf.String())
+		}
+
+		if len(predRepo.records) != 0 {
+			t.Errorf("expected 0 predictions saved in database on study repo failure, got %d", len(predRepo.records))
+		}
+	})
+
+	t.Run("Lifestyle repo query failure returns generic 500, hides DB details, and logs error", func(t *testing.T) {
+		var logBuf bytes.Buffer
+		log.SetOutput(&logBuf)
+		defer log.SetOutput(os.Stderr)
+
+		predRepo := &mockHandlerPredRepo{}
+		studyRepo := &mockHandlerStudyRepo{}
+		lifestyleRepo := &mockHandlerLifestyleRepo{err: errors.New("pq: deadlock detected")}
+
+		predSvc := services.NewPredictionService(predRepo, studyRepo, lifestyleRepo)
+		handler := handlers.NewPredictionHandler(predSvc)
+
+		app := fiber.New()
+		app.Use(func(c *fiber.Ctx) error {
+			c.Locals("userID", testUserID)
+			return c.Next()
+		})
+		app.Post("/api/v1/predictions", handler.Create)
+
+		req := httptest.NewRequest(http.MethodPost, "/api/v1/predictions", bytes.NewReader([]byte(`{}`)))
+		req.Header.Set("Content-Type", "application/json")
+		resp, err := app.Test(req, 2000)
+		if err != nil {
+			t.Fatalf("request failed: %v", err)
+		}
+
+		if resp.StatusCode != fiber.StatusInternalServerError {
+			t.Errorf("expected status 500 Internal Server Error, got %d", resp.StatusCode)
+		}
+
+		var body map[string]interface{}
+		_ = json.NewDecoder(resp.Body).Decode(&body)
+		if body["success"] != false {
+			t.Errorf("expected success: false in response, got %v", body["success"])
+		}
+		msg, _ := body["message"].(string)
+		if msg != "Failed to compute productivity prediction" {
+			t.Errorf("expected generic error message 'Failed to compute productivity prediction', got: %s", msg)
+		}
+		// Security Assertion: Ensure internal database details are NOT exposed to HTTP client
+		if strings.Contains(msg, "pq:") || strings.Contains(msg, "failed to retrieve") {
+			t.Errorf("SECURITY LEAK: raw database error exposed in HTTP response body: %s", msg)
+		}
+
+		// Security Assertion: Ensure detailed error IS captured in server logs
+		if !strings.Contains(logBuf.String(), "pq: deadlock detected") {
+			t.Errorf("expected detailed error logged server-side, got log: %s", logBuf.String())
+		}
+
+		if len(predRepo.records) != 0 {
+			t.Errorf("expected 0 predictions saved in database on lifestyle repo failure, got %d", len(predRepo.records))
+		}
+	})
+
+	t.Run("Unexpected nil study statistics returns generic 500 without panic", func(t *testing.T) {
+		var logBuf bytes.Buffer
+		log.SetOutput(&logBuf)
+		defer log.SetOutput(os.Stderr)
+
+		predRepo := &mockHandlerPredRepo{}
+		studyRepo := &mockHandlerStudyRepo{returnNilStats: true}
+		lifestyleRepo := &mockHandlerLifestyleRepo{}
+
+		predSvc := services.NewPredictionService(predRepo, studyRepo, lifestyleRepo)
+		handler := handlers.NewPredictionHandler(predSvc)
+
+		app := fiber.New()
+		app.Use(func(c *fiber.Ctx) error {
+			c.Locals("userID", testUserID)
+			return c.Next()
+		})
+		app.Post("/api/v1/predictions", handler.Create)
+
+		req := httptest.NewRequest(http.MethodPost, "/api/v1/predictions", bytes.NewReader([]byte(`{}`)))
+		req.Header.Set("Content-Type", "application/json")
+		resp, err := app.Test(req, 2000)
+		if err != nil {
+			t.Fatalf("request failed: %v", err)
+		}
+
+		if resp.StatusCode != fiber.StatusInternalServerError {
+			t.Errorf("expected status 500 Internal Server Error on nil statistics, got %d", resp.StatusCode)
+		}
+
+		var body map[string]interface{}
+		_ = json.NewDecoder(resp.Body).Decode(&body)
+		msg, _ := body["message"].(string)
+		if msg != "Failed to compute productivity prediction" {
+			t.Errorf("expected generic error message, got: %s", msg)
+		}
+
+		// Verify logged error indicates unexpected nil statistics
+		if !strings.Contains(logBuf.String(), "unexpected nil statistics") {
+			t.Errorf("expected nil statistics detail logged server-side, got log: %s", logBuf.String())
+		}
+
+		if len(predRepo.records) != 0 {
+			t.Errorf("expected 0 predictions persisted on nil statistics error, got %d", len(predRepo.records))
+		}
+	})
+
+	t.Run("Wrapped invalid input error returns HTTP 400", func(t *testing.T) {
+		predRepo := &mockHandlerPredRepo{}
+		studyRepo := &mockHandlerStudyRepo{}
+		lifestyleRepo := &mockHandlerLifestyleRepo{}
+
+		predSvc := services.NewPredictionService(predRepo, studyRepo, lifestyleRepo)
+		handler := handlers.NewPredictionHandler(predSvc)
+
+		app := fiber.New()
+		app.Use(func(c *fiber.Ctx) error {
+			c.Locals("userID", testUserID)
+			return c.Next()
+		})
+		app.Post("/api/v1/predictions", handler.Create)
+
+		// Send invalid study hours (> 24)
+		req := httptest.NewRequest(http.MethodPost, "/api/v1/predictions", bytes.NewReader([]byte(`{"study_hours": 26.0}`)))
+		req.Header.Set("Content-Type", "application/json")
+		resp, err := app.Test(req, 2000)
+		if err != nil {
+			t.Fatalf("request failed: %v", err)
+		}
+
+		if resp.StatusCode != fiber.StatusBadRequest {
+			t.Errorf("expected status 400 Bad Request, got %d", resp.StatusCode)
+		}
+
+		var body map[string]interface{}
+		_ = json.NewDecoder(resp.Body).Decode(&body)
+		if body["success"] != false {
+			t.Errorf("expected success: false, got %v", body["success"])
+		}
+		msg, _ := body["message"].(string)
+		if msg != "Invalid input parameter range for prediction features" {
+			t.Errorf("expected invalid parameter range message, got: %s", msg)
+		}
+
+		if len(predRepo.records) != 0 {
+			t.Errorf("expected 0 predictions persisted on invalid input, got %d", len(predRepo.records))
+		}
+	})
+
+	t.Run("Lifestyle repo ErrLifestyleRecordNotFound succeeds and creates Baseline Estimate", func(t *testing.T) {
+		predRepo := &mockHandlerPredRepo{}
+		studyRepo := &mockHandlerStudyRepo{}
+		lifestyleRepo := &mockHandlerLifestyleRepo{err: repositories.ErrLifestyleRecordNotFound}
+
+		predSvc := services.NewPredictionService(predRepo, studyRepo, lifestyleRepo)
+		handler := handlers.NewPredictionHandler(predSvc)
+
+		app := fiber.New()
+		app.Use(func(c *fiber.Ctx) error {
+			c.Locals("userID", testUserID)
+			return c.Next()
+		})
+		app.Post("/api/v1/predictions", handler.Create)
+
+		req := httptest.NewRequest(http.MethodPost, "/api/v1/predictions", bytes.NewReader([]byte(`{}`)))
+		req.Header.Set("Content-Type", "application/json")
+		resp, err := app.Test(req, 2000)
+		if err != nil {
+			t.Fatalf("request failed: %v", err)
+		}
+
+		if resp.StatusCode != fiber.StatusCreated {
+			t.Errorf("expected status 201 Created on missing lifestyle record, got %d", resp.StatusCode)
+		}
+
+		var body map[string]interface{}
+		_ = json.NewDecoder(resp.Body).Decode(&body)
+		if body["success"] != true {
+			t.Errorf("expected success: true, got %v", body["success"])
+		}
+		data, ok := body["data"].(map[string]interface{})
+		if !ok || data["is_baseline"] != true {
+			t.Errorf("expected is_baseline: true for missing data, got %v", data["is_baseline"])
+		}
+
+		if len(predRepo.records) != 1 {
+			t.Errorf("expected 1 prediction persisted, got %d", len(predRepo.records))
+		}
+	})
 }
