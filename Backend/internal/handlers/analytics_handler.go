@@ -101,6 +101,34 @@ func (h *AnalyticsHandler) GetMonthly(c *fiber.Ctx) error {
 	return c.Status(fiber.StatusOK).JSON(response.Success("Monthly productivity analytics retrieved successfully", analytics))
 }
 
+// GetRange returns custom date range productivity metrics and trends.
+// GET /api/v1/analytics/range or /api/analytics/range
+func (h *AnalyticsHandler) GetRange(c *fiber.Ctx) error {
+	userID, err := middleware.GetUserID(c)
+	if err != nil {
+		return c.Status(fiber.StatusUnauthorized).JSON(response.Error("Authentication required"))
+	}
+
+	startDate := c.Query("start_date")
+	endDate := c.Query("end_date")
+	if startDate == "" || endDate == "" {
+		return c.Status(fiber.StatusBadRequest).JSON(response.Error("start_date and end_date query parameters are required (YYYY-MM-DD)"))
+	}
+
+	var tzPtr *string
+	tzParam := c.Query("tz", c.Query("timezone"))
+	if tzParam != "" {
+		tzPtr = &tzParam
+	}
+
+	analytics, err := h.analyticsService.GetRangeAnalytics(c.Context(), userID, startDate, endDate, tzPtr)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(response.Error(err.Error()))
+	}
+
+	return c.Status(fiber.StatusOK).JSON(response.Success("Custom range productivity analytics retrieved successfully", analytics))
+}
+
 // GetSummary returns high-level quick overview metrics.
 // GET /api/v1/analytics/summary or /api/analytics/summary
 func (h *AnalyticsHandler) GetSummary(c *fiber.Ctx) error {

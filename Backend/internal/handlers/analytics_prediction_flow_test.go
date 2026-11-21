@@ -288,6 +288,22 @@ func TestAnalyticsAndPredictionFlow(t *testing.T) {
 		t.Fatalf("expected 200 OK on root alias /api/analytics/summary, got %d", rootAnalyticsResp.StatusCode)
 	}
 
+	// 4.6 Analytics Range (Reports Module)
+	rangeReq := httptest.NewRequest(http.MethodGet, "/api/v1/analytics/range?start_date=2026-11-15&end_date=2026-11-21&tz=UTC", nil)
+	rangeReq.Header.Set("Authorization", "Bearer "+tokenA)
+	rangeResp, _ := app.Test(rangeReq, 5000)
+	if rangeResp.StatusCode != fiber.StatusOK {
+		t.Fatalf("expected 200 OK on /analytics/range, got %d", rangeResp.StatusCode)
+	}
+
+	// 4.7 Root /api/analytics/range alias
+	rootRangeReq := httptest.NewRequest(http.MethodGet, "/api/analytics/range?start_date=2026-11-15&end_date=2026-11-21&tz=UTC", nil)
+	rootRangeReq.Header.Set("Authorization", "Bearer "+tokenA)
+	rootRangeResp, _ := app.Test(rootRangeReq, 5000)
+	if rootRangeResp.StatusCode != fiber.StatusOK {
+		t.Fatalf("expected 200 OK on root alias /api/analytics/range, got %d", rootRangeResp.StatusCode)
+	}
+
 	// -------------------------------------------------------------------------
 	// 5. VERIFY PREDICTION ENDPOINTS & OWNERSHIP ENFORCEMENT
 	// -------------------------------------------------------------------------

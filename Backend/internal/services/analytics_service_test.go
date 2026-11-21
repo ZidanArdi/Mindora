@@ -270,4 +270,37 @@ func TestAnalyticsService_DailyAndWeeklyCalculations(t *testing.T) {
 	if weekly.StudyConsistencyPct <= 0 {
 		t.Errorf("expected positive study consistency percentage, got %v", weekly.StudyConsistencyPct)
 	}
+
+	// 3. RANGE ANALYTICS (Reports Module)
+	startStr := startOfToday.AddDate(0, 0, -9).Format("2006-01-02")
+	endStr := startOfToday.Format("2006-01-02")
+	rangeRes, err := svc.GetRangeAnalytics(context.Background(), userID, startStr, endStr, nil)
+	if err != nil {
+		t.Fatalf("unexpected error in GetRangeAnalytics: %v", err)
+	}
+	if len(rangeRes.DailyPoints) != 10 {
+		t.Errorf("expected 10 daily points in 10-day range analytics, got %d", len(rangeRes.DailyPoints))
+	}
+	if rangeRes.TotalStudySeconds != 3600 {
+		t.Errorf("expected 3600 total study seconds in range analytics, got %d", rangeRes.TotalStudySeconds)
+	}
+
+	// Range validation: start date after end date
+	_, err = svc.GetRangeAnalytics(context.Background(), userID, endStr, startStr, nil)
+	if err == nil {
+		t.Errorf("expected error when start_date is after end_date")
+	}
+
+	// Range validation: range exceeding 90 days
+	tooEarlyStr := startOfToday.AddDate(0, 0, -95).Format("2006-01-02")
+	_, err = svc.GetRangeAnalytics(context.Background(), userID, tooEarlyStr, endStr, nil)
+	if err == nil {
+		t.Errorf("expected error when date range exceeds 90 days")
+	}
+
+	// Range validation: invalid date format
+	_, err = svc.GetRangeAnalytics(context.Background(), userID, "invalid-date", endStr, nil)
+	if err == nil {
+		t.Errorf("expected error for malformed start_date format")
+	}
 }

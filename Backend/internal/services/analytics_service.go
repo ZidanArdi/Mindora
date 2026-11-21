@@ -2,6 +2,7 @@ package services
 
 import (
 	"context"
+	"errors"
 	"math"
 	"time"
 
@@ -14,6 +15,7 @@ type AnalyticsService interface {
 	GetDailyAnalytics(ctx context.Context, userID uuid.UUID, dateStr *string, tzName *string) (*models.DailyAnalytics, error)
 	GetWeeklyAnalytics(ctx context.Context, userID uuid.UUID, endDateStr *string, tzName *string) (*models.WeeklyAnalytics, error)
 	GetMonthlyAnalytics(ctx context.Context, userID uuid.UUID, endDateStr *string, tzName *string) (*models.MonthlyAnalytics, error)
+	GetRangeAnalytics(ctx context.Context, userID uuid.UUID, startDateStr, endDateStr string, tzName *string) (*models.WeeklyAnalytics, error)
 	GetAnalyticsSummary(ctx context.Context, userID uuid.UUID, tzName *string) (*models.AnalyticsSummary, error)
 }
 
@@ -161,6 +163,38 @@ func (s *analyticsService) GetMonthlyAnalytics(ctx context.Context, userID uuid.
 		AveragePhoneHours:   weekly.AveragePhoneHours,
 		AverageStressLevel:  weekly.AverageStressLevel,
 	}, nil
+}
+
+func (s *analyticsService) GetRangeAnalytics(ctx context.Context, userID uuid.UUID, startDateStr, endDateStr string, tzName *string) (*models.WeeklyAnalytics, error) {
+	loc := parseUserLocation(tzName)
+
+	if startDateStr == "" || endDateStr == "" {
+		return nil, errors.New("both start_date and end_date are required (YYYY-MM-DD)")
+	}
+
+	startDate, err := time.ParseInLocation("2006-01-02", startDateStr, loc)
+	if err != nil {
+		return nil, errors.New("invalid start_date format, expected YYYY-MM-DD")
+	}
+
+	endDate, err := time.ParseInLocation("2006-01-02", endDateStr, loc)
+	if err != nil {
+		return nil, errors.New("invalid end_date format, expected YYYY-MM-DD")
+	}
+
+	if startDate.After(endDate) {
+		return nil, errors.New("start_date cannot be after end_date")
+	}
+
+	// Safety cap: maximum 90 days range to prevent denial of service
+	if endDate.Sub(startDate) > 90*24*time.Hour {
+		return nil, errors.New("date range cannot exceed 90 days")
+	}
+
+	startWindowUTC := time.Date(startDate.Year(), startDate.Month(), startDate.Day(), 0, 0, 0, 0, loc).UTC()
+	endWindowUTC := time.Date(endDate.Year(), endDate.Month(), endDate.Day(), 23, 59, 59, 999999999, loc).UTC()
+
+	return s.aggregateTrend(ctx, userID, startDate, endDate, startWindowUTC, endWindowUTC, loc)
 }
 
 // aggregateTrend builds a unified daily points series across a date range.

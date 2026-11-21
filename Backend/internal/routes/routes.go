@@ -40,6 +40,7 @@ func SetupRoutes(app *fiber.App, db *database.Database, cfg *config.Config) {
 	focusRepo := repositories.NewFocusRepository(db.DB)
 	lifestyleRepo := repositories.NewLifestyleRepository(db.DB)
 	predictionRepo := repositories.NewPredictionRepository(db.DB)
+	recRepo := repositories.NewRecommendationRepository(db.DB)
 
 	// Utilities & Providers
 	hasher := hash.NewBcryptHasher(cfg.BcryptCost)
@@ -112,6 +113,7 @@ func SetupRoutes(app *fiber.App, db *database.Database, cfg *config.Config) {
 	dashboardService := services.NewDashboardService(taskRepo, studyRepo, focusRepo, lifestyleRepo)
 	predictionService := services.NewPredictionService(predictionRepo, studyRepo, lifestyleRepo)
 	analyticsService := services.NewAnalyticsService(studyRepo, focusRepo, taskRepo, lifestyleRepo, predictionRepo)
+	recService := services.NewRecommendationService(recRepo, taskRepo, studyRepo, focusRepo, lifestyleRepo, predictionRepo, userRepo)
 
 	taskHandler := handlers.NewTaskHandler(taskService)
 	studyHandler := handlers.NewStudyHandler(studyService)
@@ -120,6 +122,7 @@ func SetupRoutes(app *fiber.App, db *database.Database, cfg *config.Config) {
 	dashboardHandler := handlers.NewDashboardHandler(dashboardService)
 	predictionHandler := handlers.NewPredictionHandler(predictionService)
 	analyticsHandler := handlers.NewAnalyticsHandler(analyticsService)
+	recHandler := handlers.NewRecommendationHandler(recService)
 
 	// 1. Tasks Management
 	tasks := v1.Group("/tasks", jwtAuth, middleware.RequireRole("user", "admin"))
@@ -170,6 +173,7 @@ func SetupRoutes(app *fiber.App, db *database.Database, cfg *config.Config) {
 	analytics.Get("/daily", analyticsHandler.GetDaily)
 	analytics.Get("/weekly", analyticsHandler.GetWeekly)
 	analytics.Get("/monthly", analyticsHandler.GetMonthly)
+	analytics.Get("/range", analyticsHandler.GetRange)
 	analytics.Get("/summary", analyticsHandler.GetSummary)
 
 	// 7. Productivity Prediction
@@ -178,15 +182,28 @@ func SetupRoutes(app *fiber.App, db *database.Database, cfg *config.Config) {
 	predictions.Get("/", predictionHandler.List)
 	predictions.Get("/:id", predictionHandler.GetByID)
 
+	// =========================================================================
+	// Phase 4: Personalized Productivity Recommendation Engine
+	// In accordance with Mindora privacy rules, Admin cannot view recommendations
+	// =========================================================================
+	recommendations := v1.Group("/recommendations", jwtAuth, middleware.RequireRole("user"))
+	recommendations.Get("/", recHandler.GetRecommendations)
+	recommendations.Patch("/:id/status", recHandler.UpdateStatus)
+
 	// Root /api aliases for contract compatibility
 	apiAnalytics := api.Group("/analytics", jwtAuth, middleware.RequireRole("user", "admin"))
 	apiAnalytics.Get("/daily", analyticsHandler.GetDaily)
 	apiAnalytics.Get("/weekly", analyticsHandler.GetWeekly)
 	apiAnalytics.Get("/monthly", analyticsHandler.GetMonthly)
+	apiAnalytics.Get("/range", analyticsHandler.GetRange)
 	apiAnalytics.Get("/summary", analyticsHandler.GetSummary)
 
 	apiPredictions := api.Group("/predictions", jwtAuth, middleware.RequireRole("user", "admin"))
 	apiPredictions.Post("/", predictionHandler.Create)
 	apiPredictions.Get("/", predictionHandler.List)
 	apiPredictions.Get("/:id", predictionHandler.GetByID)
+
+	apiRecs := api.Group("/recommendations", jwtAuth, middleware.RequireRole("user"))
+	apiRecs.Get("/", recHandler.GetRecommendations)
+	apiRecs.Patch("/:id/status", recHandler.UpdateStatus)
 }
