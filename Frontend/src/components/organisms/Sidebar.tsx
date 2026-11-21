@@ -87,12 +87,12 @@ export const Sidebar = ({
   };
 
   const userCoreNavItems = [
-    { label: 'Dashboard', icon: <GridIcon className="w-4 h-4" />, href: '/dashboard' },
-    { label: 'List / Tasks', icon: <ListIcon className="w-4 h-4" />, href: '/tasks' },
-    { label: 'Calendar', icon: <CalendarIcon className="w-4 h-4" />, href: '/calendar' },
-    { label: 'Study Tracking', icon: <ClockIcon className="w-4 h-4" />, href: '/study' },
+    { label: 'Dasbor', icon: <GridIcon className="w-4 h-4" />, href: '/dashboard' },
+    { label: 'Daftar Tugas', icon: <ListIcon className="w-4 h-4" />, href: '/tasks' },
+    { label: 'Kalender', icon: <CalendarIcon className="w-4 h-4" />, href: '/calendar' },
+    { label: 'Pelacakan Belajar', icon: <ClockIcon className="w-4 h-4" />, href: '/study' },
     {
-      label: 'Focus',
+      label: 'Fokus',
       icon: (
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4">
           <circle cx="12" cy="12" r="10" />
@@ -103,7 +103,7 @@ export const Sidebar = ({
       href: '/focus',
     },
     {
-      label: 'Lifestyle Tracking',
+      label: 'Pemantauan Gaya Hidup',
       icon: (
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4">
           <path d="M12 2a10 10 0 1 0 10 10c0-4.42-3-8-7-9.5" />
@@ -115,27 +115,27 @@ export const Sidebar = ({
   ];
 
   const userInsightsNavItems = [
-    { label: 'Analytics', icon: <ChartBarIcon className="w-4 h-4" />, href: '/analytics' },
-    { label: 'Messages', icon: <MessageSquareIcon className="w-4 h-4" />, href: '/messages', tag: 'Phase 4' },
-    { label: 'Reports', icon: <ExportIcon className="w-4 h-4" />, href: '/reports', tag: 'Phase 4' },
-    { label: 'Recommendations', icon: <SparklesIcon className="w-4 h-4" />, href: '/recommendations', tag: 'Phase 4' },
+    { label: 'Analitik', icon: <ChartBarIcon className="w-4 h-4" />, href: '/analytics' },
+    { label: 'Pesan', icon: <MessageSquareIcon className="w-4 h-4" />, href: '/messages', tag: 'Fase 4' },
+    { label: 'Laporan', icon: <ExportIcon className="w-4 h-4" />, href: '/reports', tag: 'Fase 4' },
+    { label: 'Rekomendasi', icon: <SparklesIcon className="w-4 h-4" />, href: '/recommendations', tag: 'Fase 4' },
   ];
 
   const userSettingsNavItems = [
-    { label: 'Profile', icon: <UserIcon className="w-4 h-4" />, href: '/profile' },
-    { label: 'Settings', icon: <SettingsIcon className="w-4 h-4" />, href: '/settings' },
+    { label: 'Profil', icon: <UserIcon className="w-4 h-4" />, href: '/profile' },
+    { label: 'Pengaturan', icon: <SettingsIcon className="w-4 h-4" />, href: '/settings' },
   ];
 
   const adminNavItemsWorkspace = [
-    { label: 'Overview', icon: <GridIcon className="w-4 h-4" />, href: '/admin' },
-    { label: 'Members', icon: <UsersIcon className="w-4 h-4" />, href: '/admin#members' },
-    { label: 'Workspaces', icon: <FolderIcon className="w-4 h-4" />, href: '/admin#workspaces' },
-    { label: 'Reports', icon: <ChartBarIcon className="w-4 h-4" />, href: '/admin#reports' },
+    { label: 'Ringkasan', icon: <GridIcon className="w-4 h-4" />, href: '/admin' },
+    { label: 'Anggota', icon: <UsersIcon className="w-4 h-4" />, href: '/admin#members' },
+    { label: 'Ruang Kerja', icon: <FolderIcon className="w-4 h-4" />, href: '/admin#workspaces' },
+    { label: 'Laporan', icon: <ChartBarIcon className="w-4 h-4" />, href: '/admin#reports' },
   ];
 
   const adminNavItemsManagement = [
-    { label: 'Roles & access', icon: <ShieldIcon className="w-4 h-4" />, href: '/admin#roles' },
-    { label: 'Settings', icon: <SettingsIcon className="w-4 h-4" />, href: '/admin#settings' },
+    { label: 'Peran & Akses', icon: <ShieldIcon className="w-4 h-4" />, href: '/admin#roles' },
+    { label: 'Pengaturan', icon: <SettingsIcon className="w-4 h-4" />, href: '/admin#settings' },
   ];
 
   return (
@@ -159,14 +159,14 @@ export const Sidebar = ({
           {/* Logo Header */}
           <div className="flex items-center justify-between">
             <Link to={role === 'user' ? '/dashboard' : '/admin'} className="flex items-center gap-2.5">
-              <img src="/logo.png" alt="Mindora Logo" className="w-8 h-8 object-contain" />
+              <img src="/logo.png" alt="Logo Mindora" className="w-8 h-8 object-contain" />
               <div>
                 <span className="text-lg font-bold tracking-tight text-primary-900 block leading-tight">
                   Mindora
                 </span>
                 {role === 'admin' && (
                   <span className="text-[10px] font-bold text-primary tracking-widest uppercase block">
-                    Admin Console
+                    Konsol Admin
                   </span>
                 )}
               </div>
@@ -177,7 +177,7 @@ export const Sidebar = ({
                 type="button"
                 onClick={onClose}
                 className="p-1 rounded-lg text-text-secondary hover:text-text-primary hover:bg-surface-muted lg:hidden"
-                aria-label="Close menu"
+                aria-label="Tutup menu"
               >
                 <CloseIcon className="w-5 h-5" />
               </button>
@@ -190,7 +190,7 @@ export const Sidebar = ({
               {/* Core Productivity Modules */}
               <div className="space-y-1">
                 <span className="px-3 text-[11px] font-bold text-text-secondary uppercase tracking-wider block">
-                  Productivity
+                  Produktivitas
                 </span>
                 <nav className="space-y-0.5 pt-1">
                   {userCoreNavItems.map((item) => {
@@ -220,7 +220,7 @@ export const Sidebar = ({
               {/* Insights & Future Modules */}
               <div className="space-y-1">
                 <span className="px-3 text-[11px] font-bold text-text-secondary uppercase tracking-wider block">
-                  Insights & AI
+                  Wawasan & AI
                 </span>
                 <nav className="space-y-0.5 pt-1">
                   {userInsightsNavItems.map((item) => {
@@ -257,7 +257,7 @@ export const Sidebar = ({
               {/* Preferences & Settings */}
               <div className="space-y-1">
                 <span className="px-3 text-[11px] font-bold text-text-secondary uppercase tracking-wider block">
-                  Settings
+                  Pengaturan
                 </span>
                 <nav className="space-y-0.5 pt-1">
                   {userSettingsNavItems.map((item) => {
@@ -290,7 +290,7 @@ export const Sidebar = ({
               {/* WORKSPACE group */}
               <div className="space-y-2">
                 <span className="px-3 text-xs font-semibold text-text-secondary uppercase tracking-wider block">
-                  Workspace
+                  Ruang Kerja
                 </span>
                 <nav className="space-y-1">
                   {adminNavItemsWorkspace.map((item) => {
@@ -320,7 +320,7 @@ export const Sidebar = ({
               {/* MANAGEMENT group */}
               <div className="space-y-2">
                 <span className="px-3 text-xs font-semibold text-text-secondary uppercase tracking-wider block">
-                  Management
+                  Manajemen
                 </span>
                 <nav className="space-y-1">
                   {adminNavItemsManagement.map((item) => {
@@ -354,7 +354,7 @@ export const Sidebar = ({
                   className="flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-semibold text-text-secondary hover:text-primary hover:bg-surface-muted transition-colors border border-border"
                 >
                   <ChevronLeftIcon className="w-4 h-4" />
-                  <span>Back to workspace</span>
+                  <span>Kembali ke Ruang Kerja</span>
                 </Link>
               </div>
             </div>
@@ -371,16 +371,16 @@ export const Sidebar = ({
                   {currentUser.name}
                 </p>
                 <p className="text-[10px] text-text-secondary truncate">
-                  {role === 'admin' ? 'Super admin' : currentUser.email}
+                  {role === 'admin' ? 'Super Admin' : currentUser.email}
                 </p>
               </div>
             </div>
             <button
               type="button"
               onClick={handleLogout}
-              title="Logout"
+              title="Keluar"
               className="p-1 text-text-secondary hover:text-red-600 transition-colors cursor-pointer"
-              aria-label="Logout"
+              aria-label="Keluar"
             >
               <LogoutIcon className="w-4 h-4" />
             </button>

@@ -9,11 +9,9 @@ export interface CalendarWidgetProps {
 export const CalendarWidget = ({ className }: CalendarWidgetProps) => {
   const [selectedDay, setSelectedDay] = useState(2); // Matches prototype Dec 2nd
 
-  const daysOfWeek = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+  const daysOfWeek = ['Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab', 'Min'];
 
   // December 2026 grid representation (or 31-day prototype alignment)
-  // Matching the visual structure from Dashboard User.pdf:
-  // Starts with prev month 31, 30, then 1, 2, 3, 4, 5...
   const calendarDays = [
     { day: 31, isCurrentMonth: false, hasEvent: false },
     { day: 30, isCurrentMonth: false, hasEvent: false },
@@ -57,21 +55,21 @@ export const CalendarWidget = ({ className }: CalendarWidgetProps) => {
       <div className="flex items-center justify-between mb-4">
         <button
           type="button"
-          className="p-1 rounded-lg text-text-secondary hover:text-text-primary hover:bg-surface-muted transition-colors"
-          aria-label="Previous month"
+          className="p-1 rounded-lg text-text-secondary hover:text-text-primary hover:bg-surface-muted transition-colors cursor-pointer"
+          aria-label="Bulan sebelumnya"
         >
           <ChevronLeftIcon className="w-4 h-4" />
         </button>
 
         <div className="text-center">
-          <h4 className="text-sm font-bold text-text-primary">December</h4>
+          <h4 className="text-sm font-bold text-text-primary">Desember</h4>
           <span className="text-[10px] text-text-secondary font-medium tracking-wide">2026</span>
         </div>
 
         <button
           type="button"
-          className="p-1 rounded-lg text-text-secondary hover:text-text-primary hover:bg-surface-muted transition-colors"
-          aria-label="Next month"
+          className="p-1 rounded-lg text-text-secondary hover:text-text-primary hover:bg-surface-muted transition-colors cursor-pointer"
+          aria-label="Bulan berikutnya"
         >
           <ChevronRightIcon className="w-4 h-4" />
         </button>
@@ -96,8 +94,8 @@ export const CalendarWidget = ({ className }: CalendarWidgetProps) => {
               className={cn(
                 'relative h-8 rounded-lg text-xs font-medium flex flex-col items-center justify-center transition-colors',
                 !item.isCurrentMonth && 'text-slate-300 pointer-events-none',
-                item.isCurrentMonth && !isSelected && 'text-text-primary hover:bg-surface-muted',
-                isSelected && 'bg-primary text-white font-bold shadow-soft-sm'
+                item.isCurrentMonth && !isSelected && 'text-text-primary hover:bg-surface-muted cursor-pointer',
+                isSelected && 'bg-primary text-white font-bold shadow-soft-sm cursor-pointer'
               )}
             >
               <span>{item.day}</span>

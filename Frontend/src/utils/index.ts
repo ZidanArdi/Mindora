@@ -2,3 +2,5 @@
 export const cn = (...classes: (string | undefined | false | null)[]) => {
   return classes.filter(Boolean).join(' ');
 };
+
+export * from './i18n';

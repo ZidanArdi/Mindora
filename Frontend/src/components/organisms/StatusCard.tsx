@@ -10,8 +10,8 @@ export interface StatusCardProps extends HTMLAttributes<HTMLDivElement> {
 
 export const StatusCard = ({
   title = 'Mindora',
-  subtitle = 'Student Productivity Application',
-  statusText = 'Frontend is running',
+  subtitle = 'Aplikasi Produktivitas Mahasiswa',
+  statusText = 'Frontend sedang berjalan',
   className,
   ...props
 }: StatusCardProps) => {

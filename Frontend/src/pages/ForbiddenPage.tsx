@@ -30,18 +30,18 @@ export default function ForbiddenPage() {
         {/* Content */}
         <div className="space-y-2">
           <span className="text-xs font-bold text-amber-600 uppercase tracking-widest block">
-            403 — Access Restricted
+            403 — Akses Dibatasi
           </span>
           <h1 className="text-2xl font-bold tracking-tight text-text-primary">
-            Insufficient Permissions
+            Izin Tidak Mencukupi
           </h1>
           <p className="text-sm text-text-secondary leading-relaxed font-normal">
-            Your current account{' '}
+            Akun Anda saat ini{' '}
             {user?.email && (
               <span className="font-semibold text-text-primary">({user.email})</span>
             )}{' '}
-            with role <span className="font-bold text-primary capitalize">{user?.role || 'user'}</span> does
-            not possess the required administrative clearance to view this resource.
+            dengan peran <span className="font-bold text-primary">{user?.role === 'admin' ? 'Administrator' : 'Mahasiswa'}</span> tidak
+            memiliki izin administratif yang diperlukan untuk mengakses halaman ini.
           </p>
         </div>
 
@@ -55,7 +55,7 @@ export default function ForbiddenPage() {
             className="w-full justify-center text-xs font-bold gap-2 shadow-soft-sm"
           >
             <ChevronLeftIcon className="w-4 h-4" />
-            <span>Return to {user?.role === 'admin' ? 'Admin Console' : 'My Workspace'}</span>
+            <span>Kembali ke {user?.role === 'admin' ? 'Konsol Admin' : 'Ruang Kerja Saya'}</span>
           </Button>
 
           <Button
@@ -65,13 +65,13 @@ export default function ForbiddenPage() {
             onClick={handleSwitchAccount}
             className="w-full justify-center text-xs font-bold text-text-secondary hover:text-text-primary hover:bg-surface-muted"
           >
-            Sign in with a different account
+            Masuk dengan akun lain
           </Button>
         </div>
 
         {/* Institutional Policy Note */}
         <p className="text-[11px] text-text-muted pt-2 border-t border-border/60">
-          Mindora enforces institutional role-based access control (RBAC). Access attempts are logged in compliance with audit policy.
+          Mindora menerapkan kontrol akses berbasis peran (RBAC). Setiap percobaan akses dicatat sesuai dengan kepatuhan kebijakan audit akademik.
         </p>
       </div>
     </div>

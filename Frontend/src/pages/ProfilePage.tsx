@@ -9,6 +9,7 @@ import {
 import { authService } from '../services/authService';
 import type { UserProfile, UserResponse } from '../types';
 import { useAuth } from '../hooks';
+import { formatDate } from '../utils/i18n';
 
 export default function ProfilePage() {
   const { user, refreshUser } = useAuth();
@@ -34,16 +35,16 @@ export default function ProfilePage() {
             .map((n) => n[0])
             .join('')
             .slice(0, 2)
-            .toUpperCase() || 'ST',
-        workspaceName: user.role === 'admin' ? 'System Administration' : 'Academic Workspace',
+            .toUpperCase() || 'MH',
+        workspaceName: user.role === 'admin' ? 'Administrasi Sistem' : 'Ruang Kerja Akademik',
       }
     : {
         id: 'usr_guest',
-        name: 'Student',
+        name: 'Mahasiswa',
         email: 'student@mindora.app',
         role: 'user',
-        avatarText: 'ST',
-        workspaceName: 'Academic Workspace',
+        avatarText: 'MH',
+        workspaceName: 'Ruang Kerja Akademik',
       };
 
   const fetchProfile = useCallback(async () => {
@@ -54,7 +55,7 @@ export default function ProfilePage() {
       setProfile(data);
       setNameInput(data.name);
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : 'Failed to fetch user profile';
+      const msg = err instanceof Error ? err.message : 'Gagal memuat profil pengguna';
       setErrorMessage(msg);
     } finally {
       setLoading(false);
@@ -68,7 +69,7 @@ export default function ProfilePage() {
   const handleSaveName = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!nameInput.trim()) {
-      setErrorMessage('Name cannot be empty');
+      setErrorMessage('Nama tidak boleh kosong');
       return;
     }
 
@@ -79,11 +80,11 @@ export default function ProfilePage() {
       const updated = await authService.updateProfile(nameInput.trim());
       setProfile(updated);
       setIsEditing(false);
-      setSuccessMessage('Profile name updated successfully.');
+      setSuccessMessage('Nama profil berhasil diperbarui.');
       // Refresh global session to propagate updated name across UI
       await refreshUser();
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : 'Failed to update profile';
+      const msg = err instanceof Error ? err.message : 'Gagal memperbarui profil';
       setErrorMessage(msg);
     } finally {
       setSaving(false);
@@ -105,15 +106,15 @@ export default function ProfilePage() {
         <div className="border-b border-border pb-5">
           <div className="flex items-center gap-2">
             <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-nature-mint text-primary">
-              Account Identity
+              Identitas Akun
             </span>
-            <span className="text-xs text-text-muted">Personal Academic Profile</span>
+            <span className="text-xs text-text-muted">Profil Akademik Pribadi</span>
           </div>
           <h1 className="text-2xl font-black text-primary-900 tracking-tight mt-1">
-            Student Profile
+            Profil Mahasiswa
           </h1>
           <p className="text-sm text-text-secondary">
-            Verified academic credentials, authentication details, and system permissions.
+            Kredensial akademik terverifikasi, rincian autentikasi, dan hak akses sistem.
           </p>
         </div>
 
@@ -129,7 +130,7 @@ export default function ProfilePage() {
               onClick={() => setSuccessMessage(null)}
               className="text-emerald-700 hover:text-emerald-900 font-bold ml-2"
             >
-              Dismiss
+              Tutup
             </button>
           </div>
         )}
@@ -142,7 +143,7 @@ export default function ProfilePage() {
               onClick={() => setErrorMessage(null)}
               className="text-red-500 hover:text-red-700 font-bold ml-2"
             >
-              Dismiss
+              Tutup
             </button>
           </div>
         )}
@@ -151,7 +152,7 @@ export default function ProfilePage() {
         {loading && (
           <div className="p-12 text-center space-y-3">
             <div className="inline-block w-8 h-8 border-3 border-primary border-t-transparent rounded-full animate-spin" />
-            <p className="text-xs font-semibold text-text-muted">Loading account profile...</p>
+            <p className="text-xs font-semibold text-text-muted">Memuat profil akun...</p>
           </div>
         )}
 
@@ -188,14 +189,14 @@ export default function ProfilePage() {
               {/* Editable Name Field */}
               <div className="space-y-4">
                 <h3 className="text-sm font-bold text-primary-900 uppercase tracking-wider text-[11px]">
-                  Account Information
+                  Informasi Akun
                 </h3>
 
                 {isEditing ? (
                   <form onSubmit={handleSaveName} className="space-y-3 max-w-md">
                     <div>
                       <label htmlFor="profile-name-input" className="block text-xs font-semibold text-text-secondary mb-1">
-                        Full Name
+                        Nama Lengkap
                       </label>
                       <input
                         id="profile-name-input"
@@ -203,7 +204,7 @@ export default function ProfilePage() {
                         value={nameInput}
                         onChange={(e) => setNameInput(e.target.value)}
                         className="w-full px-3 py-2 text-sm rounded-xl border border-border bg-white text-text-primary focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
-                        placeholder="Enter your name"
+                        placeholder="Masukkan nama Anda"
                         disabled={saving}
                       />
                     </div>
@@ -215,7 +216,7 @@ export default function ProfilePage() {
                         disabled={saving}
                         className="text-xs font-bold"
                       >
-                        {saving ? 'Saving...' : 'Save Changes'}
+                        {saving ? 'Menyimpan...' : 'Simpan Perubahan'}
                       </Button>
                       <Button
                         type="button"
@@ -225,7 +226,7 @@ export default function ProfilePage() {
                         disabled={saving}
                         className="text-xs"
                       >
-                        Cancel
+                        Batal
                       </Button>
                     </div>
                   </form>
@@ -234,7 +235,7 @@ export default function ProfilePage() {
                     <div className="p-4 rounded-xl bg-slate-50 border border-slate-200/80 flex items-center justify-between">
                       <div>
                         <span className="text-[11px] font-bold text-text-muted uppercase tracking-wider block">
-                          Display Name
+                          Nama Tampilan
                         </span>
                         <span className="text-sm font-bold text-text-primary mt-0.5 block">
                           {profile.name}
@@ -247,45 +248,45 @@ export default function ProfilePage() {
                         onClick={() => setIsEditing(true)}
                         className="text-xs font-semibold px-2.5 py-1"
                       >
-                        Edit Name
+                        Ubah Nama
                       </Button>
                     </div>
 
                     <div className="p-4 rounded-xl bg-slate-50 border border-slate-200/80">
                       <span className="text-[11px] font-bold text-text-muted uppercase tracking-wider block">
-                        Account Email
+                        Email Akun
                       </span>
                       <span className="text-sm font-bold text-text-primary mt-0.5 block">
                         {profile.email}
                       </span>
                       <span className="text-[10px] text-text-muted mt-0.5 block">
-                        Primary authentication identifier
+                        Pengenal autentikasi utama
                       </span>
                     </div>
 
                     <div className="p-4 rounded-xl bg-slate-50 border border-slate-200/80">
                       <span className="text-[11px] font-bold text-text-muted uppercase tracking-wider block">
-                        Assigned Role
+                        Peran Ditetapkan
                       </span>
                       <span className="text-sm font-bold text-text-primary mt-0.5 block capitalize">
                         {profile.role}
                       </span>
                       <span className="text-[10px] text-text-muted mt-0.5 block">
                         {profile.role === 'admin'
-                          ? 'Full administrative monitoring and user management privileges'
-                          : 'Student personal productivity workspace access'}
+                          ? 'Hak istimewa pemantauan administratif dan pengelolaan pengguna penuh'
+                          : 'Akses ruang kerja produktivitas pribadi mahasiswa'}
                       </span>
                     </div>
 
                     <div className="p-4 rounded-xl bg-slate-50 border border-slate-200/80">
                       <span className="text-[11px] font-bold text-text-muted uppercase tracking-wider block">
-                        Member Since
+                        Anggota Sejak
                       </span>
                       <span className="text-sm font-bold text-text-primary mt-0.5 block">
-                        {profile.created_at ? new Date(profile.created_at).toLocaleDateString() : 'Active'}
+                        {profile.created_at ? formatDate(profile.created_at) : 'Aktif'}
                       </span>
                       <span className="text-[10px] text-text-muted mt-0.5 block">
-                        Verified student account registration
+                        Pendaftaran akun mahasiswa terverifikasi
                       </span>
                     </div>
                   </div>
@@ -299,10 +300,10 @@ export default function ProfilePage() {
                 <ShieldIcon className="w-5 h-5 text-primary" />
                 <div>
                   <h3 className="text-base font-bold text-primary-900">
-                    Granted System Permissions (RBAC)
+                    Hak Akses Sistem yang Diberikan (RBAC)
                   </h3>
                   <p className="text-xs text-text-muted">
-                    Capabilities authorized for your assigned role in accordance with Mindora security policies.
+                    Kemampuan yang diotorisasi untuk peran Anda sesuai dengan kebijakan keamanan Mindora.
                   </p>
                 </div>
               </div>
@@ -320,7 +321,7 @@ export default function ProfilePage() {
                   ))}
                 </div>
               ) : (
-                <p className="text-xs text-text-muted">No explicit role permissions assigned.</p>
+                <p className="text-xs text-text-muted">Tidak ada hak akses peran eksplisit yang ditetapkan.</p>
               )}
             </div>
 
@@ -328,9 +329,9 @@ export default function ProfilePage() {
             <div className="p-4 rounded-xl bg-slate-50 border border-slate-200/80 text-xs text-text-secondary flex items-start gap-3">
               <UserIcon className="w-5 h-5 text-primary mt-0.5 shrink-0" />
               <div>
-                <strong className="text-text-primary">Academic Privacy Guarantee:</strong> Your study notes, focus
-                intervals, personal task titles, and lifestyle check-ins are strictly isolated. Mindora administrators
-                cannot inspect personal student records.
+                <strong className="text-text-primary">Jaminan Privasi Akademik:</strong> Catatan belajar, interval
+                fokus, judul tugas pribadi, dan catatan gaya hidup Anda terisolasi secara ketat. Administrator Mindora
+                tidak dapat memeriksa catatan pribadi mahasiswa.
               </div>
             </div>
           </div>

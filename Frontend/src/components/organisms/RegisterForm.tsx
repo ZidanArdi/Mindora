@@ -13,7 +13,7 @@ import {
   TurnstileWidget,
 } from '../atoms';
 import { FormField } from '../molecules';
-import { cn } from '../../utils';
+import { cn, translateErrorMessage } from '../../utils';
 import { useAuth } from '../../hooks';
 import { FEATURES } from '../../config/features';
 
@@ -56,19 +56,19 @@ export const RegisterForm = ({ className }: RegisterFormProps) => {
     setErrorMessage(null);
 
     if (!name.trim()) {
-      setErrorMessage('Full name is required');
+      setErrorMessage('Nama lengkap wajib diisi');
       return;
     }
     if (!email.trim()) {
-      setErrorMessage('Email address is required');
+      setErrorMessage('Alamat email wajib diisi');
       return;
     }
     if (!isPasswordValid) {
-      setErrorMessage('Please ensure your password satisfies all security requirements');
+      setErrorMessage('Pastikan kata sandi Anda memenuhi semua persyaratan keamanan');
       return;
     }
     if (password !== confirmPassword) {
-      setErrorMessage('Passwords do not match');
+      setErrorMessage('Kata sandi tidak cocok');
       return;
     }
 
@@ -85,15 +85,7 @@ export const RegisterForm = ({ className }: RegisterFormProps) => {
       // Public registration strictly routes to student user workspace
       navigate('/dashboard');
     } catch (err: unknown) {
-      if (err instanceof Error) {
-        if (err.message.includes('Failed to fetch') || err.message.includes('NetworkError')) {
-          setErrorMessage('Backend server is unreachable at http://localhost:8080. Please ensure the backend is running.');
-        } else {
-          setErrorMessage(err.message);
-        }
-      } else {
-        setErrorMessage('Failed to create account. Please check your information and try again.');
-      }
+      setErrorMessage(translateErrorMessage(err, 'Gagal membuat akun. Silakan periksa data Anda dan coba lagi.'));
     } finally {
       setLoading(false);
     }
@@ -101,7 +93,7 @@ export const RegisterForm = ({ className }: RegisterFormProps) => {
 
   const handleGoogleClick = () => {
     if (!FEATURES.ENABLE_GOOGLE_OAUTH) {
-      setErrorMessage('Google OAuth registration is temporarily disabled during development.');
+      setErrorMessage('Pendaftaran Google OAuth dinonaktifkan sementara selama tahap pengembangan.');
       return;
     }
     loginWithGoogle(turnstileToken);
@@ -112,25 +104,25 @@ export const RegisterForm = ({ className }: RegisterFormProps) => {
       {/* Form Header */}
       <div className="space-y-1.5">
         <span className="text-[11px] font-bold text-primary tracking-widest uppercase block">
-          Get Started
+          Mulai Sekarang
         </span>
         <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-text-primary">
-          Create your account
+          Buat Akun Anda
         </h1>
         <p className="text-sm text-text-secondary font-medium">
-          Start managing your academic productivity with Mindora.
+          Mulai kelola produktivitas akademik Anda bersama Mindora.
         </p>
       </div>
 
       {/* Error Banner */}
       {errorMessage && (
         <div className="p-3.5 rounded-xl bg-red-50/90 border border-red-200 text-red-700 text-xs font-medium flex items-start gap-2.5 animate-fadeIn">
-          <span className="font-bold text-red-800">Registration Error:</span>
+          <span className="font-bold text-red-800">Kesalahan:</span>
           <span>{errorMessage}</span>
         </div>
       )}
 
-      {/* Google Sign-Up Button (Explicit Feature Flag Controlled) */}
+      {/* Google Sign-Up Button */}
       {FEATURES.ENABLE_GOOGLE_OAUTH && (
         <>
           <div>
@@ -143,7 +135,7 @@ export const RegisterForm = ({ className }: RegisterFormProps) => {
               className="w-full gap-3 text-xs sm:text-sm font-semibold justify-center hover:bg-surface-muted border-border shadow-soft-sm"
             >
               <GoogleIcon className="w-4 h-4" />
-              <span>Sign up with Google</span>
+              <span>Daftar dengan Google</span>
             </Button>
           </div>
 
@@ -151,7 +143,7 @@ export const RegisterForm = ({ className }: RegisterFormProps) => {
           <div className="relative flex items-center justify-center">
             <div className="w-full border-t border-border"></div>
             <span className="absolute bg-surface-card px-3 text-[11px] font-semibold text-text-muted uppercase tracking-wider">
-              Or register with email
+              Atau daftar dengan email
             </span>
           </div>
         </>
@@ -161,33 +153,33 @@ export const RegisterForm = ({ className }: RegisterFormProps) => {
       <form onSubmit={handleSubmit} className="space-y-3.5">
         {/* Full Name */}
         <FormField
-          label="Full Name"
+          label="Nama Lengkap"
           type="text"
           value={name}
           onChange={(e) => setName(e.target.value)}
-          placeholder="e.g. John Doe"
+          placeholder="cth. Budi Santoso"
           required
           leftIcon={<UserIcon className="w-4 h-4 text-text-secondary" />}
         />
 
         {/* Email Address */}
         <FormField
-          label="Email address"
+          label="Alamat Email"
           type="email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          placeholder="student@mindora.app"
+          placeholder="mahasiswa@mindora.app"
           required
           leftIcon={<MailIcon className="w-4 h-4 text-text-secondary" />}
         />
 
         {/* Password */}
         <FormField
-          label="Password"
+          label="Kata Sandi"
           type={showPassword ? 'text' : 'password'}
           value={password}
           onChange={(e) => setPassword(e.target.value)}
-          placeholder="Create a strong password"
+          placeholder="Buat kata sandi yang kuat"
           required
           leftIcon={<LockIcon className="w-4 h-4 text-text-secondary" />}
           rightIcon={
@@ -195,7 +187,7 @@ export const RegisterForm = ({ className }: RegisterFormProps) => {
               type="button"
               onClick={() => setShowPassword(!showPassword)}
               className="p-1 text-text-secondary hover:text-text-primary transition-colors cursor-pointer"
-              aria-label={showPassword ? 'Hide password' : 'Show password'}
+              aria-label={showPassword ? 'Sembunyikan kata sandi' : 'Tampilkan kata sandi'}
             >
               {showPassword ? <EyeOffIcon className="w-4 h-4" /> : <EyeIcon className="w-4 h-4" />}
             </button>
@@ -204,11 +196,11 @@ export const RegisterForm = ({ className }: RegisterFormProps) => {
 
         {/* Confirm Password */}
         <FormField
-          label="Confirm Password"
+          label="Konfirmasi Kata Sandi"
           type={showConfirmPassword ? 'text' : 'password'}
           value={confirmPassword}
           onChange={(e) => setConfirmPassword(e.target.value)}
-          placeholder="Confirm your password"
+          placeholder="Konfirmasi kata sandi Anda"
           required
           leftIcon={<LockIcon className="w-4 h-4 text-text-secondary" />}
           rightIcon={
@@ -216,7 +208,7 @@ export const RegisterForm = ({ className }: RegisterFormProps) => {
               type="button"
               onClick={() => setShowConfirmPassword(!showConfirmPassword)}
               className="p-1 text-text-secondary hover:text-text-primary transition-colors cursor-pointer"
-              aria-label={showConfirmPassword ? 'Hide password' : 'Show password'}
+              aria-label={showConfirmPassword ? 'Sembunyikan kata sandi' : 'Tampilkan kata sandi'}
             >
               {showConfirmPassword ? <EyeOffIcon className="w-4 h-4" /> : <EyeIcon className="w-4 h-4" />}
             </button>
@@ -226,30 +218,30 @@ export const RegisterForm = ({ className }: RegisterFormProps) => {
         {/* Real-time Password Strength Checklist */}
         {password.length > 0 && (
           <div className="p-3 rounded-xl bg-surface-muted border border-border text-[11px] space-y-1.5 transition-all">
-            <p className="font-semibold text-text-secondary">Password Requirements:</p>
+            <p className="font-semibold text-text-secondary">Persyaratan Kata Sandi:</p>
             <div className="grid grid-cols-2 gap-x-2 gap-y-1 text-text-muted">
               <span className={cn('flex items-center gap-1.5', hasMinLen ? 'text-primary font-medium' : '')}>
                 <CheckIcon className={cn('w-3 h-3', hasMinLen ? 'text-primary' : 'text-text-muted/50')} />
-                8+ characters
+                Minimal 8 karakter
               </span>
               <span className={cn('flex items-center gap-1.5', hasUpper ? 'text-primary font-medium' : '')}>
                 <CheckIcon className={cn('w-3 h-3', hasUpper ? 'text-primary' : 'text-text-muted/50')} />
-                Uppercase letter
+                Huruf besar (A-Z)
               </span>
               <span className={cn('flex items-center gap-1.5', hasLower ? 'text-primary font-medium' : '')}>
                 <CheckIcon className={cn('w-3 h-3', hasLower ? 'text-primary' : 'text-text-muted/50')} />
-                Lowercase letter
+                Huruf kecil (a-z)
               </span>
               <span className={cn('flex items-center gap-1.5', hasNumberOrSymbol ? 'text-primary font-medium' : '')}>
                 <CheckIcon className={cn('w-3 h-3', hasNumberOrSymbol ? 'text-primary' : 'text-text-muted/50')} />
-                Number or symbol
+                Angka atau simbol
               </span>
             </div>
             {confirmPassword.length > 0 && (
               <div className="pt-1 border-t border-border/60">
                 <span className={cn('flex items-center gap-1.5', isMatch ? 'text-primary font-medium' : 'text-red-500 font-medium')}>
                   <CheckIcon className={cn('w-3 h-3', isMatch ? 'text-primary' : 'text-red-400')} />
-                  {isMatch ? 'Passwords match' : 'Passwords do not match'}
+                  {isMatch ? 'Kata sandi cocok' : 'Kata sandi tidak cocok'}
                 </span>
               </div>
             )}
@@ -271,7 +263,7 @@ export const RegisterForm = ({ className }: RegisterFormProps) => {
             disabled={loading || (password.length > 0 && (!isPasswordValid || !isMatch))}
             className="w-full gap-2 text-sm font-bold justify-center shadow-soft-md"
           >
-            <span>{loading ? 'Creating Account...' : 'Create Account'}</span>
+            <span>{loading ? 'Membuat Akun...' : 'Buat Akun'}</span>
             <ChevronRightIcon className="w-4 h-4" />
           </Button>
         </div>
@@ -280,17 +272,17 @@ export const RegisterForm = ({ className }: RegisterFormProps) => {
       {/* Footer Navigation */}
       <div className="text-center space-y-2 pt-1">
         <p className="text-xs text-text-secondary font-medium">
-          Already have an account?{' '}
+          Sudah memiliki akun?{' '}
           <Link
             to="/login"
             className="font-bold text-primary hover:text-primary-hover transition-colors"
           >
-            Sign in
+            Masuk
           </Link>
         </p>
 
         <p className="text-[11px] text-text-muted">
-          By signing up, you agree to Mindora's Terms of Service and Privacy Policy.
+          Dengan mendaftar, Anda menyetujui Ketentuan Layanan dan Kebijakan Privasi Mindora.
         </p>
       </div>
     </div>

@@ -29,13 +29,13 @@ export const AuthTemplate = ({ children, className }: AuthTemplateProps) => {
 
             <div className="space-y-3 pt-4 sm:pt-8">
               <span className="text-xs font-bold text-primary tracking-widest uppercase block">
-                Plan · Focus · Achieve
+                Rencanakan · Fokus · Capai
               </span>
               <h2 className="text-3xl sm:text-4xl font-extrabold text-primary-900 tracking-tight leading-tight">
-                Make every<br />minute feel<br />meaningful.
+                Jadikan setiap<br />menit terasa<br />bermakna.
               </h2>
               <p className="text-sm sm:text-base font-medium text-emerald-900/80 max-w-sm leading-relaxed">
-                Organize your day, protect your focus, and move your best work forward with one calm workspace.
+                Atur hari Anda, jaga fokus belajar, dan capai hasil terbaik dalam satu ruang kerja yang tenang.
               </p>
             </div>
           </div>
@@ -50,12 +50,12 @@ export const AuthTemplate = ({ children, className }: AuthTemplateProps) => {
                     Alicia
                   </p>
                   <p className="text-[10px] text-text-secondary font-medium">
-                    Product Designer
+                    Desainer Produk
                   </p>
                 </div>
               </div>
               <p className="text-xs text-text-primary leading-relaxed italic">
-                "You don't have to be perfect every day. Even one small step today will bring you closer to your goal."
+                "Anda tidak harus sempurna setiap hari. Satu langkah kecil hari ini tetap membawa Anda lebih dekat ke tujuan."
               </p>
             </div>
           </div>

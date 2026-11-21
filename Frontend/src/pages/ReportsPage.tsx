@@ -17,6 +17,7 @@ import type {
   UserProfile,
 } from '../types';
 import { useAuth } from '../hooks';
+import { formatDateTime } from '../utils/i18n';
 
 type PeriodPreset = '7d' | '30d' | 'custom';
 
@@ -67,16 +68,16 @@ export default function ReportsPage() {
             .map((n) => n[0])
             .join('')
             .slice(0, 2)
-            .toUpperCase() || 'ST',
-        workspaceName: 'Academic Workspace',
+            .toUpperCase() || 'MH',
+        workspaceName: 'Ruang Kerja Akademik',
       }
     : {
         id: 'usr_guest',
-        name: 'Student',
+        name: 'Mahasiswa',
         email: 'student@mindora.app',
         role: 'user',
-        avatarText: 'ST',
-        workspaceName: 'Academic Workspace',
+        avatarText: 'MH',
+        workspaceName: 'Ruang Kerja Akademik',
       };
 
   const loadReport = useCallback(
@@ -134,7 +135,7 @@ export default function ReportsPage() {
     setValidationError(null);
 
     if (!customStart || !customEnd) {
-      setValidationError('Please select both start and end dates.');
+      setValidationError('Silakan pilih tanggal mulai dan tanggal akhir.');
       return;
     }
 
@@ -142,18 +143,18 @@ export default function ReportsPage() {
     const endObj = new Date(customEnd);
 
     if (isNaN(startObj.getTime()) || isNaN(endObj.getTime())) {
-      setValidationError('Invalid date values provided.');
+      setValidationError('Nilai tanggal yang dimasukkan tidak valid.');
       return;
     }
 
     if (startObj > endObj) {
-      setValidationError('Start date cannot be after end date.');
+      setValidationError('Tanggal mulai tidak boleh lebih besar dari tanggal akhir.');
       return;
     }
 
     const diffDays = Math.round((endObj.getTime() - startObj.getTime()) / (1000 * 60 * 60 * 24)) + 1;
     if (diffDays > 90) {
-      setValidationError('Custom date range cannot exceed 90 days.');
+      setValidationError('Rentang tanggal kustom tidak boleh melebihi 90 hari.');
       return;
     }
 
@@ -169,25 +170,25 @@ export default function ReportsPage() {
     const rows: string[][] = [];
 
     // Metadata comments
-    rows.push(['# Mindora Productivity Report']);
-    rows.push([`# User: ${displayUser.name} (${displayUser.email})`]);
-    rows.push([`# Period: ${reportData.start_date} to ${reportData.end_date}`]);
-    rows.push([`# Generated: ${new Date().toISOString()}`]);
+    rows.push(['# Laporan Produktivitas Mindora']);
+    rows.push([`# Pengguna: ${displayUser.name} (${displayUser.email})`]);
+    rows.push([`# Periode: ${reportData.start_date} sampai ${reportData.end_date}`]);
+    rows.push([`# Dihasilkan: ${new Date().toISOString()}`]);
     rows.push([
-      `# Summary: Total Study: ${reportData.total_study_formatted}, Focus: ${reportData.total_focus_minutes}m, Break: ${reportData.total_break_minutes}m, Completed Tasks: ${reportData.total_completed_tasks}, Consistency: ${reportData.study_consistency_percentage}%`,
+      `# Ringkasan: Total Belajar: ${reportData.total_study_formatted}, Fokus: ${reportData.total_focus_minutes}m, Istirahat: ${reportData.total_break_minutes}m, Tugas Selesai: ${reportData.total_completed_tasks}, Konsistensi: ${reportData.study_consistency_percentage}%`,
     ]);
     rows.push([]);
 
     // Column headers
     rows.push([
-      'Date',
-      'Study Duration (Hours)',
-      'Focus Duration (Hours)',
-      'Break Duration (Hours)',
-      'Completed Tasks',
-      'Sleep Duration (Hours)',
-      'Phone Usage (Hours)',
-      'Stress Level (1-10)',
+      'Tanggal',
+      'Durasi Belajar (Jam)',
+      'Durasi Fokus (Jam)',
+      'Durasi Istirahat (Jam)',
+      'Tugas Selesai',
+      'Durasi Tidur (Jam)',
+      'Penggunaan Ponsel (Jam)',
+      'Tingkat Stres (1-10)',
     ]);
 
     // Data rows (strictly preserving NULL as empty rather than 0)
@@ -222,7 +223,7 @@ export default function ReportsPage() {
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.setAttribute('href', url);
-    link.setAttribute('download', `mindora-productivity-report-${reportData.start_date}-to-${reportData.end_date}.csv`);
+    link.setAttribute('download', `laporan-produktivitas-mindora-${reportData.start_date}-sampai-${reportData.end_date}.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -230,13 +231,13 @@ export default function ReportsPage() {
   };
 
   const handlePrint = () => {
-    setPrintedTimestamp(`${new Date().toLocaleDateString()} ${new Date().toLocaleTimeString()}`);
+    setPrintedTimestamp(formatDateTime(new Date()));
     window.print();
   };
 
   const formatHours = (seconds: number) => {
     const hours = (seconds / 3600).toFixed(1);
-    return `${hours}h`;
+    return `${hours} jam`;
   };
 
   const totalDays = reportData?.daily_points.length || 0;
@@ -282,17 +283,17 @@ export default function ReportsPage() {
           <div className="flex justify-between items-start">
             <div>
               <h1 className="text-2xl font-black text-slate-900 tracking-tight">
-                MINDORA PRODUCTIVITY & HABIT REPORT
+                LAPORAN PRODUKTIVITAS & KEBIASAAN MINDORA
               </h1>
               <p className="text-xs text-slate-600 mt-1">
-                Student: <strong>{displayUser.name}</strong> ({displayUser.email})
+                Mahasiswa: <strong>{displayUser.name}</strong> ({displayUser.email})
               </p>
             </div>
             <div className="text-right text-xs text-slate-500">
               <p>
-                Period: <strong>{reportData?.start_date}</strong> to <strong>{reportData?.end_date}</strong>
+                Periode: <strong>{reportData?.start_date}</strong> sampai <strong>{reportData?.end_date}</strong>
               </p>
-              <p>Printed: {printedTimestamp || 'Just now'}</p>
+              <p>Dicetak: {printedTimestamp || 'Baru saja'}</p>
             </div>
           </div>
         </div>
@@ -302,15 +303,15 @@ export default function ReportsPage() {
           <div>
             <div className="flex items-center gap-2">
               <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-nature-mint text-primary">
-                Phase 4.2 Reports
+                Fase 4.2 Laporan
               </span>
-              <span className="text-xs text-text-muted">Executive Productivity & Habit Audit</span>
+              <span className="text-xs text-text-muted">Audit Eksekutif Produktivitas & Kebiasaan</span>
             </div>
             <h1 className="text-2xl font-black text-primary-900 tracking-tight mt-1">
-              Productivity Reports
+              Laporan Produktivitas
             </h1>
             <p className="text-sm text-text-secondary">
-              Comprehensive report generated strictly from verified study sessions, focus intervals, and logged daily habits.
+              Laporan komprehensif yang dihitung murni dari sesi belajar terverifikasi, interval fokus, dan catatan kebiasaan harian.
             </p>
           </div>
 
@@ -322,10 +323,10 @@ export default function ReportsPage() {
               onClick={handleExportCSV}
               disabled={loading || !reportData || reportData.daily_points.length === 0}
               className="gap-2 text-xs font-semibold"
-              title="Download structured CSV file"
+              title="Unduh file CSV terstruktur"
             >
               <ExportIcon className="w-4 h-4 text-text-muted" />
-              Export CSV
+              Ekspor CSV
             </Button>
 
             <Button
@@ -334,7 +335,7 @@ export default function ReportsPage() {
               onClick={handlePrint}
               disabled={loading || !reportData}
               className="gap-2 text-xs font-semibold bg-primary hover:bg-primary-hover text-white"
-              title="Print or save as PDF via browser"
+              title="Cetak atau simpan sebagai PDF via browser"
             >
               <svg
                 viewBox="0 0 24 24"
@@ -349,7 +350,7 @@ export default function ReportsPage() {
                 <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2" />
                 <rect x="6" y="14" width="12" height="8" />
               </svg>
-              Print / Save PDF
+              Cetak / Simpan PDF
             </Button>
           </div>
         </div>
@@ -367,7 +368,7 @@ export default function ReportsPage() {
                     : 'text-text-muted hover:text-text-primary'
                 }`}
               >
-                Last 7 Days
+                7 Hari Terakhir
               </button>
               <button
                 type="button"
@@ -378,7 +379,7 @@ export default function ReportsPage() {
                     : 'text-text-muted hover:text-text-primary'
                 }`}
               >
-                Last 30 Days
+                30 Hari Terakhir
               </button>
               <button
                 type="button"
@@ -389,14 +390,14 @@ export default function ReportsPage() {
                     : 'text-text-muted hover:text-text-primary'
                 }`}
               >
-                Custom Range
+                Rentang Kustom
               </button>
             </div>
 
             <div className="text-xs text-text-muted flex items-center gap-2">
               <CalendarIcon className="w-4 h-4 text-text-muted" />
               <span>
-                Active Window: <strong className="text-text-primary">{startDate}</strong> to{' '}
+                Periode Aktif: <strong className="text-text-primary">{startDate}</strong> sampai{' '}
                 <strong className="text-text-primary">{endDate}</strong>
               </span>
             </div>
@@ -410,7 +411,7 @@ export default function ReportsPage() {
             >
               <div className="flex items-center gap-2">
                 <label htmlFor={startInputId} className="font-semibold text-text-secondary">
-                  From:
+                  Dari:
                 </label>
                 <input
                   id={startInputId}
@@ -423,7 +424,7 @@ export default function ReportsPage() {
 
               <div className="flex items-center gap-2">
                 <label htmlFor={endInputId} className="font-semibold text-text-secondary">
-                  To:
+                  Sampai:
                 </label>
                 <input
                   id={endInputId}
@@ -440,9 +441,9 @@ export default function ReportsPage() {
                 size="sm"
                 className="font-bold text-xs px-3 py-1.5"
               >
-                Apply Range
+                Terapkan Rentang
               </Button>
-              <span className="text-[11px] text-text-muted">Maximum range: 90 days</span>
+              <span className="text-[11px] text-text-muted">Rentang maksimum: 90 hari</span>
             </form>
           )}
         </div>
@@ -451,7 +452,7 @@ export default function ReportsPage() {
         {validationError && (
           <div className="no-print p-4 rounded-xl bg-amber-50 border border-amber-200 text-amber-800 text-xs flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <span className="font-bold">Invalid Date Range:</span>
+              <span className="font-bold">Rentang Tanggal Tidak Valid:</span>
               <span>{validationError}</span>
             </div>
             <button
@@ -459,7 +460,7 @@ export default function ReportsPage() {
               onClick={() => setValidationError(null)}
               className="text-amber-700 hover:text-amber-900 font-bold ml-2"
             >
-              Dismiss
+              Tutup
             </button>
           </div>
         )}
@@ -468,7 +469,7 @@ export default function ReportsPage() {
         {errorMessage && (
           <div className="no-print p-4 rounded-xl bg-red-50 border border-red-200 text-red-700 text-xs flex items-center justify-between">
             <div>
-              <span className="font-bold">Error loading report: </span>
+              <span className="font-bold">Gagal memuat laporan: </span>
               <span>{errorMessage}</span>
             </div>
             <Button
@@ -477,7 +478,7 @@ export default function ReportsPage() {
               onClick={() => loadReport(startDate, endDate)}
               className="text-xs font-bold text-red-700 border-red-300 hover:bg-red-100"
             >
-              Retry
+              Coba Lagi
             </Button>
           </div>
         )}
@@ -486,7 +487,7 @@ export default function ReportsPage() {
         {loading && (
           <div className="py-20 text-center space-y-3">
             <div className="inline-block w-8 h-8 border-3 border-primary border-t-transparent rounded-full animate-spin" />
-            <p className="text-xs font-semibold text-text-muted">Aggregating report metrics across date window...</p>
+            <p className="text-xs font-semibold text-text-muted">Mengagregasi metrik laporan untuk rentang tanggal yang dipilih...</p>
           </div>
         )}
 
@@ -498,15 +499,15 @@ export default function ReportsPage() {
               {/* Metric 1: Total Study Time */}
               <div className="p-5 rounded-2xl bg-white border border-border shadow-soft-xs">
                 <span className="text-xs font-bold text-text-muted uppercase tracking-wider block">
-                  Total Study Duration
+                  Total Durasi Belajar
                 </span>
                 <div className="text-2xl font-black text-primary-900 mt-2">
-                  {reportData.total_study_formatted || '0m'}
+                  {reportData.total_study_formatted || '0 mnt'}
                 </div>
                 <div className="text-[11px] text-text-muted mt-1 flex items-center gap-1">
                   <ClockIcon className="w-3.5 h-3.5 text-text-muted" />
                   <span>
-                    {formatHours(reportData.total_study_seconds)} recorded across {activeDays}/{totalDays} days
+                    {formatHours(reportData.total_study_seconds)} tercatat dalam {activeDays}/{totalDays} hari
                   </span>
                 </div>
               </div>
@@ -514,23 +515,23 @@ export default function ReportsPage() {
               {/* Metric 2: Deep Focus vs Breaks */}
               <div className="p-5 rounded-2xl bg-white border border-border shadow-soft-xs">
                 <span className="text-xs font-bold text-text-muted uppercase tracking-wider block">
-                  Focus vs Breaks
+                  Fokus vs Istirahat
                 </span>
                 <div className="text-2xl font-black text-primary mt-2">
-                  {reportData.total_focus_minutes}m
+                  {reportData.total_focus_minutes} mnt
                   <span className="text-xs font-semibold text-text-muted ml-1.5">
-                    / {reportData.total_break_minutes}m break
+                    / {reportData.total_break_minutes} mnt istirahat
                   </span>
                 </div>
                 <span className="text-[11px] text-text-muted mt-1 block">
-                  Ratio: {reportData.total_focus_minutes > 0 ? (reportData.total_break_minutes / reportData.total_focus_minutes * 100).toFixed(0) : '0'}% recovery time
+                  Rasio: {reportData.total_focus_minutes > 0 ? (reportData.total_break_minutes / reportData.total_focus_minutes * 100).toFixed(0) : '0'}% waktu pemulihan
                 </span>
               </div>
 
               {/* Metric 3: Completed Tasks */}
               <div className="p-5 rounded-2xl bg-white border border-border shadow-soft-xs">
                 <span className="text-xs font-bold text-text-muted uppercase tracking-wider block">
-                  Completed Tasks
+                  Tugas Selesai
                 </span>
                 <div className="text-2xl font-black text-primary-900 mt-2">
                   {reportData.total_completed_tasks}
@@ -538,7 +539,7 @@ export default function ReportsPage() {
                 <div className="text-[11px] text-text-muted mt-1 flex items-center gap-1">
                   <CheckIcon className="w-3.5 h-3.5 text-emerald-600" />
                   <span>
-                    {totalDays > 0 ? (reportData.total_completed_tasks / totalDays).toFixed(1) : 0} tasks/day avg
+                    {totalDays > 0 ? (reportData.total_completed_tasks / totalDays).toFixed(1) : 0} tugas/hari rata-rata
                   </span>
                 </div>
               </div>
@@ -546,7 +547,7 @@ export default function ReportsPage() {
               {/* Metric 4: Study Consistency */}
               <div className="p-5 rounded-2xl bg-white border border-border shadow-soft-xs">
                 <span className="text-xs font-bold text-text-muted uppercase tracking-wider block">
-                  Study Consistency
+                  Konsistensi Belajar
                 </span>
                 <div className="text-2xl font-black text-[#138F78] mt-2">
                   {reportData.study_consistency_percentage}%
@@ -563,31 +564,31 @@ export default function ReportsPage() {
             {/* Lifestyle Averages Banner (When Habits are recorded) */}
             <div className="p-4 rounded-xl bg-slate-50 border border-slate-200/80 flex flex-wrap items-center justify-between gap-4 text-xs page-break-inside-avoid">
               <span className="font-bold text-text-primary uppercase tracking-wider text-[11px]">
-                Habit Baseline Averages for Period:
+                Rata-rata Kebiasaan untuk Periode Ini:
               </span>
               <div className="flex flex-wrap items-center gap-6 text-text-secondary">
                 <span>
-                  Sleep:{' '}
+                  Tidur:{' '}
                   <strong className="text-text-primary font-bold">
                     {reportData.average_sleep_hours !== undefined && reportData.average_sleep_hours !== null
-                      ? `${reportData.average_sleep_hours.toFixed(1)} hrs/night`
-                      : '— (Unrecorded)'}
+                      ? `${reportData.average_sleep_hours.toFixed(1)} jam/malam`
+                      : '— (Belum dicatat)'}
                   </strong>
                 </span>
                 <span>
-                  Screen Time:{' '}
+                  Layar Ponsel:{' '}
                   <strong className="text-text-primary font-bold">
                     {reportData.average_phone_usage_hours !== undefined && reportData.average_phone_usage_hours !== null
-                      ? `${reportData.average_phone_usage_hours.toFixed(1)} hrs/day`
-                      : '— (Unrecorded)'}
+                      ? `${reportData.average_phone_usage_hours.toFixed(1)} jam/hari`
+                      : '— (Belum dicatat)'}
                   </strong>
                 </span>
                 <span>
-                  Stress Level:{' '}
+                  Tingkat Stres:{' '}
                   <strong className="text-text-primary font-bold">
                     {reportData.average_stress_level !== undefined && reportData.average_stress_level !== null
                       ? `${reportData.average_stress_level.toFixed(1)} / 10`
-                      : '— (Unrecorded)'}
+                      : '— (Belum dicatat)'}
                   </strong>
                 </span>
               </div>
@@ -600,27 +601,27 @@ export default function ReportsPage() {
                   <div className="flex items-center gap-2">
                     <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-emerald-400/20 text-emerald-300 border border-emerald-400/30">
                       <SparklesIcon className="w-3 h-3 text-emerald-400" />
-                      Statistical Model Estimate
+                      Estimasi Model Statistik
                     </span>
                     <span className="text-[10px] font-mono text-white/60">
                       {latestPrediction?.model_version || 'mindora-productivity-ridge-v1.0.0'}
                     </span>
                   </div>
                   <h3 className="text-base font-bold text-white">
-                    Estimated Productivity Trajectory
+                    Estimasi Trajektori Produktivitas
                   </h3>
                   <p className="text-xs text-white/70 max-w-2xl leading-relaxed">
-                    Statistical regression output evaluated against habit indicators. This metric represents a mathematical estimate, strictly distinguished from observed study duration and task logs.
+                    Hasil regresi statistik yang dievaluasi terhadap indikator kebiasaan. Metrik ini merupakan estimasi matematis yang terpisah secara tegas dari durasi belajar aktual dan log tugas.
                   </p>
                 </div>
 
                 <div className="flex items-center gap-4 bg-white/10 px-5 py-3 rounded-xl border border-white/10 shrink-0">
                   <div className="text-right">
                     <span className="text-[10px] uppercase font-bold text-white/70 block">
-                      {latestPrediction?.is_baseline ? 'Baseline Estimate' : 'Calibrated Score'}
+                      {latestPrediction?.is_baseline ? 'Estimasi Awal' : 'Skor Terkalibrasi'}
                     </span>
                     <span className="text-xs text-emerald-300">
-                      {latestPrediction ? latestPrediction.prediction_date : 'No model run'}
+                      {latestPrediction ? latestPrediction.prediction_date : 'Belum ada evaluasi model'}
                     </span>
                   </div>
                   <div className="text-3xl font-black text-emerald-400 font-mono">
@@ -636,20 +637,20 @@ export default function ReportsPage() {
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 border-b border-border pb-4">
                 <div>
                   <h2 className="text-lg font-bold text-primary-900">
-                    Daily Activity Breakdown
+                    Rincian Aktivitas Harian
                   </h2>
                   <p className="text-xs text-text-muted">
-                    Day-by-day logs across verified sessions and habit check-ins ({startDate} to {endDate})
+                    Log harian berdasarkan sesi terverifikasi dan kebiasaan ({startDate} sampai {endDate})
                   </p>
                 </div>
                 <div className="no-print flex items-center gap-4 text-xs font-semibold">
                   <span className="flex items-center gap-1.5">
                     <span className="w-2.5 h-2.5 rounded-full bg-[#123C32]" />
-                    Study Duration
+                    Durasi Belajar
                   </span>
                   <span className="flex items-center gap-1.5">
                     <span className="w-2.5 h-2.5 rounded-full bg-[#138F78]" />
-                    Focus Intervals
+                    Interval Fokus
                   </span>
                 </div>
               </div>
@@ -659,19 +660,19 @@ export default function ReportsPage() {
                   <div className="w-12 h-12 rounded-full bg-slate-100 text-text-muted flex items-center justify-center mx-auto">
                     <ChartBarIcon className="w-6 h-6" />
                   </div>
-                  <h3 className="text-sm font-bold text-text-primary">No Activity Recorded in this Period</h3>
+                  <h3 className="text-sm font-bold text-text-primary">Tidak Ada Aktivitas Tercatat pada Periode Ini</h3>
                   <p className="text-xs text-text-muted max-w-md mx-auto">
-                    No study sessions, focus intervals, or completed tasks were found between {startDate} and {endDate}.
+                    Tidak ada sesi belajar, interval fokus, atau tugas selesai antara {startDate} dan {endDate}.
                   </p>
                   <div className="no-print pt-2 flex items-center justify-center gap-3">
                     <Link to="/study">
                       <Button variant="secondary" size="sm" className="text-xs font-bold">
-                        Record Study Session
+                        Catat Sesi Belajar
                       </Button>
                     </Link>
                     <Link to="/focus">
                       <Button variant="outline" size="sm" className="text-xs font-bold">
-                        Start Focus Timer
+                        Mulai Timer Fokus
                       </Button>
                     </Link>
                   </div>
@@ -681,14 +682,14 @@ export default function ReportsPage() {
                   <table className="w-full text-left text-xs">
                     <thead>
                       <tr className="border-b border-slate-100 text-[11px] uppercase tracking-wider text-text-muted font-bold">
-                        <th className="py-2.5 px-3">Date</th>
-                        <th className="py-2.5 px-3">Study Duration</th>
-                        <th className="py-2.5 px-3">Focus Time</th>
-                        <th className="py-2.5 px-3">Break Time</th>
-                        <th className="py-2.5 px-3">Completed Tasks</th>
-                        <th className="py-2.5 px-3">Sleep</th>
-                        <th className="py-2.5 px-3">Phone</th>
-                        <th className="py-2.5 px-3">Stress</th>
+                        <th className="py-2.5 px-3">Tanggal</th>
+                        <th className="py-2.5 px-3">Durasi Belajar</th>
+                        <th className="py-2.5 px-3">Waktu Fokus</th>
+                        <th className="py-2.5 px-3">Waktu Istirahat</th>
+                        <th className="py-2.5 px-3">Tugas Selesai</th>
+                        <th className="py-2.5 px-3">Tidur</th>
+                        <th className="py-2.5 px-3">Ponsel</th>
+                        <th className="py-2.5 px-3">Stres</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100 font-medium">
@@ -699,7 +700,7 @@ export default function ReportsPage() {
                           </td>
                           <td className="py-2.5 px-3">
                             <div className="flex items-center gap-2">
-                              <span className="w-12 text-primary-900 font-bold">{point.study_duration_hours}h</span>
+                              <span className="w-12 text-primary-900 font-bold">{point.study_duration_hours} jam</span>
                               <div className="w-16 bg-slate-100 h-1.5 rounded-full overflow-hidden">
                                 <div
                                   className="h-full bg-[#123C32] rounded-full"
@@ -709,22 +710,22 @@ export default function ReportsPage() {
                             </div>
                           </td>
                           <td className="py-2.5 px-3 text-primary font-bold">
-                            {point.focus_duration_hours}h
+                            {point.focus_duration_hours} jam
                           </td>
                           <td className="py-2.5 px-3 text-emerald-600">
-                            {point.break_duration_hours}h
+                            {point.break_duration_hours} jam
                           </td>
                           <td className="py-2.5 px-3 text-text-primary font-bold">
                             {point.completed_tasks_count}
                           </td>
                           <td className="py-2.5 px-3 text-text-secondary">
                             {point.sleep_hours !== undefined && point.sleep_hours !== null
-                              ? `${point.sleep_hours}h`
+                              ? `${point.sleep_hours} jam`
                               : '—'}
                           </td>
                           <td className="py-2.5 px-3 text-text-secondary">
                             {point.phone_usage_hours !== undefined && point.phone_usage_hours !== null
-                              ? `${point.phone_usage_hours}h`
+                              ? `${point.phone_usage_hours} jam`
                               : '—'}
                           </td>
                           <td className="py-2.5 px-3 text-text-secondary">
@@ -743,32 +744,32 @@ export default function ReportsPage() {
               <div className="pt-3 border-t border-slate-100 flex flex-wrap items-center justify-between text-xs text-text-secondary gap-3">
                 <div className="flex flex-wrap items-center gap-6">
                   <span>
-                    Total Study:{' '}
+                    Total Belajar:{' '}
                     <strong className="text-primary-900 font-bold">
                       {reportData.total_study_formatted}
                     </strong>
                   </span>
                   <span>
-                    Total Focus:{' '}
+                    Total Fokus:{' '}
                     <strong className="text-primary font-bold">
-                      {reportData.total_focus_minutes}m
+                      {reportData.total_focus_minutes} mnt
                     </strong>
                   </span>
                   <span>
-                    Total Breaks:{' '}
+                    Total Istirahat:{' '}
                     <strong className="text-emerald-700 font-bold">
-                      {reportData.total_break_minutes}m
+                      {reportData.total_break_minutes} mnt
                     </strong>
                   </span>
                   <span>
-                    Total Tasks Finished:{' '}
+                    Total Tugas Selesai:{' '}
                     <strong className="text-text-primary font-bold">
                       {reportData.total_completed_tasks}
                     </strong>
                   </span>
                 </div>
                 <div>
-                  Study Consistency:{' '}
+                  Konsistensi Belajar:{' '}
                   <strong className="text-[#138F78] font-bold">
                     {reportData.study_consistency_percentage}%
                   </strong>

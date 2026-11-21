@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { SparklesIcon, SendIcon, CheckIcon, CloseIcon } from '../atoms';
 import { QuickActionChips } from '../molecules';
-import { cn } from '../../utils';
+import { cn, translatePriority } from '../../utils';
 import { productivityService } from '../../services/productivityService';
 import type { RecommendationItem } from '../../types';
 
@@ -27,11 +27,9 @@ export const AIAssistantWidget = ({
       try {
         const res = await productivityService.getRecommendations({ evaluate: false });
         if (isMounted) {
-          // Take top 2 items
           setUrgentRecs(res.items.slice(0, 2));
         }
       } catch (err: unknown) {
-        // Silently catch to keep AI assistant functional
         console.error('Failed to load dashboard recommendations:', err);
       } finally {
         if (isMounted) setLoadingRecs(false);
@@ -62,14 +60,14 @@ export const AIAssistantWidget = ({
     }
   };
 
-  const quickPrompts = ['Plan my day', 'Prioritize tasks', 'Create focus plan'];
+  const quickPrompts = ['Rencanakan hari saya', 'Prioritaskan tugas', 'Buat rencana fokus'];
 
   const handleSend = (textToSend?: string) => {
     const text = textToSend || prompt;
     if (!text.trim()) return;
 
     setResponseMsg(
-      'Conversational LLM planning is deferred in this release. Personal schedule interventions are generated deterministically by the Recommendation Engine.'
+      'Perencanaan percakapan LLM ditangguhkan pada rilis ini. Intervensi jadwal pribadi dibuat secara deterministik oleh Mesin Rekomendasi.'
     );
 
     onAskAI?.(text);
@@ -87,10 +85,10 @@ export const AIAssistantWidget = ({
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary-100 text-primary-900 text-xs font-semibold">
           <SparklesIcon className="w-3.5 h-3.5 text-primary" />
-          <span>AI PLANNING ASSISTANT</span>
+          <span>ASISTEN PERENCANAAN AI</span>
         </div>
         <span className="text-[11px] font-medium text-text-secondary">
-          Powered by your verified productivity data
+          Didukung oleh data produktivitas Anda yang terverifikasi
         </span>
       </div>
 
@@ -100,13 +98,13 @@ export const AIAssistantWidget = ({
           <div className="flex items-center justify-between text-[11px] font-bold text-text-secondary">
             <span className="uppercase tracking-wider text-[#138F78] flex items-center gap-1.5">
               <span className="w-2 h-2 rounded-full bg-[#138F78] animate-pulse" />
-              Urgent Productivity Insights
+              Wawasan Produktivitas Mendesak
             </span>
             <Link
               to="/recommendations"
               className="text-[#138F78] hover:text-[#123C32] hover:underline transition-colors"
             >
-              View Hub ({urgentRecs.length}) →
+              Lihat Pusat Rekomendasi ({urgentRecs.length}) →
             </Link>
           </div>
 
@@ -128,7 +126,7 @@ export const AIAssistantWidget = ({
                             : 'bg-emerald-100 text-[#123C32]'
                         }`}
                       >
-                        {rec.priority}
+                        {translatePriority(rec.priority)}
                       </span>
                       <span className="text-xs font-bold text-[#123C32]">
                         {rec.title}
@@ -143,8 +141,8 @@ export const AIAssistantWidget = ({
                     type="button"
                     onClick={() => handleDismissRec(rec.id)}
                     className="text-slate-400 hover:text-slate-600 p-1 rounded-lg hover:bg-slate-100 transition-colors cursor-pointer shrink-0"
-                    title="Dismiss (48h)"
-                    aria-label="Dismiss recommendation"
+                    title="Abaikan (48 jam)"
+                    aria-label="Abaikan rekomendasi"
                   >
                     <CloseIcon className="w-3 h-3" />
                   </button>
@@ -156,7 +154,7 @@ export const AIAssistantWidget = ({
                       to={rec.action_route}
                       className="font-bold text-[#138F78] hover:text-[#123C32] hover:underline"
                     >
-                      {rec.action_label || 'Take Action →'}
+                      {rec.action_label || 'Ambil Tindakan →'}
                     </Link>
                   ) : (
                     <span />
@@ -168,7 +166,7 @@ export const AIAssistantWidget = ({
                     className="inline-flex items-center gap-1 font-semibold text-slate-500 hover:text-emerald-700 cursor-pointer"
                   >
                     <CheckIcon className="w-3 h-3 text-[#138F78]" />
-                    <span>Done</span>
+                    <span>Selesai</span>
                   </button>
                 </div>
               </div>
@@ -179,7 +177,7 @@ export const AIAssistantWidget = ({
 
       {/* Headline */}
       <h3 className="text-lg sm:text-xl font-bold tracking-tight text-text-primary">
-        What can I help you finish today?
+        Apa yang bisa saya bantu selesaikan hari ini?
       </h3>
 
       {/* Quick Action Chips */}
@@ -196,14 +194,14 @@ export const AIAssistantWidget = ({
           value={prompt}
           onChange={(e) => setPrompt(e.target.value)}
           onKeyDown={(e) => e.key === 'Enter' && handleSend()}
-          placeholder="Ask Mindora AI about your tasks..."
+          placeholder="Tanya Mindora AI tentang tugas Anda..."
           className="w-full pl-4 pr-12 py-3 rounded-xl border border-border bg-surface-subtle text-sm text-text-primary placeholder:text-text-secondary/70 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary focus:bg-white transition-all shadow-soft-sm"
         />
         <button
           type="button"
           onClick={() => handleSend()}
           className="absolute right-2 p-2 rounded-lg bg-primary hover:bg-primary-hover text-white transition-colors cursor-pointer"
-          aria-label="Send to AI Assistant"
+          aria-label="Kirim ke Asisten AI"
         >
           <SendIcon className="w-4 h-4" />
         </button>
@@ -213,14 +211,14 @@ export const AIAssistantWidget = ({
       {responseMsg && (
         <div className="p-3.5 rounded-xl bg-amber-50 border border-amber-200 text-xs text-amber-900 leading-relaxed font-medium animate-fadeIn flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
           <div>
-            <span className="font-bold mr-1">Notice:</span>
+            <span className="font-bold mr-1">Pemberitahuan:</span>
             {responseMsg}
           </div>
           <Link
             to="/recommendations"
             className="text-primary font-bold hover:underline shrink-0"
           >
-            Recommendations Hub →
+            Pusat Rekomendasi →
           </Link>
         </div>
       )}

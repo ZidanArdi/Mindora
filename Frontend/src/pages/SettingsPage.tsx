@@ -26,16 +26,16 @@ export default function SettingsPage() {
             .map((n) => n[0])
             .join('')
             .slice(0, 2)
-            .toUpperCase() || 'ST',
-        workspaceName: user.role === 'admin' ? 'System Administration' : 'Academic Workspace',
+            .toUpperCase() || 'MH',
+        workspaceName: user.role === 'admin' ? 'Administrasi Sistem' : 'Ruang Kerja Akademik',
       }
     : {
         id: 'usr_guest',
-        name: 'Student',
+        name: 'Mahasiswa',
         email: 'student@mindora.app',
         role: 'user',
-        avatarText: 'ST',
-        workspaceName: 'Academic Workspace',
+        avatarText: 'MH',
+        workspaceName: 'Ruang Kerja Akademik',
       };
 
   const detectedTimezone = typeof Intl !== 'undefined'
@@ -49,15 +49,15 @@ export default function SettingsPage() {
         <div className="border-b border-border pb-5">
           <div className="flex items-center gap-2">
             <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-nature-mint text-primary">
-              System Configuration
+              Konfigurasi Sistem
             </span>
-            <span className="text-xs text-text-muted">Preferences & Security</span>
+            <span className="text-xs text-text-muted">Preferensi & Keamanan</span>
           </div>
           <h1 className="text-2xl font-black text-primary-900 tracking-tight mt-1">
-            Application Settings
+            Pengaturan Aplikasi
           </h1>
           <p className="text-sm text-text-secondary">
-            Timezone calibration, session security, and data portability controls.
+            Kalibrasi zona waktu, keamanan sesi, dan kontrol portabilitas data.
           </p>
         </div>
 
@@ -66,9 +66,9 @@ export default function SettingsPage() {
           <div className="flex items-center gap-2 border-b border-border pb-3">
             <ClockIcon className="w-5 h-5 text-primary" />
             <div>
-              <h2 className="text-base font-bold text-primary-900">Timezone Calibration</h2>
+              <h2 className="text-base font-bold text-primary-900">Kalibrasi Zona Waktu</h2>
               <p className="text-xs text-text-muted">
-                Governs date boundaries for Study Tracking, Pomodoro Focus Intervals, and Productivity Reports.
+                Mengatur batas pergantian hari untuk Pelacakan Belajar, Interval Fokus Pomodoro, dan Laporan Produktivitas.
               </p>
             </div>
           </div>
@@ -76,17 +76,17 @@ export default function SettingsPage() {
           <div className="p-4 rounded-xl bg-slate-50 border border-slate-200/80 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 text-xs">
             <div>
               <span className="font-bold text-text-primary block text-[11px] uppercase tracking-wider">
-                Detected Browser Timezone (IANA)
+                Zona Waktu Peramban Terdeteksi (IANA)
               </span>
               <span className="font-mono text-sm font-bold text-primary mt-1 block">
                 {detectedTimezone || 'UTC'}
               </span>
               <p className="text-text-secondary text-[11px] mt-0.5">
-                All daily metrics and 7-day trend calculations are aggregated relative to midnight in this location.
+                Semua metrik harian dan perhitungan tren 7 hari diagregasi relatif terhadap tengah malam di lokasi ini.
               </p>
             </div>
             <span className="inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 self-start sm:self-center">
-              Synchronized
+              Tersinkronisasi
             </span>
           </div>
         </div>
@@ -96,24 +96,24 @@ export default function SettingsPage() {
           <div className="flex items-center gap-2 border-b border-border pb-3">
             <ExportIcon className="w-5 h-5 text-primary" />
             <div>
-              <h2 className="text-base font-bold text-primary-900">Data Portability & Reports</h2>
+              <h2 className="text-base font-bold text-primary-900">Portabilitas Data & Laporan</h2>
               <p className="text-xs text-text-muted">
-                Export your verified academic sessions, focus logs, and habit records.
+                Ekspor sesi akademik terverifikasi, catatan fokus, dan catatan kebiasaan Anda.
               </p>
             </div>
           </div>
 
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 rounded-xl bg-slate-50 border border-slate-200/80 text-xs">
             <div>
-              <strong className="text-text-primary block">Comprehensive Productivity Dossier</strong>
+              <strong className="text-text-primary block">Dokumen Produktivitas Komprehensif</strong>
               <p className="text-text-secondary mt-0.5">
-                Generate structured CSV exports and print-friendly PDF summaries for academic milestone audits.
+                Hasilkan ekspor file CSV terstruktur dan ringkasan PDF yang siap dicetak untuk audit kemajuan akademik.
               </p>
             </div>
             <Link to="/reports" className="shrink-0">
               <Button variant="outline" size="sm" className="text-xs font-bold gap-2">
                 <ExportIcon className="w-3.5 h-3.5" />
-                Go to Reports Hub
+                Buka Pusat Laporan
               </Button>
             </Link>
           </div>
@@ -124,9 +124,9 @@ export default function SettingsPage() {
           <div className="flex items-center gap-2 border-b border-border pb-3">
             <ShieldIcon className="w-5 h-5 text-primary" />
             <div>
-              <h2 className="text-base font-bold text-primary-900">Session Security & Access</h2>
+              <h2 className="text-base font-bold text-primary-900">Keamanan & Akses Sesi</h2>
               <p className="text-xs text-text-muted">
-                Cryptographic authentication state and session termination controls.
+                Status autentikasi kriptografis dan kontrol pengakhiran sesi.
               </p>
             </div>
           </div>
@@ -134,20 +134,20 @@ export default function SettingsPage() {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
             <div className="p-4 rounded-xl bg-slate-50 border border-slate-200/80">
               <span className="font-bold text-text-primary block text-[11px] uppercase tracking-wider">
-                Token Architecture
+                Arsitektur Token
               </span>
               <span className="text-text-secondary mt-1 block">
-                Dual-token JWT authentication with short-lived 15-minute access tokens and encrypted HttpOnly session rotation.
+                Autentikasi JWT dual-token dengan access token 15 menit dan rotasi sesi terenkripsi melalui HttpOnly cookie.
               </span>
             </div>
 
             <div className="p-4 rounded-xl bg-slate-50 border border-slate-200/80">
               <span className="font-bold text-text-primary block text-[11px] uppercase tracking-wider">
-                Active Session Status
+                Status Sesi Aktif
               </span>
               <div className="flex items-center gap-2 mt-1">
                 <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                <span className="font-bold text-text-primary">Authenticated</span>
+                <span className="font-bold text-text-primary">Terautentikasi</span>
                 <span className="text-[11px] text-text-muted">({displayUser.email})</span>
               </div>
             </div>
@@ -161,7 +161,7 @@ export default function SettingsPage() {
               className="text-xs font-bold text-rose-600 border-rose-200 hover:bg-rose-50 gap-2"
             >
               <LogoutIcon className="w-4 h-4 text-rose-500" />
-              Sign Out of Current Session
+              Keluar dari Sesi Saat Ini
             </Button>
           </div>
         </div>
@@ -171,9 +171,9 @@ export default function SettingsPage() {
           <div className="flex items-center gap-2 border-b border-border pb-3">
             <SettingsIcon className="w-5 h-5 text-primary" />
             <div>
-              <h2 className="text-base font-bold text-primary-900">Planned Security Roadmap</h2>
+              <h2 className="text-base font-bold text-primary-900">Rencana Keamanan Mendatang</h2>
               <p className="text-xs text-text-muted">
-                Upcoming security enhancements planned for subsequent releases.
+                Peningkatan keamanan yang direncanakan untuk rilis mendatang.
               </p>
             </div>
           </div>
@@ -181,25 +181,25 @@ export default function SettingsPage() {
           <div className="space-y-3 text-xs">
             <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200/80 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
               <div>
-                <strong className="text-text-primary block">Multi-Factor Authentication (TOTP 2FA)</strong>
+                <strong className="text-text-primary block">Autentikasi Multi-Faktor (TOTP 2FA)</strong>
                 <p className="text-text-secondary text-[11px] mt-0.5">
-                  Hardware and authenticator app-based two-factor verification.
+                  Verifikasi dua langkah berbasis kunci perangkat keras atau aplikasi autentikator.
                 </p>
               </div>
               <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-slate-200 text-slate-700 self-start sm:self-center">
-                Security Roadmap
+                Rencana Keamanan
               </span>
             </div>
 
             <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200/80 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
               <div>
-                <strong className="text-text-primary block">Automated Email Activity Summaries</strong>
+                <strong className="text-text-primary block">Ringkasan Aktivitas Email Otomatis</strong>
                 <p className="text-text-secondary text-[11px] mt-0.5">
-                  Scheduled weekly productivity reports delivered via email.
+                  Laporan produktivitas mingguan terjadwal yang dikirimkan via email.
                 </p>
               </div>
               <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-slate-200 text-slate-700 self-start sm:self-center">
-                Deferred
+                Ditangguhkan
               </span>
             </div>
           </div>

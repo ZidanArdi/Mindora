@@ -26,16 +26,16 @@ export default function MessagesPage() {
             .map((n) => n[0])
             .join('')
             .slice(0, 2)
-            .toUpperCase() || 'ST',
-        workspaceName: 'Academic Workspace',
+            .toUpperCase() || 'MH',
+        workspaceName: 'Ruang Kerja Akademik',
       }
     : {
         id: 'usr_guest',
-        name: 'Student',
+        name: 'Mahasiswa',
         email: 'student@mindora.app',
         role: 'user',
-        avatarText: 'ST',
-        workspaceName: 'Academic Workspace',
+        avatarText: 'MH',
+        workspaceName: 'Ruang Kerja Akademik',
       };
 
   return (
@@ -46,15 +46,15 @@ export default function MessagesPage() {
           <div>
             <div className="flex items-center gap-2">
               <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-amber-100 text-amber-800 border border-amber-200">
-                Phase 4.3 · LLM Service Deferred
+                Fase 4.3 · Layanan LLM Ditangguhkan
               </span>
-              <span className="text-xs text-text-muted">Academic Communications & AI Guidance</span>
+              <span className="text-xs text-text-muted">Komunikasi Akademik & Panduan AI</span>
             </div>
             <h1 className="text-2xl font-black text-primary-900 tracking-tight mt-1">
-              Messages & Conversations
+              Pesan & Percakapan
             </h1>
             <p className="text-sm text-text-secondary">
-              Productivity guidance, communication channels, and conversational assistance status.
+              Panduan produktivitas, saluran komunikasi, dan status bantuan percakapan.
             </p>
           </div>
 
@@ -66,7 +66,7 @@ export default function MessagesPage() {
                 className="gap-2 text-xs font-semibold bg-primary hover:bg-primary-hover text-white"
               >
                 <SparklesIcon className="w-4 h-4 text-emerald-300" />
-                View Active Recommendations
+                Lihat Rekomendasi Aktif
               </Button>
             </Link>
           </div>
@@ -81,22 +81,19 @@ export default function MessagesPage() {
             <div className="space-y-1.5 flex-1">
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <h2 className="text-base font-bold text-primary-900">
-                  Conversational AI Planning Engine — Deferred Status
+                  Mesin Perencanaan AI Percakapan — Status Ditangguhkan
                 </h2>
                 <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-amber-100 text-amber-900">
                   <span className="w-2 h-2 rounded-full bg-amber-600 animate-pulse" />
-                  Service Not Connected
+                  Layanan Tidak Terhubung
                 </span>
               </div>
               <p className="text-xs text-text-secondary leading-relaxed">
-                The conversational LLM assistant endpoint (originally planned as{' '}
+                Endpoint asisten LLM percakapan (semula direncanakan sebagai{' '}
                 <code className="px-1.5 py-0.5 rounded bg-slate-100 font-mono text-[11px] text-text-primary">
                   POST /api/v1/ai/plan-day
                 </code>
-                ) is intentionally deferred in this release. Mindora follows an offline-first, privacy-preserving
-                engineering policy: no external cloud LLM APIs (OpenAI, Gemini, Anthropic) or ungrounded generative
-                chatbots are active, ensuring student activity data remains strictly confidential and protected against
-                unverified hallucinated guidance.
+                ) sengaja ditangguhkan pada rilis ini. Mindora menganut kebijakan rekayasa yang mengutamakan privasi dan operasi luring (offline-first): tidak ada API LLM cloud eksternal (OpenAI, Gemini, Anthropic) atau chatbot generatif yang tidak terverifikasi aktif, memastikan data aktivitas mahasiswa tetap sepenuhnya rahasia dan terlindungi dari halusinasi kecerdasan buatan.
               </p>
             </div>
           </div>
@@ -104,26 +101,26 @@ export default function MessagesPage() {
           <div className="p-4 rounded-xl bg-slate-50 border border-slate-200/80 grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs">
             <div>
               <span className="font-bold text-text-primary block text-[11px] uppercase tracking-wider">
-                Privacy Standard
+                Standar Privasi
               </span>
               <p className="text-text-secondary mt-0.5">
-                Zero third-party LLM transmission; personal study logs remain on-premise.
+                Nol transmisi LLM pihak ketiga; log belajar pribadi tetap tersimpan secara lokal/on-premise.
               </p>
             </div>
             <div>
               <span className="font-bold text-text-primary block text-[11px] uppercase tracking-wider">
-                Active Alternative
+                Alternatif Aktif
               </span>
               <p className="text-text-secondary mt-0.5">
-                Deterministic rule engine (REC-TASK, REC-SLEEP, REC-BREAK, REC-COLD, REC-STUDY).
+                Mesin aturan deterministik terverifikasi (REC-TASK, REC-SLEEP, REC-BREAK, REC-COLD, REC-STUDY).
               </p>
             </div>
             <div>
               <span className="font-bold text-text-primary block text-[11px] uppercase tracking-wider">
-                Simulated AI Policy
+                Kebijakan AI Tanpa Manipulasi
               </span>
               <p className="text-text-secondary mt-0.5">
-                Zero fake responses or mock chatbots; all shown productivity data is 100% verified.
+                Nol respon palsu atau chatbot tiruan; seluruh data produktivitas yang ditampilkan 100% terverifikasi.
               </p>
             </div>
           </div>
@@ -137,18 +134,17 @@ export default function MessagesPage() {
               <div className="flex items-center justify-between">
                 <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-emerald-400/20 text-emerald-300 border border-emerald-400/30">
                   <SparklesIcon className="w-3 h-3 text-emerald-400" />
-                  Production Ready (Phase 4.1)
+                  Siap Produksi (Fase 4.1)
                 </span>
-                <span className="text-[11px] font-mono text-white/60">Deterministic Engine</span>
+                <span className="text-[11px] font-mono text-white/60">Mesin Deterministik</span>
               </div>
 
               <div>
                 <h3 className="text-lg font-bold text-white">
-                  Deterministic Recommendation Engine
+                  Mesin Rekomendasi Deterministik
                 </h3>
                 <p className="text-xs text-white/70 mt-1 leading-relaxed">
-                  Instead of ungrounded probabilistic chatbots, Mindora evaluates your verified habits against
-                  rigorous mathematical rules to generate personalized recommendations:
+                  Alih-alih chatbot probabilistik yang rentan halusinasi, Mindora mengevaluasi kebiasaan terverifikasi Anda terhadap aturan matematis yang ketat untuk menghasilkan rekomendasi terpersonalisasi:
                 </p>
               </div>
 
@@ -156,24 +152,21 @@ export default function MessagesPage() {
                 <div className="flex items-start gap-2.5 p-2.5 rounded-xl bg-white/5 border border-white/10">
                   <CheckIcon className="w-4 h-4 text-emerald-400 mt-0.5 shrink-0" />
                   <div>
-                    <strong className="text-emerald-300">Overdue Task Interventions:</strong> Real-time alerts for
-                    high-priority deadlines.
+                    <strong className="text-emerald-300">Intervensi Tugas Terlewat:</strong> Peringatan waktu nyata untuk tenggat waktu prioritas tinggi.
                   </div>
                 </div>
 
                 <div className="flex items-start gap-2.5 p-2.5 rounded-xl bg-white/5 border border-white/10">
                   <CheckIcon className="w-4 h-4 text-emerald-400 mt-0.5 shrink-0" />
                   <div>
-                    <strong className="text-emerald-300">Habit Calibration Prompts:</strong> Cold-start guidance when daily
-                    sleep or screen time logs are unrecorded.
+                    <strong className="text-emerald-300">Pengingat Kalibrasi Kebiasaan:</strong> Panduan awal saat log tidur atau waktu layar harian belum tercatat.
                   </div>
                 </div>
 
                 <div className="flex items-start gap-2.5 p-2.5 rounded-xl bg-white/5 border border-white/10">
                   <CheckIcon className="w-4 h-4 text-emerald-400 mt-0.5 shrink-0" />
                   <div>
-                    <strong className="text-emerald-300">Focus-to-Break Balancing:</strong> Pomodoro fatigue recovery alerts
-                    when focus exceeds 100m with insufficient breaks.
+                    <strong className="text-emerald-300">Penyelarasan Fokus-Istirahat:</strong> Peringatan pemulihan kelelahan Pomodoro saat fokus melebihi 100 menit tanpa istirahat memadai.
                   </div>
                 </div>
               </div>
@@ -186,7 +179,7 @@ export default function MessagesPage() {
                   size="md"
                   className="w-full justify-center bg-emerald-500 hover:bg-emerald-600 text-slate-900 font-bold border-none"
                 >
-                  Explore Recommendations Hub
+                  Jelajahi Pusat Rekomendasi
                 </Button>
               </Link>
             </div>
@@ -198,18 +191,17 @@ export default function MessagesPage() {
               <div className="flex items-center justify-between">
                 <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-slate-100 text-text-muted">
                   <MessageSquareIcon className="w-3 h-3 text-text-muted" />
-                  Future Milestone
+                  Tahapan Mendatang
                 </span>
-                <span className="text-[11px] font-mono text-text-muted">Peer Channels</span>
+                <span className="text-[11px] font-mono text-text-muted">Saluran Kolaborasi</span>
               </div>
 
               <div>
                 <h3 className="text-lg font-bold text-primary-900">
-                  Study Groups & Peer Collaboration
+                  Kelompok Belajar & Kolaborasi Rekan
                 </h3>
                 <p className="text-xs text-text-secondary mt-1 leading-relaxed">
-                  The peer-to-peer messaging architecture is designated for a multi-user collaborative release.
-                  Planned capabilities include:
+                  Arsitektur perpesanan antar-mahasiswa disiapkan untuk rilis kolaboratif multipengguna. Kemampuan yang direncanakan meliputi:
                 </p>
               </div>
 
@@ -219,8 +211,8 @@ export default function MessagesPage() {
                     1
                   </span>
                   <div>
-                    <strong className="text-text-primary block">Course-Based Study Channels</strong>
-                    Discussions and resource sharing organized by academic subjects and courses.
+                    <strong className="text-text-primary block">Saluran Belajar Berbasis Mata Kuliah</strong>
+                    Diskusi dan berbagi materi yang diorganisasi per mata kuliah akademik.
                   </div>
                 </div>
 
@@ -229,8 +221,8 @@ export default function MessagesPage() {
                     2
                   </span>
                   <div>
-                    <strong className="text-text-primary block">Shared Pomodoro Focus Rooms</strong>
-                    Synchronized focus intervals and accountability timers with study partners.
+                    <strong className="text-text-primary block">Ruang Fokus Pomodoro Bersama</strong>
+                    Interval fokus tersinkronisasi dan timer akuntabilitas bersama rekan belajar.
                   </div>
                 </div>
 
@@ -239,16 +231,16 @@ export default function MessagesPage() {
                     3
                   </span>
                   <div>
-                    <strong className="text-text-primary block">Direct Academic Inquiries</strong>
-                    Private messaging between enrolled students and course teaching assistants.
+                    <strong className="text-text-primary block">Konsultasi Akademik Langsung</strong>
+                    Pesan privat antara mahasiswa dan asisten dosen pengampu.
                   </div>
                 </div>
               </div>
             </div>
 
             <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 text-xs text-text-muted flex items-center justify-between">
-              <span>Status: Planned for Collaborative Framework</span>
-              <span className="font-semibold text-text-secondary">Offline</span>
+              <span>Status: Direncanakan untuk Kerangka Kolaboratif</span>
+              <span className="font-semibold text-text-secondary">Luring</span>
             </div>
           </div>
         </div>
@@ -259,27 +251,26 @@ export default function MessagesPage() {
             <MessageSquareIcon className="w-6 h-6" />
           </div>
           <h3 className="text-sm font-bold text-text-primary">
-            No Active Messaging Conversations
+            Tidak Ada Percakapan Pesan Aktif
           </h3>
           <p className="text-xs text-text-muted max-w-md mx-auto leading-relaxed">
-            Messaging channels are offline while external conversational LLM services remain deferred. To plan your
-            day and optimize your academic workload, use Mindora’s verified productivity modules.
+            Saluran perpesanan dinonaktifkan selama layanan LLM percakapan eksternal ditangguhkan. Untuk merencanakan hari dan mengoptimalkan beban akademik Anda, gunakan modul produktivitas Mindora yang terverifikasi.
           </p>
           <div className="pt-2 flex flex-wrap items-center justify-center gap-3">
             <Link to="/study">
               <Button variant="secondary" size="sm" className="text-xs font-bold gap-1.5">
                 <ClockIcon className="w-3.5 h-3.5" />
-                Study Tracking
+                Pelacakan Belajar
               </Button>
             </Link>
             <Link to="/focus">
               <Button variant="outline" size="sm" className="text-xs font-bold">
-                Focus Timer
+                Timer Fokus
               </Button>
             </Link>
             <Link to="/reports">
               <Button variant="outline" size="sm" className="text-xs font-bold">
-                Productivity Reports
+                Laporan Produktivitas
               </Button>
             </Link>
           </div>

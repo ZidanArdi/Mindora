@@ -4,6 +4,7 @@ import { Button } from '../components/atoms';
 import { productivityService } from '../services/productivityService';
 import type { LifestyleRecord, UpsertLifestylePayload, UserProfile } from '../types';
 import { useAuth } from '../hooks';
+import { formatDate } from '../utils/i18n';
 
 interface DropdownOption {
   value: string;
@@ -12,61 +13,61 @@ interface DropdownOption {
 
 // 1. Sleep Duration Options (midpoints: 2.0, 4.5, 5.5, 6.5, 7.5, 8.5; open-ended: 9.5)
 const SLEEP_OPTIONS: DropdownOption[] = [
-  { value: '', label: 'Not recorded' },
-  { value: '2.0', label: '0–4 hours' },
-  { value: '4.5', label: '4–5 hours' },
-  { value: '5.5', label: '5–6 hours' },
-  { value: '6.5', label: '6–7 hours' },
-  { value: '7.5', label: '7–8 hours' },
-  { value: '8.5', label: '8–9 hours' },
-  { value: '9.5', label: '9+ hours' },
+  { value: '', label: 'Tidak dicatat' },
+  { value: '2.0', label: '0–4 jam' },
+  { value: '4.5', label: '4–5 jam' },
+  { value: '5.5', label: '5–6 jam' },
+  { value: '6.5', label: '6–7 jam' },
+  { value: '7.5', label: '7–8 jam' },
+  { value: '8.5', label: '8–9 jam' },
+  { value: '9.5', label: '9+ jam' },
 ];
 
 // 2. Phone Screen Time Options (midpoints: 0.5, 1.5, 2.5, 3.5, 4.5, 5.5; open-ended: 6.5)
 const PHONE_OPTIONS: DropdownOption[] = [
-  { value: '', label: 'Not recorded' },
-  { value: '0.5', label: '0–1 hours' },
-  { value: '1.5', label: '1–2 hours' },
-  { value: '2.5', label: '2–3 hours' },
-  { value: '3.5', label: '3–4 hours' },
-  { value: '4.5', label: '4–5 hours' },
-  { value: '5.5', label: '5–6 hours' },
-  { value: '6.5', label: '6+ hours' },
+  { value: '', label: 'Tidak dicatat' },
+  { value: '0.5', label: '0–1 jam' },
+  { value: '1.5', label: '1–2 jam' },
+  { value: '2.5', label: '2–3 jam' },
+  { value: '3.5', label: '3–4 jam' },
+  { value: '4.5', label: '4–5 jam' },
+  { value: '5.5', label: '5–6 jam' },
+  { value: '6.5', label: '6+ jam' },
 ];
 
 // 3. Social Media Options (midpoints: 0.5, 1.5, 2.5, 3.5; open-ended: 4.5)
 const SOCIAL_OPTIONS: DropdownOption[] = [
-  { value: '', label: 'Not recorded' },
-  { value: '0.5', label: '0–1 hours' },
-  { value: '1.5', label: '1–2 hours' },
-  { value: '2.5', label: '2–3 hours' },
-  { value: '3.5', label: '3–4 hours' },
-  { value: '4.5', label: '4+ hours' },
+  { value: '', label: 'Tidak dicatat' },
+  { value: '0.5', label: '0–1 jam' },
+  { value: '1.5', label: '1–2 jam' },
+  { value: '2.5', label: '2–3 jam' },
+  { value: '3.5', label: '3–4 jam' },
+  { value: '4.5', label: '4+ jam' },
 ];
 
 // 4. YouTube Stream Options (midpoints: 0.5, 1.5, 2.5, 3.5; open-ended: 4.5)
 const YOUTUBE_OPTIONS: DropdownOption[] = [
-  { value: '', label: 'Not recorded' },
-  { value: '0.5', label: '0–1 hours' },
-  { value: '1.5', label: '1–2 hours' },
-  { value: '2.5', label: '2–3 hours' },
-  { value: '3.5', label: '3–4 hours' },
-  { value: '4.5', label: '4+ hours' },
+  { value: '', label: 'Tidak dicatat' },
+  { value: '0.5', label: '0–1 jam' },
+  { value: '1.5', label: '1–2 jam' },
+  { value: '2.5', label: '2–3 jam' },
+  { value: '3.5', label: '3–4 jam' },
+  { value: '4.5', label: '4+ jam' },
 ];
 
 // 5. Gaming Time Options (exact 0; midpoints: 1.5, 2.5, 3.5; open-ended: 4.5)
 const GAMING_OPTIONS: DropdownOption[] = [
-  { value: '', label: 'Not recorded' },
-  { value: '0', label: '0 hours' },
-  { value: '1.5', label: '1–2 hours' },
-  { value: '2.5', label: '2–3 hours' },
-  { value: '3.5', label: '3–4 hours' },
-  { value: '4.5', label: '4+ hours' },
+  { value: '', label: 'Tidak dicatat' },
+  { value: '0', label: '0 jam' },
+  { value: '1.5', label: '1–2 jam' },
+  { value: '2.5', label: '2–3 jam' },
+  { value: '3.5', label: '3–4 jam' },
+  { value: '4.5', label: '4+ jam' },
 ];
 
 // 6. Caffeine Intake Options (exact 0; integer midpoints in mg: 25, 75, 125, 175, 250; open-ended: 350)
 const CAFFEINE_OPTIONS: DropdownOption[] = [
-  { value: '', label: 'Not recorded' },
+  { value: '', label: 'Tidak dicatat' },
   { value: '0', label: '0 mg' },
   { value: '25', label: '1–50 mg' },
   { value: '75', label: '51–100 mg' },
@@ -78,29 +79,29 @@ const CAFFEINE_OPTIONS: DropdownOption[] = [
 
 // 7. Exercise / Workout Options (exact 0; midpoints: 8, 23, 38, 53, 75; open-ended: 105)
 const EXERCISE_OPTIONS: DropdownOption[] = [
-  { value: '', label: 'Not recorded' },
-  { value: '0', label: '0 minutes' },
-  { value: '8', label: '1–15 minutes' },
-  { value: '23', label: '16–30 minutes' },
-  { value: '38', label: '31–45 minutes' },
-  { value: '53', label: '46–60 minutes' },
-  { value: '75', label: '61–90 minutes' },
-  { value: '105', label: '90+ minutes' },
+  { value: '', label: 'Tidak dicatat' },
+  { value: '0', label: '0 menit' },
+  { value: '8', label: '1–15 menit' },
+  { value: '23', label: '16–30 menit' },
+  { value: '38', label: '31–45 menit' },
+  { value: '53', label: '46–60 menit' },
+  { value: '75', label: '61–90 menit' },
+  { value: '105', label: '90+ menit' },
 ];
 
 // 8. Perceived Stress Options (1 through 10)
 const STRESS_OPTIONS: DropdownOption[] = [
-  { value: '', label: 'Not recorded' },
-  { value: '1', label: '1 - Low / Calm' },
+  { value: '', label: 'Tidak dicatat' },
+  { value: '1', label: '1 - Rendah / Tenang' },
   { value: '2', label: '2' },
   { value: '3', label: '3' },
   { value: '4', label: '4' },
-  { value: '5', label: '5 - Moderate' },
+  { value: '5', label: '5 - Sedang' },
   { value: '6', label: '6' },
   { value: '7', label: '7' },
   { value: '8', label: '8' },
   { value: '9', label: '9' },
-  { value: '10', label: '10 - High / Overwhelmed' },
+  { value: '10', label: '10 - Tinggi / Tertekan' },
 ];
 
 /**
@@ -112,7 +113,7 @@ function getOptionsWithCustom(options: DropdownOption[], currentValue: string, u
   }
   const customOption: DropdownOption = {
     value: currentValue,
-    label: `Custom: ${currentValue} ${unit}`,
+    label: `Kustom: ${currentValue} ${unit}`,
   };
   return [...options, customOption];
 }
@@ -127,15 +128,15 @@ export default function LifestyleTrackingPage() {
         email: user.email,
         role: user.role,
         avatarText: user.name.slice(0, 2).toUpperCase(),
-        workspaceName: 'Academic Workspace',
+        workspaceName: 'Ruang Kerja Akademik',
       }
     : {
         id: 'usr_guest',
-        name: 'Student',
+        name: 'Mahasiswa',
         email: 'student@mindora.app',
         role: 'user',
-        avatarText: 'ST',
-        workspaceName: 'Academic Workspace',
+        avatarText: 'MH',
+        workspaceName: 'Ruang Kerja Akademik',
       };
 
   // Selected date in YYYY-MM-DD format
@@ -243,14 +244,14 @@ export default function LifestyleTrackingPage() {
       await productivityService.upsertLifestyleRecord(payload);
       setFeedbackMsg({
         type: 'success',
-        text: `Lifestyle habits for ${selectedDate} saved successfully!`,
+        text: `Kebiasaan gaya hidup untuk tanggal ${selectedDate} berhasil disimpan!`,
       });
       await loadHistory();
     } catch (err: unknown) {
       console.error('Failed to save lifestyle record:', err);
       setFeedbackMsg({
         type: 'error',
-        text: 'Failed to save lifestyle habits. Please verify input ranges.',
+        text: 'Gagal menyimpan kebiasaan gaya hidup. Silakan periksa kembali rentang input.',
       });
     } finally {
       setSaving(false);
@@ -264,16 +265,16 @@ export default function LifestyleTrackingPage() {
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-border/60">
           <div>
             <h1 className="text-2xl sm:text-3xl font-extrabold text-[#123C32] tracking-tight">
-              Daily Lifestyle & Habit Calibration
+              Kalibrasi Kebiasaan & Gaya Hidup Harian
             </h1>
             <p className="text-sm text-[#526B60] mt-1">
-              Track 8 key physiological & digital habits that influence cognitive energy and focus.
+              Pantau 8 kebiasaan fisiologis & digital utama yang memengaruhi energi kognitif dan fokus belajar.
             </p>
           </div>
 
           {/* Date Selector */}
           <div className="flex items-center gap-2 bg-white px-3 py-1.5 rounded-2xl border border-border shadow-soft-xs">
-            <span className="text-xs font-semibold text-text-secondary">Date:</span>
+            <span className="text-xs font-semibold text-text-secondary">Tanggal:</span>
             <input
               type="date"
               value={selectedDate}
@@ -313,15 +314,15 @@ export default function LifestyleTrackingPage() {
             <div className="border-b border-border/60 pb-3 flex items-center justify-between">
               <div>
                 <h2 className="text-base font-bold text-[#123C32]">
-                  Habit Variables for {new Date(selectedDate).toLocaleDateString([], { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+                  Variabel Kebiasaan untuk {formatDate(selectedDate, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
                 </h2>
                 <span className="text-xs text-[#526B60]">
-                  Unrecorded metrics will be safely preserved as unmeasured (never forced to 0).
+                  Metrik yang tidak dicatat akan tetap disimpan sebagai data belum terukur (tidak pernah dipaksa bernilai 0).
                 </span>
               </div>
               {loadingRecord && (
                 <span className="text-xs font-semibold text-teal-600 animate-pulse">
-                  Loading day records...
+                  Memuat catatan harian...
                 </span>
               )}
             </div>
@@ -332,10 +333,10 @@ export default function LifestyleTrackingPage() {
               <div className="p-4 rounded-2xl bg-slate-50/70 border border-slate-200/60 space-y-2">
                 <div className="flex items-center justify-between">
                   <label htmlFor="select-sleep" className="text-xs font-bold text-[#123C32]">
-                    Sleep Duration
+                    Durasi Tidur
                   </label>
                   <span className="text-[11px] font-semibold text-teal-700 bg-teal-50 px-2 py-0.5 rounded-full border border-teal-200">
-                    Hours
+                    Jam
                   </span>
                 </div>
                 <select
@@ -344,17 +345,17 @@ export default function LifestyleTrackingPage() {
                   onChange={(e) => setSleepHours(e.target.value)}
                   className="w-full h-10 px-3 rounded-xl border border-border bg-white text-xs font-semibold text-text-primary focus:outline-none focus:ring-2 focus:ring-primary/20 cursor-pointer"
                 >
-                  {getOptionsWithCustom(SLEEP_OPTIONS, sleepHours, 'hrs').map((opt) => (
+                  {getOptionsWithCustom(SLEEP_OPTIONS, sleepHours, 'jam').map((opt) => (
                     <option key={opt.value} value={opt.value}>
                       {opt.label}
                     </option>
                   ))}
                 </select>
                 <p className="text-[10px] text-text-secondary leading-tight">
-                  Total sleep including deep sleep & naps.
+                  Total waktu tidur termasuk tidur lelap & tidur siang.
                   {sleepHours !== '' && (
                     <span className="text-[#138F78] font-bold block mt-0.5">
-                      Calibrates as {sleepHours}h
+                      Terkalibrasi sebagai {sleepHours} jam
                     </span>
                   )}
                 </p>
@@ -364,10 +365,10 @@ export default function LifestyleTrackingPage() {
               <div className="p-4 rounded-2xl bg-slate-50/70 border border-slate-200/60 space-y-2">
                 <div className="flex items-center justify-between">
                   <label htmlFor="select-phone" className="text-xs font-bold text-[#123C32]">
-                    Phone Screen Time
+                    Waktu Layar Ponsel
                   </label>
                   <span className="text-[11px] font-semibold text-teal-700 bg-teal-50 px-2 py-0.5 rounded-full border border-teal-200">
-                    Hours
+                    Jam
                   </span>
                 </div>
                 <select
@@ -376,17 +377,17 @@ export default function LifestyleTrackingPage() {
                   onChange={(e) => setPhoneUsageHours(e.target.value)}
                   className="w-full h-10 px-3 rounded-xl border border-border bg-white text-xs font-semibold text-text-primary focus:outline-none focus:ring-2 focus:ring-primary/20 cursor-pointer"
                 >
-                  {getOptionsWithCustom(PHONE_OPTIONS, phoneUsageHours, 'hrs').map((opt) => (
+                  {getOptionsWithCustom(PHONE_OPTIONS, phoneUsageHours, 'jam').map((opt) => (
                     <option key={opt.value} value={opt.value}>
                       {opt.label}
                     </option>
                   ))}
                 </select>
                 <p className="text-[10px] text-text-secondary leading-tight">
-                  Smartphone active screen-on time.
+                  Waktu aktif layar ponsel pintar.
                   {phoneUsageHours !== '' && (
                     <span className="text-[#138F78] font-bold block mt-0.5">
-                      Calibrates as {phoneUsageHours}h
+                      Terkalibrasi sebagai {phoneUsageHours} jam
                     </span>
                   )}
                 </p>
@@ -396,10 +397,10 @@ export default function LifestyleTrackingPage() {
               <div className="p-4 rounded-2xl bg-slate-50/70 border border-slate-200/60 space-y-2">
                 <div className="flex items-center justify-between">
                   <label htmlFor="select-social" className="text-xs font-bold text-[#123C32]">
-                    Social Media
+                    Media Sosial
                   </label>
                   <span className="text-[11px] font-semibold text-teal-700 bg-teal-50 px-2 py-0.5 rounded-full border border-teal-200">
-                    Hours
+                    Jam
                   </span>
                 </div>
                 <select
@@ -408,17 +409,17 @@ export default function LifestyleTrackingPage() {
                   onChange={(e) => setSocialMediaHours(e.target.value)}
                   className="w-full h-10 px-3 rounded-xl border border-border bg-white text-xs font-semibold text-text-primary focus:outline-none focus:ring-2 focus:ring-primary/20 cursor-pointer"
                 >
-                  {getOptionsWithCustom(SOCIAL_OPTIONS, socialMediaHours, 'hrs').map((opt) => (
+                  {getOptionsWithCustom(SOCIAL_OPTIONS, socialMediaHours, 'jam').map((opt) => (
                     <option key={opt.value} value={opt.value}>
                       {opt.label}
                     </option>
                   ))}
                 </select>
                 <p className="text-[10px] text-text-secondary leading-tight">
-                  Instagram, TikTok, Twitter/X, and feeds.
+                  Instagram, TikTok, Twitter/X, dan linimasa.
                   {socialMediaHours !== '' && (
                     <span className="text-[#138F78] font-bold block mt-0.5">
-                      Calibrates as {socialMediaHours}h
+                      Terkalibrasi sebagai {socialMediaHours} jam
                     </span>
                   )}
                 </p>
@@ -428,10 +429,10 @@ export default function LifestyleTrackingPage() {
               <div className="p-4 rounded-2xl bg-slate-50/70 border border-slate-200/60 space-y-2">
                 <div className="flex items-center justify-between">
                   <label htmlFor="select-youtube" className="text-xs font-bold text-[#123C32]">
-                    YouTube Stream
+                    Streaming YouTube
                   </label>
                   <span className="text-[11px] font-semibold text-teal-700 bg-teal-50 px-2 py-0.5 rounded-full border border-teal-200">
-                    Hours
+                    Jam
                   </span>
                 </div>
                 <select
@@ -440,17 +441,17 @@ export default function LifestyleTrackingPage() {
                   onChange={(e) => setYoutubeHours(e.target.value)}
                   className="w-full h-10 px-3 rounded-xl border border-border bg-white text-xs font-semibold text-text-primary focus:outline-none focus:ring-2 focus:ring-primary/20 cursor-pointer"
                 >
-                  {getOptionsWithCustom(YOUTUBE_OPTIONS, youtubeHours, 'hrs').map((opt) => (
+                  {getOptionsWithCustom(YOUTUBE_OPTIONS, youtubeHours, 'jam').map((opt) => (
                     <option key={opt.value} value={opt.value}>
                       {opt.label}
                     </option>
                   ))}
                 </select>
                 <p className="text-[10px] text-text-secondary leading-tight">
-                  Video streaming duration on desktop or mobile.
+                  Durasi streaming video di komputer atau ponsel.
                   {youtubeHours !== '' && (
                     <span className="text-[#138F78] font-bold block mt-0.5">
-                      Calibrates as {youtubeHours}h
+                      Terkalibrasi sebagai {youtubeHours} jam
                     </span>
                   )}
                 </p>
@@ -460,10 +461,10 @@ export default function LifestyleTrackingPage() {
               <div className="p-4 rounded-2xl bg-slate-50/70 border border-slate-200/60 space-y-2">
                 <div className="flex items-center justify-between">
                   <label htmlFor="select-gaming" className="text-xs font-bold text-[#123C32]">
-                    Gaming Time
+                    Waktu Bermain Game
                   </label>
                   <span className="text-[11px] font-semibold text-teal-700 bg-teal-50 px-2 py-0.5 rounded-full border border-teal-200">
-                    Hours
+                    Jam
                   </span>
                 </div>
                 <select
@@ -472,17 +473,17 @@ export default function LifestyleTrackingPage() {
                   onChange={(e) => setGamingHours(e.target.value)}
                   className="w-full h-10 px-3 rounded-xl border border-border bg-white text-xs font-semibold text-text-primary focus:outline-none focus:ring-2 focus:ring-primary/20 cursor-pointer"
                 >
-                  {getOptionsWithCustom(GAMING_OPTIONS, gamingHours, 'hrs').map((opt) => (
+                  {getOptionsWithCustom(GAMING_OPTIONS, gamingHours, 'jam').map((opt) => (
                     <option key={opt.value} value={opt.value}>
                       {opt.label}
                     </option>
                   ))}
                 </select>
                 <p className="text-[10px] text-text-secondary leading-tight">
-                  Console, PC, or mobile gameplay duration.
+                  Durasi bermain game di konsol, PC, atau ponsel.
                   {gamingHours !== '' && (
                     <span className="text-[#138F78] font-bold block mt-0.5">
-                      Calibrates as {gamingHours}h
+                      Terkalibrasi sebagai {gamingHours} jam
                     </span>
                   )}
                 </p>
@@ -492,10 +493,10 @@ export default function LifestyleTrackingPage() {
               <div className="p-4 rounded-2xl bg-slate-50/70 border border-slate-200/60 space-y-2">
                 <div className="flex items-center justify-between">
                   <label htmlFor="select-caffeine" className="text-xs font-bold text-[#123C32]">
-                    Caffeine Intake
+                    Konsumsi Kafein
                   </label>
                   <span className="text-[11px] font-semibold text-amber-700 bg-amber-50 px-2 py-0.5 rounded-full border border-amber-200">
-                    Milligrams (mg)
+                    Miligram (mg)
                   </span>
                 </div>
                 <select
@@ -511,10 +512,10 @@ export default function LifestyleTrackingPage() {
                   ))}
                 </select>
                 <p className="text-[10px] text-text-secondary leading-tight">
-                  1 brewed cup ≈ 80–100mg; 1 espresso ≈ 64mg.
+                  1 cangkir kopi tubruk ≈ 80–100mg; 1 espresso ≈ 64mg.
                   {coffeeIntakeMg !== '' && (
                     <span className="text-amber-700 font-bold block mt-0.5">
-                      Calibrates as {coffeeIntakeMg}mg
+                      Terkalibrasi sebagai {coffeeIntakeMg} mg
                     </span>
                   )}
                 </p>
@@ -524,10 +525,10 @@ export default function LifestyleTrackingPage() {
               <div className="p-4 rounded-2xl bg-slate-50/70 border border-slate-200/60 space-y-2">
                 <div className="flex items-center justify-between">
                   <label htmlFor="select-exercise" className="text-xs font-bold text-[#123C32]">
-                    Exercise / Workout
+                    Olahraga / Latihan Fisik
                   </label>
                   <span className="text-[11px] font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
-                    Minutes
+                    Menit
                   </span>
                 </div>
                 <select
@@ -536,17 +537,17 @@ export default function LifestyleTrackingPage() {
                   onChange={(e) => setExerciseMinutes(e.target.value)}
                   className="w-full h-10 px-3 rounded-xl border border-border bg-white text-xs font-semibold text-text-primary focus:outline-none focus:ring-2 focus:ring-primary/20 cursor-pointer"
                 >
-                  {getOptionsWithCustom(EXERCISE_OPTIONS, exerciseMinutes, 'mins').map((opt) => (
+                  {getOptionsWithCustom(EXERCISE_OPTIONS, exerciseMinutes, 'mnt').map((opt) => (
                     <option key={opt.value} value={opt.value}>
                       {opt.label}
                     </option>
                   ))}
                 </select>
                 <p className="text-[10px] text-text-secondary leading-tight">
-                  Running, gym, cycling, yoga, or brisk walking.
+                  Lari, gym, bersepeda, yoga, atau jalan cepat.
                   {exerciseMinutes !== '' && (
                     <span className="text-emerald-700 font-bold block mt-0.5">
-                      Calibrates as {exerciseMinutes}m
+                      Terkalibrasi sebagai {exerciseMinutes} menit
                     </span>
                   )}
                 </p>
@@ -556,10 +557,10 @@ export default function LifestyleTrackingPage() {
               <div className="p-4 rounded-2xl bg-slate-50/70 border border-slate-200/60 space-y-2">
                 <div className="flex items-center justify-between">
                   <label htmlFor="select-stress" className="text-xs font-bold text-[#123C32]">
-                    Perceived Stress
+                    Tingkat Stres Subjektif
                   </label>
                   <span className="text-[11px] font-semibold text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded-full border border-indigo-200">
-                    Scale 1–10
+                    Skala 1–10
                   </span>
                 </div>
                 <select
@@ -568,17 +569,17 @@ export default function LifestyleTrackingPage() {
                   onChange={(e) => setStressLevel(e.target.value)}
                   className="w-full h-10 px-3 rounded-xl border border-border bg-white text-xs font-semibold text-text-primary focus:outline-none focus:ring-2 focus:ring-primary/20 cursor-pointer"
                 >
-                  {getOptionsWithCustom(STRESS_OPTIONS, stressLevel, 'scale').map((opt) => (
+                  {getOptionsWithCustom(STRESS_OPTIONS, stressLevel, 'skala').map((opt) => (
                     <option key={opt.value} value={opt.value}>
                       {opt.label}
                     </option>
                   ))}
                 </select>
                 <p className="text-[10px] text-text-secondary leading-tight">
-                  Subjective stress level (1 = Calm, 10 = Overwhelmed).
+                  Tingkat stres yang dirasakan (1 = Tenang, 10 = Sangat Tertekan).
                   {stressLevel !== '' && (
                     <span className="text-indigo-700 font-bold block mt-0.5">
-                      Calibrates as Level {stressLevel}/10
+                      Terkalibrasi sebagai Tingkat {stressLevel}/10
                     </span>
                   )}
                 </p>
@@ -588,11 +589,11 @@ export default function LifestyleTrackingPage() {
             {/* Optional Notes */}
             <div className="space-y-2">
               <label className="text-xs font-bold text-[#123C32]">
-                Reflective Notes (Optional)
+                Catatan Reflektif (Opsional)
               </label>
               <textarea
                 rows={2}
-                placeholder="Any special circumstances today? (e.g. midterms week, poor sleep due to noise, energy drinks)"
+                placeholder="Ada kondisi khusus hari ini? (cth. minggu UTS/UAS, susah tidur karena berisik, konsumsi suplemen)"
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
                 className="w-full text-xs p-3 rounded-2xl border border-border focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all"
@@ -608,7 +609,7 @@ export default function LifestyleTrackingPage() {
                 disabled={saving}
                 className="px-8 font-bold text-xs bg-[#138F78] hover:bg-[#123C32] text-white rounded-xl shadow-soft-sm"
               >
-                {saving ? 'Saving Habits...' : 'Save & Calibrate Habits'}
+                {saving ? 'Menyimpan Kebiasaan...' : 'Simpan & Kalibrasi Kebiasaan'}
               </Button>
             </div>
           </form>
@@ -617,18 +618,18 @@ export default function LifestyleTrackingPage() {
         {/* History Table of Recent Days */}
         <div className="bg-white rounded-3xl border border-border p-6 shadow-soft-xs space-y-4">
           <div className="flex items-center justify-between">
-            <h2 className="text-lg font-bold text-[#123C32]">Recent Lifestyle Logs</h2>
+            <h2 className="text-lg font-bold text-[#123C32]">Riwayat Catatan Gaya Hidup</h2>
             <span className="text-xs font-medium text-text-secondary">
-              Past 14 Days History
+              Riwayat 14 Hari Terakhir
             </span>
           </div>
 
           {history.length === 0 ? (
             <div className="py-12 text-center space-y-2">
               <span className="text-3xl block">🌿</span>
-              <p className="text-sm font-semibold text-text-primary">No lifestyle records saved yet</p>
+              <p className="text-sm font-semibold text-text-primary">Belum ada catatan gaya hidup tersimpan</p>
               <p className="text-xs text-text-secondary">
-                Calibrate today's metrics above to build your habit baseline.
+                Kalibrasi metrik hari ini di atas untuk membangun data dasar kebiasaan Anda.
               </p>
             </div>
           ) : (
@@ -636,16 +637,16 @@ export default function LifestyleTrackingPage() {
               <table className="w-full text-left text-xs">
                 <thead>
                   <tr className="border-b border-border/80 text-text-secondary uppercase tracking-wider font-semibold">
-                    <th className="py-3 px-3">Date</th>
-                    <th className="py-3 px-3">Sleep</th>
-                    <th className="py-3 px-3">Phone Screen</th>
-                    <th className="py-3 px-3">Social Media</th>
+                    <th className="py-3 px-3">Tanggal</th>
+                    <th className="py-3 px-3">Tidur</th>
+                    <th className="py-3 px-3">Layar Ponsel</th>
+                    <th className="py-3 px-3">Medsos</th>
                     <th className="py-3 px-3">YouTube</th>
-                    <th className="py-3 px-3">Gaming</th>
-                    <th className="py-3 px-3">Caffeine</th>
-                    <th className="py-3 px-3">Exercise</th>
-                    <th className="py-3 px-3">Stress</th>
-                    <th className="py-3 px-3 text-right">Action</th>
+                    <th className="py-3 px-3">Game</th>
+                    <th className="py-3 px-3">Kafein</th>
+                    <th className="py-3 px-3">Olahraga</th>
+                    <th className="py-3 px-3">Stres</th>
+                    <th className="py-3 px-3 text-right">Aksi</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border/40">
@@ -656,37 +657,37 @@ export default function LifestyleTrackingPage() {
                       </td>
                       <td className="py-3.5 px-3">
                         {record.sleep_hours !== null && record.sleep_hours !== undefined
-                          ? `${record.sleep_hours}h`
+                          ? `${record.sleep_hours} jam`
                           : <span className="text-text-muted">—</span>}
                       </td>
                       <td className="py-3.5 px-3">
                         {record.phone_usage_hours !== null && record.phone_usage_hours !== undefined
-                          ? `${record.phone_usage_hours}h`
+                          ? `${record.phone_usage_hours} jam`
                           : <span className="text-text-muted">—</span>}
                       </td>
                       <td className="py-3.5 px-3">
                         {record.social_media_hours !== null && record.social_media_hours !== undefined
-                          ? `${record.social_media_hours}h`
+                          ? `${record.social_media_hours} jam`
                           : <span className="text-text-muted">—</span>}
                       </td>
                       <td className="py-3.5 px-3">
                         {record.youtube_hours !== null && record.youtube_hours !== undefined
-                          ? `${record.youtube_hours}h`
+                          ? `${record.youtube_hours} jam`
                           : <span className="text-text-muted">—</span>}
                       </td>
                       <td className="py-3.5 px-3">
                         {record.gaming_hours !== null && record.gaming_hours !== undefined
-                          ? `${record.gaming_hours}h`
+                          ? `${record.gaming_hours} jam`
                           : <span className="text-text-muted">—</span>}
                       </td>
                       <td className="py-3.5 px-3">
                         {record.coffee_intake_mg !== null && record.coffee_intake_mg !== undefined
-                          ? `${record.coffee_intake_mg}mg`
+                          ? `${record.coffee_intake_mg} mg`
                           : <span className="text-text-muted">—</span>}
                       </td>
                       <td className="py-3.5 px-3">
                         {record.exercise_minutes !== null && record.exercise_minutes !== undefined
-                          ? `${record.exercise_minutes}m`
+                          ? `${record.exercise_minutes} mnt`
                           : <span className="text-text-muted">—</span>}
                       </td>
                       <td className="py-3.5 px-3">
@@ -712,7 +713,7 @@ export default function LifestyleTrackingPage() {
                           onClick={() => setSelectedDate(record.record_date)}
                           className="text-xs font-semibold text-primary hover:text-primary-800 underline"
                         >
-                          Edit
+                          Ubah
                         </button>
                       </td>
                     </tr>

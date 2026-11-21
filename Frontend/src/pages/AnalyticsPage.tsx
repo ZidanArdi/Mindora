@@ -50,16 +50,16 @@ export default function AnalyticsPage() {
             .map((n) => n[0])
             .join('')
             .slice(0, 2)
-            .toUpperCase() || 'ST',
-        workspaceName: 'Academic Workspace',
+            .toUpperCase() || 'MH',
+        workspaceName: 'Ruang Kerja Akademik',
       }
     : {
         id: 'usr_guest',
-        name: 'Student',
+        name: 'Mahasiswa',
         email: 'student@mindora.app',
         role: 'user',
-        avatarText: 'ST',
-        workspaceName: 'Academic Workspace',
+        avatarText: 'MH',
+        workspaceName: 'Ruang Kerja Akademik',
       };
 
   const loadData = useCallback(async () => {
@@ -125,7 +125,7 @@ export default function AnalyticsPage() {
 
   const formatHours = (seconds: number) => {
     const hours = (seconds / 3600).toFixed(1);
-    return `${hours}h`;
+    return `${hours} jam`;
   };
 
   return (
@@ -136,22 +136,22 @@ export default function AnalyticsPage() {
           <div>
             <div className="flex items-center gap-2">
               <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-nature-mint text-primary">
-                Phase 3 Live
+                Fase 3 Aktif
               </span>
-              <span className="text-xs text-text-muted">Persisted Analytics & ML Engine</span>
+              <span className="text-xs text-text-muted">Analitik & Mesin ML Terintegrasi</span>
             </div>
             <h1 className="text-2xl font-black text-primary-900 tracking-tight mt-1">
-              Productivity Analytics & ML Prediction
+              Analitik Produktivitas & Prediksi ML
             </h1>
             <p className="text-sm text-text-secondary">
-              Objective analytics calculated strictly from verified study sessions, focus intervals, and daily habit logs.
+              Analitik objektif yang dihitung murni dari sesi belajar terverifikasi, interval fokus, dan catatan kebiasaan harian.
             </p>
           </div>
 
           {/* Controls: Date Picker & Period Tabs */}
           <div className="flex flex-wrap items-center gap-2">
             <div className="flex items-center bg-white border border-border rounded-xl p-1 shadow-soft-xs">
-              <label htmlFor={dateInputId} className="sr-only">Select analytics target date</label>
+              <label htmlFor={dateInputId} className="sr-only">Pilih tanggal target analitik</label>
               <input
                 id={dateInputId}
                 type="date"
@@ -162,7 +162,11 @@ export default function AnalyticsPage() {
             </div>
 
             <div className="flex items-center bg-slate-100 rounded-xl p-1">
-              {(['daily', 'weekly', 'monthly'] as const).map((tab) => (
+              {[
+                { tab: 'daily' as const, label: 'Harian' },
+                { tab: 'weekly' as const, label: 'Mingguan' },
+                { tab: 'monthly' as const, label: 'Bulanan' },
+              ].map(({ tab, label }) => (
                 <button
                   key={tab}
                   type="button"
@@ -173,7 +177,7 @@ export default function AnalyticsPage() {
                       : 'text-text-muted hover:text-text-primary'
                   }`}
                 >
-                  {tab}
+                  {label}
                 </button>
               ))}
             </div>
@@ -189,7 +193,7 @@ export default function AnalyticsPage() {
               onClick={() => setErrorMessage(null)}
               className="text-red-500 hover:text-red-700 font-bold ml-2"
             >
-              Dismiss
+              Tutup
             </button>
           </div>
         )}
@@ -198,49 +202,49 @@ export default function AnalyticsPage() {
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           <div className="p-5 rounded-2xl bg-white border border-border shadow-soft-xs">
             <span className="text-xs font-bold text-text-muted uppercase tracking-wider block">
-              Study Time (7d)
+              Waktu Belajar (7 Hari)
             </span>
             <div className="text-2xl font-black text-primary-900 mt-2">
-              {summaryData ? summaryData.week_study_formatted : '0h 0m'}
+              {summaryData ? summaryData.week_study_formatted : '0 jam 0 mnt'}
             </div>
             <span className="text-[11px] text-text-muted mt-1 block">
-              {summaryData ? `${summaryData.today_study_formatted} recorded today` : 'No study today'}
+              {summaryData ? `${summaryData.today_study_formatted} tercatat hari ini` : 'Belum ada belajar hari ini'}
             </span>
           </div>
 
           <div className="p-5 rounded-2xl bg-white border border-border shadow-soft-xs">
             <span className="text-xs font-bold text-text-muted uppercase tracking-wider block">
-              Deep Focus (7d)
+              Fokus Mendalam (7 Hari)
             </span>
             <div className="text-2xl font-black text-primary mt-2">
-              {summaryData ? `${summaryData.week_focus_minutes}m` : '0m'}
+              {summaryData ? `${summaryData.week_focus_minutes} mnt` : '0 mnt'}
             </div>
             <span className="text-[11px] text-text-muted mt-1 block">
-              {summaryData ? `${summaryData.today_focus_minutes}m focus today` : 'No intervals'}
+              {summaryData ? `${summaryData.today_focus_minutes} mnt fokus hari ini` : 'Belum ada interval'}
             </span>
           </div>
 
           <div className="p-5 rounded-2xl bg-white border border-border shadow-soft-xs">
             <span className="text-xs font-bold text-text-muted uppercase tracking-wider block">
-              Tasks Completed (7d)
+              Tugas Selesai (7 Hari)
             </span>
             <div className="text-2xl font-black text-primary-900 mt-2">
               {summaryData ? summaryData.week_completed_tasks : 0}
             </div>
             <span className="text-[11px] text-text-muted mt-1 block">
-              {summaryData ? `${summaryData.today_completed_tasks} tasks finished today` : '0 today'}
+              {summaryData ? `${summaryData.today_completed_tasks} tugas selesai hari ini` : '0 hari ini'}
             </span>
           </div>
 
           <div className="p-5 rounded-2xl bg-white border border-border shadow-soft-xs">
             <span className="text-xs font-bold text-text-muted uppercase tracking-wider block">
-              Study Consistency
+              Konsistensi Belajar
             </span>
             <div className="text-2xl font-black text-[#138F78] mt-2">
               {summaryData ? `${summaryData.study_consistency_percentage}%` : '0%'}
             </div>
             <span className="text-[11px] text-text-muted mt-1 block">
-              Active study days / 7-day period
+              Hari belajar aktif / periode 7 hari
             </span>
           </div>
         </div>
@@ -258,8 +262,9 @@ export default function AnalyticsPage() {
                       : 'bg-emerald-400/20 text-emerald-300 border border-emerald-400/30'
                   }`}
                 >
-                  {latestPrediction?.state_label ||
-                    (latestPrediction?.is_baseline ? 'Baseline Estimate' : 'Personalized Estimate')}
+                  {latestPrediction?.is_baseline || latestPrediction?.prediction_state === 'baseline'
+                    ? 'Estimasi Awal'
+                    : (latestPrediction?.state_label || 'Estimasi Dipersonalisasi')}
                 </span>
                 <span className="text-[10px] font-mono text-white/60">
                   {latestPrediction?.model_version || 'mindora-productivity-ridge-v1.0.0'}
@@ -267,13 +272,13 @@ export default function AnalyticsPage() {
               </div>
 
               <h2 className="text-lg font-bold text-white mt-3">
-                Estimated Productivity Score
+                Estimasi Skor Produktivitas
               </h2>
               <p className="text-xs text-white/70 mt-1 leading-relaxed">
                 {latestPrediction?.state_description ||
                   (latestPrediction?.is_baseline
-                    ? 'This estimate uses reference values for one or more unrecorded habits. Record your daily habits to obtain a more personalized estimate.'
-                    : 'This estimate is calculated using your recorded study duration, sleep, phone usage, and stress level.')}
+                    ? 'Estimasi ini menggunakan nilai referensi untuk satu atau lebih kebiasaan yang belum dicatat. Catat kebiasaan harian Anda untuk memperoleh estimasi yang lebih personal.'
+                    : 'Estimasi ini dihitung menggunakan durasi belajar, tidur, penggunaan ponsel, dan tingkat stres yang Anda catat.')}
               </p>
 
               {/* Cold-Start & Unrecorded Habits Transparency Box */}
@@ -281,12 +286,12 @@ export default function AnalyticsPage() {
                 latestPrediction?.unrecorded_features &&
                 latestPrediction.unrecorded_features.length > 0 && (
                   <div className="mt-3 p-3 rounded-xl bg-amber-500/10 border border-amber-500/20 text-[11px] text-amber-200/90 leading-snug">
-                    <span className="font-bold text-amber-300">Reference Values Applied:</span>{' '}
-                    Unrecorded habits (
+                    <span className="font-bold text-amber-300">Nilai Referensi Diterapkan:</span>{' '}
+                    Kebiasaan yang belum dicatat (
                     {latestPrediction.unrecorded_features
                       .map((f) => f.replace(/_/g, ' '))
                       .join(', ')}
-                    ) were imputed using population reference defaults. Complete your logs in Study Tracking and Lifestyle Tracking to obtain a personalized estimate.
+                    ) diimputasi menggunakan nilai referensi populasi. Lengkapi catatan Anda di Pelacakan Belajar dan Gaya Hidup untuk mendapatkan estimasi yang dipersonalisasi.
                   </div>
                 )}
 
@@ -298,14 +303,14 @@ export default function AnalyticsPage() {
                 </div>
                 <span className="text-[11px] font-medium text-white/70 mt-1 block">
                   {latestPrediction
-                    ? `Estimated for date: ${latestPrediction.prediction_date}`
-                    : 'No prediction calculated yet'}
+                    ? `Diestimasi untuk tanggal: ${latestPrediction.prediction_date}`
+                    : 'Belum ada prediksi dihitung'}
                 </span>
               </div>
 
               {/* Disclaimer */}
               <div className="p-3 rounded-lg bg-white/5 text-[11px] text-white/80 border border-white/10 leading-snug">
-                <span className="font-bold text-emerald-300">Statistical Estimate:</span> This score is a probabilistic regression estimate trained on academic habit patterns. It is strictly not an objective test score or academic grade.
+                <span className="font-bold text-emerald-300">Estimasi Statistik:</span> Skor ini merupakan estimasi regresi probabilistik berdasarkan pola kebiasaan akademik. Bukan merupakan nilai ujian objektif atau nilai akademik resmi.
               </div>
             </div>
 
@@ -317,7 +322,7 @@ export default function AnalyticsPage() {
                 onClick={handleRunPrediction}
                 disabled={predicting}
               >
-                {predicting ? 'Computing Regression...' : 'Run Productivity Prediction'}
+                {predicting ? 'Menghitung Regresi...' : 'Jalankan Prediksi Produktivitas'}
               </Button>
             </div>
           </div>
@@ -327,28 +332,28 @@ export default function AnalyticsPage() {
             <div>
               <div className="flex items-center justify-between pb-3 border-b border-border">
                 <div>
-                  <h2 className="text-base font-bold text-primary-900">Prediction History & Feature Snapshot</h2>
-                  <p className="text-xs text-text-muted">Audit log of previous machine learning estimates</p>
+                  <h2 className="text-base font-bold text-primary-900">Riwayat Prediksi & Cuplikan Fitur</h2>
+                  <p className="text-xs text-text-muted">Log audit dari estimasi machine learning sebelumnya</p>
                 </div>
                 <span className="text-xs font-mono font-bold text-primary bg-nature-mint px-2 py-0.5 rounded-md">
-                  {predictionHistory?.total || 0} total records
+                  {predictionHistory?.total || 0} total catatan
                 </span>
               </div>
 
               {loading ? (
-                <div className="py-12 text-center text-xs text-text-muted">Loading prediction history...</div>
+                <div className="py-12 text-center text-xs text-text-muted">Memuat riwayat prediksi...</div>
               ) : predictionHistory && predictionHistory.items.length > 0 ? (
                 <div className="overflow-x-auto mt-3">
                   <table className="w-full text-left text-xs">
                     <thead>
                       <tr className="border-b border-slate-100 text-[11px] uppercase tracking-wider text-text-muted font-bold">
-                        <th className="py-2.5 px-3">Date</th>
-                        <th className="py-2.5 px-3">Type</th>
-                        <th className="py-2.5 px-3">Score</th>
-                        <th className="py-2.5 px-3">Study</th>
-                        <th className="py-2.5 px-3">Sleep</th>
-                        <th className="py-2.5 px-3">Phone</th>
-                        <th className="py-2.5 px-3">Stress</th>
+                        <th className="py-2.5 px-3">Tanggal</th>
+                        <th className="py-2.5 px-3">Jenis</th>
+                        <th className="py-2.5 px-3">Skor</th>
+                        <th className="py-2.5 px-3">Belajar</th>
+                        <th className="py-2.5 px-3">Tidur</th>
+                        <th className="py-2.5 px-3">Ponsel</th>
+                        <th className="py-2.5 px-3">Stres</th>
                         <th className="py-2.5 px-3">Model</th>
                       </tr>
                     </thead>
@@ -367,19 +372,19 @@ export default function AnalyticsPage() {
                               }`}
                             >
                               {item.is_baseline || item.prediction_state === 'baseline'
-                                ? 'Baseline'
-                                : 'Personalized'}
+                                ? 'Awal'
+                                : 'Personal'}
                             </span>
                           </td>
                           <td className="py-2.5 px-3 font-bold text-primary">
                             {item.predicted_score}
                           </td>
-                          <td className="py-2.5 px-3 text-text-secondary">{item.study_hours}h</td>
+                          <td className="py-2.5 px-3 text-text-secondary">{item.study_hours} jam</td>
                           <td className="py-2.5 px-3 text-text-secondary">
-                            {item.sleep_hours !== undefined && item.sleep_hours !== null ? `${item.sleep_hours}h` : '—'}
+                            {item.sleep_hours !== undefined && item.sleep_hours !== null ? `${item.sleep_hours} jam` : '—'}
                           </td>
                           <td className="py-2.5 px-3 text-text-secondary">
-                            {item.phone_usage_hours !== undefined && item.phone_usage_hours !== null ? `${item.phone_usage_hours}h` : '—'}
+                            {item.phone_usage_hours !== undefined && item.phone_usage_hours !== null ? `${item.phone_usage_hours} jam` : '—'}
                           </td>
                           <td className="py-2.5 px-3 text-text-secondary">
                             {item.stress_level !== undefined && item.stress_level !== null ? `${item.stress_level}/10` : '—'}
@@ -394,14 +399,14 @@ export default function AnalyticsPage() {
                 </div>
               ) : (
                 <div className="py-12 text-center text-xs text-text-muted">
-                  No predictions recorded yet. Click &quot;Run Productivity Prediction&quot; to compute your first estimate.
+                  Belum ada prediksi tercatat. Klik &quot;Jalankan Prediksi Produktivitas&quot; untuk menghitung estimasi pertama Anda.
                 </div>
               )}
             </div>
 
             <div className="pt-3 border-t border-slate-100 text-[11px] text-text-muted flex items-center justify-between">
-              <span>Features: Study (h), Sleep (h), Phone (h), Stress (1-10)</span>
-              <span>L2 Regularized Ridge (α=1.0)</span>
+              <span>Fitur: Belajar (jam), Tidur (jam), Ponsel (jam), Stres (1-10)</span>
+              <span>Ridge Terregularisasi L2 (α=1.0)</span>
             </div>
           </div>
         </div>
@@ -411,69 +416,69 @@ export default function AnalyticsPage() {
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 border-b border-border pb-4">
             <div>
               <h2 className="text-lg font-bold text-primary-900 capitalize">
-                {activeTab} Activity & Habit Breakdown
+                Rincian Aktivitas & Kebiasaan {activeTab === 'daily' ? 'Harian' : activeTab === 'weekly' ? 'Mingguan' : 'Bulanan'}
               </h2>
               <p className="text-xs text-text-muted">
-                {activeTab === 'daily' && `Detailed breakdown for ${selectedDate}`}
-                {activeTab === 'weekly' && `7-day trend ending on ${selectedDate}`}
-                {activeTab === 'monthly' && `30-day overview ending on ${selectedDate}`}
+                {activeTab === 'daily' && `Rincian detail untuk tanggal ${selectedDate}`}
+                {activeTab === 'weekly' && `Tren 7 hari berakhir pada ${selectedDate}`}
+                {activeTab === 'monthly' && `Ringkasan 30 hari berakhir pada ${selectedDate}`}
               </p>
             </div>
             <div className="flex items-center gap-4 text-xs font-semibold">
               <span className="flex items-center gap-1.5">
                 <span className="w-2.5 h-2.5 rounded-full bg-[#123C32]" />
-                Study Duration
+                Durasi Belajar
               </span>
               <span className="flex items-center gap-1.5">
                 <span className="w-2.5 h-2.5 rounded-full bg-[#138F78]" />
-                Focus Time
+                Waktu Fokus
               </span>
               <span className="flex items-center gap-1.5">
                 <span className="w-2.5 h-2.5 rounded-full bg-emerald-400" />
-                Breaks
+                Istirahat
               </span>
             </div>
           </div>
 
           {loading ? (
-            <div className="py-16 text-center text-xs text-text-muted">Loading activity visualization...</div>
+            <div className="py-16 text-center text-xs text-text-muted">Memuat visualisasi aktivitas...</div>
           ) : activeTab === 'daily' && dailyData ? (
             /* Daily View */
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <div className="p-4 rounded-xl bg-slate-50 border border-slate-200/80 space-y-2">
                 <span className="text-xs font-bold text-text-muted uppercase tracking-wider block">
-                  Study Sessions
+                  Sesi Belajar
                 </span>
                 <div className="text-2xl font-black text-primary-900">
-                  {dailyData.total_study_formatted || '0m'}
+                  {dailyData.total_study_formatted || '0 mnt'}
                 </div>
                 <span className="text-xs text-text-secondary block">
-                  {dailyData.completed_study_sessions} completed academic session(s)
+                  {dailyData.completed_study_sessions} sesi akademik selesai
                 </span>
               </div>
 
               <div className="p-4 rounded-xl bg-slate-50 border border-slate-200/80 space-y-2">
                 <span className="text-xs font-bold text-text-muted uppercase tracking-wider block">
-                  Focus vs Break Time
+                  Waktu Fokus vs Istirahat
                 </span>
                 <div className="text-2xl font-black text-primary">
-                  {dailyData.total_focus_minutes}m{' '}
-                  <span className="text-sm font-semibold text-text-muted">/ {dailyData.total_break_minutes}m break</span>
+                  {dailyData.total_focus_minutes} mnt{' '}
+                  <span className="text-sm font-semibold text-text-muted">/ {dailyData.total_break_minutes} mnt istirahat</span>
                 </div>
                 <span className="text-xs text-text-secondary block">
-                  {dailyData.completed_focus_count} focus blocks · {dailyData.completed_breaks_count} break intervals
+                  {dailyData.completed_focus_count} blok fokus · {dailyData.completed_breaks_count} interval istirahat
                 </span>
               </div>
 
               <div className="p-4 rounded-xl bg-slate-50 border border-slate-200/80 space-y-2">
                 <span className="text-xs font-bold text-text-muted uppercase tracking-wider block">
-                  Tasks Completed
+                  Tugas Selesai
                 </span>
                 <div className="text-2xl font-black text-primary-900">
                   {dailyData.completed_tasks_count}
                 </div>
                 <span className="text-xs text-text-secondary block">
-                  Finished on {dailyData.date}
+                  Selesai pada {dailyData.date}
                 </span>
               </div>
             </div>
@@ -484,14 +489,14 @@ export default function AnalyticsPage() {
                 <table className="w-full text-left text-xs">
                   <thead>
                     <tr className="border-b border-slate-100 text-[11px] uppercase tracking-wider text-text-muted font-bold">
-                      <th className="py-2.5 px-3">Date</th>
-                      <th className="py-2.5 px-3">Study Time</th>
-                      <th className="py-2.5 px-3">Focus Time</th>
-                      <th className="py-2.5 px-3">Break Time</th>
-                      <th className="py-2.5 px-3">Tasks Finished</th>
-                      <th className="py-2.5 px-3">Sleep</th>
-                      <th className="py-2.5 px-3">Phone</th>
-                      <th className="py-2.5 px-3">Stress</th>
+                      <th className="py-2.5 px-3">Tanggal</th>
+                      <th className="py-2.5 px-3">Waktu Belajar</th>
+                      <th className="py-2.5 px-3">Waktu Fokus</th>
+                      <th className="py-2.5 px-3">Waktu Istirahat</th>
+                      <th className="py-2.5 px-3">Tugas Selesai</th>
+                      <th className="py-2.5 px-3">Tidur</th>
+                      <th className="py-2.5 px-3">Ponsel</th>
+                      <th className="py-2.5 px-3">Stres</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100 font-medium">
@@ -501,7 +506,7 @@ export default function AnalyticsPage() {
                           <td className="py-2.5 px-3 font-semibold text-text-primary">{point.date}</td>
                           <td className="py-2.5 px-3">
                             <div className="flex items-center gap-2">
-                              <span className="w-12 text-primary-900 font-bold">{point.study_duration_hours}h</span>
+                              <span className="w-12 text-primary-900 font-bold">{point.study_duration_hours} jam</span>
                               <div className="w-20 bg-slate-100 h-1.5 rounded-full overflow-hidden">
                                 <div
                                   className="h-full bg-[#123C32] rounded-full"
@@ -510,14 +515,14 @@ export default function AnalyticsPage() {
                               </div>
                             </div>
                           </td>
-                          <td className="py-2.5 px-3 text-primary font-bold">{point.focus_duration_hours}h</td>
-                          <td className="py-2.5 px-3 text-emerald-600">{point.break_duration_hours}h</td>
+                          <td className="py-2.5 px-3 text-primary font-bold">{point.focus_duration_hours} jam</td>
+                          <td className="py-2.5 px-3 text-emerald-600">{point.break_duration_hours} jam</td>
                           <td className="py-2.5 px-3 text-text-primary font-bold">{point.completed_tasks_count}</td>
                           <td className="py-2.5 px-3 text-text-secondary">
-                            {point.sleep_hours !== undefined && point.sleep_hours !== null ? `${point.sleep_hours}h` : '—'}
+                            {point.sleep_hours !== undefined && point.sleep_hours !== null ? `${point.sleep_hours} jam` : '—'}
                           </td>
                           <td className="py-2.5 px-3 text-text-secondary">
-                            {point.phone_usage_hours !== undefined && point.phone_usage_hours !== null ? `${point.phone_usage_hours}h` : '—'}
+                            {point.phone_usage_hours !== undefined && point.phone_usage_hours !== null ? `${point.phone_usage_hours} jam` : '—'}
                           </td>
                           <td className="py-2.5 px-3 text-text-secondary">
                             {point.stress_level !== undefined && point.stress_level !== null ? `${point.stress_level}/10` : '—'}
@@ -533,26 +538,26 @@ export default function AnalyticsPage() {
               <div className="p-4 rounded-xl bg-slate-50 border border-slate-200/80 flex flex-wrap items-center justify-between text-xs text-text-secondary gap-3">
                 <div className="flex items-center gap-6">
                   <span>
-                    Total Study:{' '}
+                    Total Belajar:{' '}
                     <strong className="text-primary-900">
                       {activeTab === 'weekly' ? formatHours(weeklyData?.total_study_seconds || 0) : formatHours(monthlyData?.total_study_seconds || 0)}
                     </strong>
                   </span>
                   <span>
-                    Total Focus:{' '}
+                    Total Fokus:{' '}
                     <strong className="text-primary">
-                      {activeTab === 'weekly' ? `${weeklyData?.total_focus_minutes || 0}m` : `${monthlyData?.total_focus_minutes || 0}m`}
+                      {activeTab === 'weekly' ? `${weeklyData?.total_focus_minutes || 0} mnt` : `${monthlyData?.total_focus_minutes || 0} mnt`}
                     </strong>
                   </span>
                   <span>
-                    Total Tasks Completed:{' '}
+                    Total Tugas Selesai:{' '}
                     <strong className="text-text-primary">
                       {activeTab === 'weekly' ? weeklyData?.total_completed_tasks : monthlyData?.total_completed_tasks}
                     </strong>
                   </span>
                 </div>
                 <div>
-                  Study Consistency:{' '}
+                  Konsistensi Belajar:{' '}
                   <strong className="text-[#138F78]">
                     {activeTab === 'weekly' ? `${weeklyData?.study_consistency_percentage}%` : `${monthlyData?.study_consistency_percentage}%`}
                   </strong>
@@ -561,7 +566,7 @@ export default function AnalyticsPage() {
             </div>
           ) : (
             <div className="py-12 text-center text-xs text-text-muted">
-              No activity logged for this time range. Complete study sessions or focus intervals to see trend analytics.
+              Tidak ada aktivitas tercatat untuk rentang waktu ini. Selesaikan sesi belajar atau interval fokus untuk melihat analitik tren.
             </div>
           )}
         </div>

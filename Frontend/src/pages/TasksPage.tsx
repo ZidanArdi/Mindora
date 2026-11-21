@@ -4,6 +4,7 @@ import { Button, Input, PlusIcon, CloseIcon } from '../components/atoms';
 import { productivityService } from '../services/productivityService';
 import type { TaskItem, TaskPriority, TaskStatus } from '../types';
 import { useAuth } from '../hooks';
+import { translatePriority, translateCategory, formatDate } from '../utils/i18n';
 
 export default function TasksPage() {
   const { user } = useAuth();
@@ -146,10 +147,10 @@ export default function TasksPage() {
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-border">
           <div>
             <h1 className="text-2xl font-bold text-text-primary tracking-tight">
-              Task Management
+              Manajemen Tugas
             </h1>
             <p className="text-xs text-text-secondary mt-1">
-              Organize, prioritize, and track your academic assignments and daily focus goals.
+              Atur, prioritaskan, dan pantau tugas akademik serta target fokus harian Anda.
             </p>
           </div>
           <div className="flex items-center gap-3">
@@ -160,7 +161,7 @@ export default function TasksPage() {
               className="gap-2 shadow-soft-sm font-semibold"
             >
               <PlusIcon className="w-4 h-4" />
-              <span>Create Task</span>
+              <span>Tambah Tugas</span>
             </Button>
           </div>
         </div>
@@ -171,7 +172,7 @@ export default function TasksPage() {
             {/* Search Input */}
             <div className="lg:col-span-2">
               <Input
-                placeholder="Search tasks by title or details..."
+                placeholder="Cari tugas berdasarkan judul atau detail..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-full text-xs"
@@ -184,12 +185,12 @@ export default function TasksPage() {
               onChange={(e) => setCategoryFilter(e.target.value)}
               className="w-full h-10 px-3 rounded-xl border border-border bg-white text-xs text-text-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
             >
-              <option value="">All Categories</option>
-              <option value="Study">Study</option>
-              <option value="Academic">Academic</option>
-              <option value="Lab">Lab / Practical</option>
-              <option value="Project">Project</option>
-              <option value="Personal">Personal</option>
+              <option value="">Semua Kategori</option>
+              <option value="Study">Belajar</option>
+              <option value="Academic">Akademik</option>
+              <option value="Lab">Praktikum / Lab</option>
+              <option value="Project">Proyek</option>
+              <option value="Personal">Pribadi</option>
             </select>
 
             {/* Priority Filter */}
@@ -198,10 +199,10 @@ export default function TasksPage() {
               onChange={(e) => setPriorityFilter(e.target.value)}
               className="w-full h-10 px-3 rounded-xl border border-border bg-white text-xs text-text-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
             >
-              <option value="">All Priorities</option>
-              <option value="high">High Priority</option>
-              <option value="medium">Medium Priority</option>
-              <option value="low">Low Priority</option>
+              <option value="">Semua Prioritas</option>
+              <option value="high">Prioritas Tinggi</option>
+              <option value="medium">Prioritas Sedang</option>
+              <option value="low">Prioritas Rendah</option>
             </select>
 
             {/* Sort Dropdown */}
@@ -210,9 +211,9 @@ export default function TasksPage() {
               onChange={(e) => setSortBy(e.target.value)}
               className="w-full h-10 px-3 rounded-xl border border-border bg-white text-xs text-text-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
             >
-              <option value="created_at">Newest First</option>
-              <option value="deadline">Upcoming Deadline</option>
-              <option value="priority">Priority Rank</option>
+              <option value="created_at">Terbaru Lebih Dulu</option>
+              <option value="deadline">Tenggat Terdekat</option>
+              <option value="priority">Peringkat Prioritas</option>
             </select>
           </div>
 
@@ -220,10 +221,10 @@ export default function TasksPage() {
           <div className="flex flex-wrap items-center justify-between gap-3 pt-2 border-t border-border/60">
             <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-1">
               {[
-                { label: 'All', value: '' },
-                { label: 'Pending', value: 'pending' },
-                { label: 'In Progress', value: 'in_progress' },
-                { label: 'Completed', value: 'completed' },
+                { label: 'Semua', value: '' },
+                { label: 'Menunggu', value: 'pending' },
+                { label: 'Sedang Dikerjakan', value: 'in_progress' },
+                { label: 'Selesai', value: 'completed' },
               ].map((st) => (
                 <button
                   key={st.value}
@@ -242,18 +243,22 @@ export default function TasksPage() {
 
             {/* View Mode Toggle */}
             <div className="flex items-center gap-1 bg-surface-muted p-1 rounded-xl border border-border/60">
-              {(['list', 'card', 'kanban'] as const).map((mode) => (
+              {[
+                { mode: 'list' as const, label: 'Daftar' },
+                { mode: 'card' as const, label: 'Kartu' },
+                { mode: 'kanban' as const, label: 'Kanban' },
+              ].map(({ mode, label }) => (
                 <button
                   key={mode}
                   type="button"
                   onClick={() => setViewMode(mode)}
-                  className={`px-3 py-1 rounded-lg text-xs font-semibold capitalize transition-all ${
+                  className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all ${
                     viewMode === mode
                       ? 'bg-white text-primary-900 shadow-soft-xs'
                       : 'text-text-secondary hover:text-text-primary'
                   }`}
                 >
-                  {mode}
+                  {label}
                 </button>
               ))}
             </div>
@@ -263,7 +268,7 @@ export default function TasksPage() {
         {/* Content Area */}
         {loading ? (
           <div className="p-12 text-center text-text-secondary animate-pulse">
-            Loading tasks...
+            Memuat tugas...
           </div>
         ) : error ? (
           <div className="p-6 rounded-2xl bg-red-50 text-red-700 text-xs text-center border border-red-200">
@@ -274,12 +279,12 @@ export default function TasksPage() {
             <div className="w-12 h-12 rounded-full bg-primary-100 text-primary flex items-center justify-center mx-auto text-xl">
               📝
             </div>
-            <h3 className="text-sm font-bold text-text-primary">No tasks found</h3>
+            <h3 className="text-sm font-bold text-text-primary">Tidak ada tugas ditemukan</h3>
             <p className="text-xs text-text-secondary max-w-sm mx-auto">
-              No tasks match your current filter settings. Create a new task to stay organized and on track.
+              Tidak ada tugas yang cocok dengan filter saat ini. Buat tugas baru agar tetap teratur dan fokus.
             </p>
             <Button variant="primary" size="sm" onClick={handleOpenCreate} className="mt-2 text-xs">
-              Add Your First Task
+              Tambah Tugas Pertama Anda
             </Button>
           </div>
         ) : viewMode === 'kanban' ? (
@@ -288,9 +293,9 @@ export default function TasksPage() {
             {(['pending', 'in_progress', 'completed'] as const).map((colStatus) => {
               const colTasks = tasks.filter((t) => t.status === colStatus);
               const colTitles = {
-                pending: 'To Do / Pending',
-                in_progress: 'In Progress',
-                completed: 'Completed',
+                pending: 'Akan Dikerjakan',
+                in_progress: 'Sedang Dikerjakan',
+                completed: 'Selesai',
               };
               return (
                 <div
@@ -318,7 +323,7 @@ export default function TasksPage() {
                     ))}
                     {colTasks.length === 0 && (
                       <div className="p-6 text-center text-xs text-text-muted border-2 border-dashed border-border/60 rounded-xl">
-                        No tasks
+                        Belum ada tugas
                       </div>
                     )}
                   </div>
@@ -368,7 +373,7 @@ export default function TasksPage() {
                         </span>
                         <PriorityPill priority={task.priority || 'medium'} />
                         <span className="px-2 py-0.5 rounded-full text-[10px] font-medium bg-slate-100 text-slate-700">
-                          {task.category}
+                          {translateCategory(task.category)}
                         </span>
                       </div>
                       {task.description && (
@@ -382,7 +387,7 @@ export default function TasksPage() {
                   <div className="flex items-center gap-4 shrink-0">
                     {task.deadline && (
                       <span className="text-[11px] font-mono text-text-secondary">
-                        📅 {new Date(task.deadline).toLocaleDateString()}
+                        📅 {formatDate(task.deadline)}
                       </span>
                     )}
                     <div className="flex items-center gap-2 opacity-90 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
@@ -391,14 +396,14 @@ export default function TasksPage() {
                         onClick={() => handleOpenEdit(task)}
                         className="px-2.5 py-1 text-xs font-semibold text-text-secondary hover:text-primary rounded-lg hover:bg-surface-muted"
                       >
-                        Edit
+                        Ubah
                       </button>
                       <button
                         type="button"
                         onClick={() => setDeletingTask(task)}
                         className="px-2.5 py-1 text-xs font-semibold text-red-600 hover:text-red-700 rounded-lg hover:bg-red-50"
                       >
-                        Delete
+                        Hapus
                       </button>
                     </div>
                   </div>
@@ -414,7 +419,7 @@ export default function TasksPage() {
             <div className="bg-white rounded-3xl max-w-lg w-full p-6 shadow-soft-xl border border-border space-y-4 animate-scaleUp">
               <div className="flex items-center justify-between pb-2 border-b border-border">
                 <h2 className="text-lg font-bold text-text-primary">
-                  {editingTask ? 'Edit Task' : 'Create New Task'}
+                  {editingTask ? 'Ubah Tugas' : 'Buat Tugas Baru'}
                 </h2>
                 <button
                   type="button"
@@ -431,11 +436,11 @@ export default function TasksPage() {
               <form onSubmit={handleSaveTask} className="space-y-4">
                 <div>
                   <label className="block text-xs font-semibold text-text-primary mb-1">
-                    Title *
+                    Judul *
                   </label>
                   <Input
                     required
-                    placeholder="e.g. Prepare Chapter 4 Algorithms summary"
+                    placeholder="cth. Ringkasan Bab 4 Algoritma & Struktur Data"
                     value={formTitle}
                     onChange={(e) => setFormTitle(e.target.value)}
                     className="w-full text-xs"
@@ -444,11 +449,11 @@ export default function TasksPage() {
 
                 <div>
                   <label className="block text-xs font-semibold text-text-primary mb-1">
-                    Description (optional)
+                    Deskripsi (opsional)
                   </label>
                   <textarea
                     rows={3}
-                    placeholder="Additional details, reference links, or notes..."
+                    placeholder="Detail tambahan, tautan referensi, atau catatan..."
                     value={formDesc}
                     onChange={(e) => setFormDesc(e.target.value)}
                     className="w-full p-3 rounded-xl border border-border bg-white text-xs text-text-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
@@ -458,40 +463,40 @@ export default function TasksPage() {
                 <div className="grid grid-cols-2 gap-3">
                   <div>
                     <label className="block text-xs font-semibold text-text-primary mb-1">
-                      Category
+                      Kategori
                     </label>
                     <select
                       value={formCategory}
                       onChange={(e) => setFormCategory(e.target.value)}
                       className="w-full h-10 px-3 rounded-xl border border-border bg-white text-xs text-text-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
                     >
-                      <option value="Study">Study</option>
-                      <option value="Academic">Academic</option>
-                      <option value="Lab">Lab / Practical</option>
-                      <option value="Project">Project</option>
-                      <option value="Personal">Personal</option>
+                      <option value="Study">Belajar</option>
+                      <option value="Academic">Akademik</option>
+                      <option value="Lab">Praktikum / Lab</option>
+                      <option value="Project">Proyek</option>
+                      <option value="Personal">Pribadi</option>
                     </select>
                   </div>
 
                   <div>
                     <label className="block text-xs font-semibold text-text-primary mb-1">
-                      Priority
+                      Prioritas
                     </label>
                     <select
                       value={formPriority}
                       onChange={(e) => setFormPriority(e.target.value as TaskPriority)}
                       className="w-full h-10 px-3 rounded-xl border border-border bg-white text-xs text-text-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
                     >
-                      <option value="low">Low Priority</option>
-                      <option value="medium">Medium Priority</option>
-                      <option value="high">High Priority</option>
+                      <option value="low">Prioritas Rendah</option>
+                      <option value="medium">Prioritas Sedang</option>
+                      <option value="high">Prioritas Tinggi</option>
                     </select>
                   </div>
                 </div>
 
                 <div>
                   <label className="block text-xs font-semibold text-text-primary mb-1">
-                    Deadline (optional)
+                    Tenggat Waktu (opsional)
                   </label>
                   <input
                     type="datetime-local"
@@ -511,7 +516,7 @@ export default function TasksPage() {
                       setEditingTask(null);
                     }}
                   >
-                    Cancel
+                    Batal
                   </Button>
                   <Button
                     type="submit"
@@ -519,7 +524,7 @@ export default function TasksPage() {
                     size="sm"
                     disabled={formSubmitting || !formTitle.trim()}
                   >
-                    {formSubmitting ? 'Saving...' : editingTask ? 'Update Task' : 'Create Task'}
+                    {formSubmitting ? 'Menyimpan...' : editingTask ? 'Perbarui Tugas' : 'Buat Tugas'}
                   </Button>
                 </div>
               </form>
@@ -534,9 +539,9 @@ export default function TasksPage() {
               <div className="w-12 h-12 rounded-full bg-red-100 text-red-600 flex items-center justify-center mx-auto text-xl font-bold">
                 🗑️
               </div>
-              <h3 className="text-base font-bold text-text-primary">Delete Task?</h3>
+              <h3 className="text-base font-bold text-text-primary">Hapus Tugas?</h3>
               <p className="text-xs text-text-secondary leading-relaxed">
-                Are you sure you want to delete <strong className="text-text-primary">"{deletingTask.title}"</strong>? This will soft-delete the task while preserving study records.
+                Apakah Anda yakin ingin menghapus <strong className="text-text-primary">"{deletingTask.title}"</strong>? Tindakan ini akan menghapus tugas tetapi tetap menyimpan riwayat belajar terkait.
               </p>
               <div className="flex items-center justify-center gap-3 pt-2">
                 <Button
@@ -544,14 +549,14 @@ export default function TasksPage() {
                   size="sm"
                   onClick={() => setDeletingTask(null)}
                 >
-                  Cancel
+                  Batal
                 </Button>
                 <button
                   type="button"
                   onClick={handleDeleteTask}
                   className="px-4 py-2 rounded-xl text-xs font-semibold bg-red-600 text-white hover:bg-red-700 transition-colors"
                 >
-                  Delete
+                  Hapus
                 </button>
               </div>
             </div>
@@ -605,11 +610,11 @@ function TaskCardItem({
 
       <div className="flex items-center justify-between pt-2 border-t border-border/50 text-[10px] text-text-secondary pl-6">
         <span className="px-2 py-0.5 rounded-full bg-slate-100 font-medium text-slate-700">
-          {task.category}
+          {translateCategory(task.category)}
         </span>
         {task.deadline && (
           <span className="font-mono">
-            {new Date(task.deadline).toLocaleDateString()}
+            {formatDate(task.deadline)}
           </span>
         )}
       </div>
@@ -620,14 +625,14 @@ function TaskCardItem({
           onClick={onEdit}
           className="text-[10px] font-semibold text-text-secondary hover:text-primary px-2 py-1 rounded hover:bg-surface-muted"
         >
-          Edit
+          Ubah
         </button>
         <button
           type="button"
           onClick={onDelete}
           className="text-[10px] font-semibold text-red-600 hover:text-red-700 px-2 py-1 rounded hover:bg-red-50"
         >
-          Delete
+          Hapus
         </button>
       </div>
     </div>
@@ -647,7 +652,7 @@ function PriorityPill({ priority }: { priority: TaskPriority }) {
         styles[priority] || styles.medium
       }`}
     >
-      {priority}
+      {translatePriority(priority)}
     </span>
   );
 }

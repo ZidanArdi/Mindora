@@ -45,7 +45,7 @@ export const TopNavbar = ({
             type="button"
             onClick={onOpenMobileMenu}
             className="p-2 rounded-xl text-text-secondary hover:text-text-primary hover:bg-surface-muted lg:hidden"
-            aria-label="Open sidebar navigation"
+            aria-label="Buka navigasi bilah sisi"
           >
             <MenuIcon className="w-5 h-5" />
           </button>
@@ -53,7 +53,7 @@ export const TopNavbar = ({
 
         <SearchInput
           placeholder={
-            role === 'user' ? 'Search task...' : 'Search members, tasks, workspace...'
+            role === 'user' ? 'Cari tugas...' : 'Cari anggota, tugas, ruang kerja...'
           }
           className="w-full"
         />
@@ -65,13 +65,13 @@ export const TopNavbar = ({
           <div className="hidden sm:flex items-center gap-2">
             <Button variant="outline" size="sm" className="gap-2 text-xs">
               <ExportIcon className="w-3.5 h-3.5 text-text-secondary" />
-              <span>Export summary</span>
+              <span>Ekspor ringkasan</span>
             </Button>
           </div>
         ) : (
           <Button variant="primary" size="sm" className="gap-2 text-xs">
             <PlusIcon className="w-3.5 h-3.5" />
-            <span>Invite member</span>
+            <span>Undang anggota</span>
           </Button>
         )}
 
@@ -80,8 +80,8 @@ export const TopNavbar = ({
             <button
               type="button"
               className="p-2 rounded-xl text-text-secondary hover:text-text-primary hover:bg-surface-muted transition-colors relative hidden sm:flex"
-              title="Recent time tracker"
-              aria-label="Time tracker"
+              title="Pelacak waktu terkini"
+              aria-label="Pelacak waktu"
             >
               <ClockIcon className="w-4 h-4" />
             </button>
@@ -90,8 +90,8 @@ export const TopNavbar = ({
           <button
             type="button"
             className="p-2 rounded-xl text-text-secondary hover:text-text-primary hover:bg-surface-muted transition-colors relative"
-            title="Notifications"
-            aria-label="Notifications"
+            title="Notifikasi"
+            aria-label="Notifikasi"
           >
             <BellIcon className="w-4 h-4" />
             {hasUnread && (
@@ -103,8 +103,8 @@ export const TopNavbar = ({
             type="button"
             onClick={handleLogout}
             className="p-2 rounded-xl text-text-secondary hover:text-red-600 hover:bg-surface-muted transition-colors hidden sm:flex cursor-pointer"
-            title="Sign out"
-            aria-label="Sign out"
+            title="Keluar"
+            aria-label="Keluar"
           >
             <LogoutIcon className="w-4 h-4" />
           </button>

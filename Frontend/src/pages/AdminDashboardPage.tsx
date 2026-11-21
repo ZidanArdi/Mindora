@@ -32,7 +32,7 @@ export default function AdminDashboardPage() {
           .join('')
           .slice(0, 2)
           .toUpperCase() || 'AD',
-        workspaceName: 'System Administration',
+        workspaceName: 'Administrasi Sistem',
       }
     : mockAdminUser;
 
@@ -75,15 +75,15 @@ export default function AdminDashboardPage() {
         {/* Dedicated Admin Anchor View for Workspaces, Roles, and Settings */}
         {activeHash === 'workspaces' && (
           <div id="workspaces" className="p-6 rounded-3xl bg-white border border-border shadow-soft-xs space-y-3 animate-fadeIn">
-            <h3 className="text-sm font-bold text-text-primary">Department Workspaces</h3>
+            <h3 className="text-sm font-bold text-text-primary">Ruang Kerja Departemen</h3>
             <p className="text-xs text-text-secondary leading-relaxed">
-              Mindora multi-workspace tenancy management. Academic cohorts, university departments, and study pods are isolated under RBAC policies.
+              Manajemen multi-penyewa ruang kerja Mindora. Kohor akademik, departemen universitas, dan kelompok belajar diisolasi di bawah kebijakan RBAC.
             </p>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2">
-              {['Engineering Cohort 2026', 'Faculty of Science', 'Graduate Research Pod'].map((ws) => (
+              {['Angkatan Teknik 2026', 'Fakultas Sains', 'Kelompok Riset Pascasarjana'].map((ws) => (
                 <div key={ws} className="p-4 rounded-2xl bg-surface-muted/50 border border-border">
                   <span className="text-xs font-bold text-text-primary block">{ws}</span>
-                  <span className="text-[10px] text-text-secondary">Active Tenant · 24 members</span>
+                  <span className="text-[10px] text-text-secondary">Penyewa Aktif · 24 anggota</span>
                 </div>
               ))}
             </div>
@@ -92,18 +92,18 @@ export default function AdminDashboardPage() {
 
         {activeHash === 'roles' && (
           <div id="roles" className="p-6 rounded-3xl bg-white border border-border shadow-soft-xs space-y-3 animate-fadeIn">
-            <h3 className="text-sm font-bold text-text-primary">Roles & Access Control Policies</h3>
+            <h3 className="text-sm font-bold text-text-primary">Peran & Kebijakan Kontrol Akses</h3>
             <p className="text-xs text-text-secondary leading-relaxed">
-              Role definitions enforced via PostgreSQL advisory locks and JWT claims: <code className="text-emerald-700 bg-emerald-50 px-1 py-0.5 rounded font-mono">user</code> (student) and <code className="text-emerald-700 bg-emerald-50 px-1 py-0.5 rounded font-mono">admin</code> (console operator).
+              Definisi peran yang ditegakkan melalui klaim JWT: <code className="text-emerald-700 bg-emerald-50 px-1 py-0.5 rounded font-mono">user</code> (mahasiswa) dan <code className="text-emerald-700 bg-emerald-50 px-1 py-0.5 rounded font-mono">admin</code> (pengelola konsol).
             </p>
           </div>
         )}
 
         {activeHash === 'settings' && (
           <div id="settings" className="p-6 rounded-3xl bg-white border border-border shadow-soft-xs space-y-3 animate-fadeIn">
-            <h3 className="text-sm font-bold text-text-primary">System & Security Configuration</h3>
+            <h3 className="text-sm font-bold text-text-primary">Konfigurasi Sistem & Keamanan</h3>
             <p className="text-xs text-text-secondary leading-relaxed">
-              Environment configuration: Cloudflare Turnstile token verification, JWT secret rotation, and PostgreSQL pool health monitor.
+              Konfigurasi lingkungan: verifikasi token otentikasi, rotasi kunci rahasia JWT, dan pemantauan koneksi PostgreSQL.
             </p>
           </div>
         )}

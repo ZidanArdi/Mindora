@@ -14,7 +14,7 @@ import {
   TurnstileWidget,
 } from '../atoms';
 import { FormField } from '../molecules';
-import { cn } from '../../utils';
+import { cn, translateErrorMessage } from '../../utils';
 import { useAuth } from '../../hooks';
 import { FEATURES } from '../../config/features';
 
@@ -37,7 +37,7 @@ export const LoginForm = ({ className }: LoginFormProps) => {
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(() => {
     return searchParams.get('session_expired') === 'true'
-      ? 'Your session has expired. Please log in again to continue.'
+      ? 'Sesi Anda telah berakhir. Silakan masuk kembali untuk melanjutkan.'
       : null;
   });
   const [infoMessage, setInfoMessage] = useState<string | null>(null);
@@ -65,11 +65,11 @@ export const LoginForm = ({ className }: LoginFormProps) => {
     setInfoMessage(null);
 
     if (!email.trim()) {
-      setErrorMessage('Please enter your email address');
+      setErrorMessage('Silakan masukkan alamat email Anda');
       return;
     }
     if (!password) {
-      setErrorMessage('Please enter your password');
+      setErrorMessage('Silakan masukkan kata sandi Anda');
       return;
     }
 
@@ -87,23 +87,14 @@ export const LoginForm = ({ className }: LoginFormProps) => {
         if (result.user.role === 'admin') {
           navigate('/admin');
         } else {
-          // User tried to log into admin console with user credentials
-          setInfoMessage('Your account has student permissions. Routing to user workspace...');
+          setInfoMessage('Akun Anda memiliki hak akses pengguna. Mengarahkan ke ruang kerja pengguna...');
           setTimeout(() => navigate('/dashboard'), 800);
         }
       } else {
         navigate('/dashboard');
       }
     } catch (err: unknown) {
-      if (err instanceof Error) {
-        if (err.message.includes('Failed to fetch') || err.message.includes('NetworkError')) {
-          setErrorMessage('Backend server is unreachable at http://localhost:8080. Please ensure the backend is running.');
-        } else {
-          setErrorMessage(err.message);
-        }
-      } else {
-        setErrorMessage('Failed to sign in. Please verify your credentials and try again.');
-      }
+      setErrorMessage(translateErrorMessage(err, 'Gagal masuk. Silakan periksa kredensial Anda dan coba lagi.'));
     } finally {
       setLoading(false);
     }
@@ -111,7 +102,7 @@ export const LoginForm = ({ className }: LoginFormProps) => {
 
   const handleGoogleClick = () => {
     if (!FEATURES.ENABLE_GOOGLE_OAUTH) {
-      setInfoMessage('Google OAuth integration is temporarily disabled during development.');
+      setInfoMessage('Integrasi Google OAuth dinonaktifkan sementara selama tahap pengembangan.');
       return;
     }
     loginWithGoogle(turnstileToken);
@@ -122,13 +113,13 @@ export const LoginForm = ({ className }: LoginFormProps) => {
       {/* Form Header */}
       <div className="space-y-2">
         <span className="text-[11px] font-bold text-primary tracking-widest uppercase block">
-          Welcome Back
+          Selamat Datang Kembali
         </span>
         <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-text-primary">
-          Sign in to Mindora
+          Masuk ke Mindora
         </h1>
         <p className="text-sm text-text-secondary font-medium">
-          Choose your workspace and continue where you left off.
+          Pilih ruang kerja Anda dan lanjutkan aktivitas Anda.
         </p>
       </div>
 
@@ -145,7 +136,7 @@ export const LoginForm = ({ className }: LoginFormProps) => {
           )}
         >
           <UserIcon className="w-3.5 h-3.5 text-primary" />
-          <span>User workspace</span>
+          <span>Ruang Kerja Pengguna</span>
         </button>
 
         <button
@@ -159,14 +150,14 @@ export const LoginForm = ({ className }: LoginFormProps) => {
           )}
         >
           <ShieldIcon className="w-3.5 h-3.5 text-primary" />
-          <span>Admin console</span>
+          <span>Konsol Admin</span>
         </button>
       </div>
 
       {/* Error / Alert Banner */}
       {errorMessage && (
         <div className="p-3.5 rounded-xl bg-red-50/90 border border-red-200 text-red-700 text-xs font-medium flex items-start gap-2.5 animate-fadeIn">
-          <span className="font-bold text-red-800">Error:</span>
+          <span className="font-bold text-red-800">Kesalahan:</span>
           <span>{errorMessage}</span>
         </div>
       )}
@@ -174,12 +165,12 @@ export const LoginForm = ({ className }: LoginFormProps) => {
       {/* Info Notice Banner */}
       {infoMessage && (
         <div className="p-3.5 rounded-xl bg-nature-mint border border-primary/20 text-primary-900 text-xs font-medium flex items-start gap-2.5">
-          <span className="font-bold">Notice:</span>
+          <span className="font-bold">Pemberitahuan:</span>
           <span>{infoMessage}</span>
         </div>
       )}
 
-      {/* Google OAuth Initiation (Explicit Feature Flag Controlled) */}
+      {/* Google OAuth Initiation */}
       {FEATURES.ENABLE_GOOGLE_OAUTH && (
         <>
           <div>
@@ -192,7 +183,7 @@ export const LoginForm = ({ className }: LoginFormProps) => {
               className="w-full gap-3 text-xs sm:text-sm font-semibold justify-center hover:bg-surface-muted border-border shadow-soft-sm"
             >
               <GoogleIcon className="w-4 h-4" />
-              <span>Continue with Google</span>
+              <span>Lanjutkan dengan Google</span>
             </Button>
           </div>
 
@@ -200,7 +191,7 @@ export const LoginForm = ({ className }: LoginFormProps) => {
           <div className="relative flex items-center justify-center">
             <div className="w-full border-t border-border"></div>
             <span className="absolute bg-surface-card px-3 text-[11px] font-semibold text-text-muted uppercase tracking-wider">
-              Or continue with email
+              Atau lanjutkan dengan email
             </span>
           </div>
         </>
@@ -210,22 +201,22 @@ export const LoginForm = ({ className }: LoginFormProps) => {
       <form onSubmit={handleSubmit} className="space-y-4">
         {/* Email Field */}
         <FormField
-          label="Email address"
+          label="Alamat Email"
           type="email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          placeholder={role === 'admin' ? 'admin@mindora.app' : 'student@mindora.app'}
+          placeholder={role === 'admin' ? 'admin@mindora.app' : 'mahasiswa@mindora.app'}
           required
           leftIcon={<MailIcon className="w-4 h-4 text-text-secondary" />}
         />
 
         {/* Password Field */}
         <FormField
-          label="Password"
+          label="Kata Sandi"
           type={showPassword ? 'text' : 'password'}
           value={password}
           onChange={(e) => setPassword(e.target.value)}
-          placeholder="Enter your password"
+          placeholder="Masukkan kata sandi Anda"
           required
           leftIcon={<LockIcon className="w-4 h-4 text-text-secondary" />}
           rightIcon={
@@ -233,7 +224,7 @@ export const LoginForm = ({ className }: LoginFormProps) => {
               type="button"
               onClick={() => setShowPassword(!showPassword)}
               className="p-1 text-text-secondary hover:text-text-primary transition-colors cursor-pointer"
-              aria-label={showPassword ? 'Hide password' : 'Show password'}
+              aria-label={showPassword ? 'Sembunyikan kata sandi' : 'Tampilkan kata sandi'}
             >
               {showPassword ? <EyeOffIcon className="w-4 h-4" /> : <EyeIcon className="w-4 h-4" />}
             </button>
@@ -243,7 +234,7 @@ export const LoginForm = ({ className }: LoginFormProps) => {
         {/* Remember me & Forgot Password */}
         <div className="flex items-center justify-between pt-1">
           <Checkbox
-            label="Remember me"
+            label="Ingat saya"
             checked={rememberMe}
             onChange={(e) => setRememberMe(e.target.checked)}
           />
@@ -253,7 +244,7 @@ export const LoginForm = ({ className }: LoginFormProps) => {
             onClick={() => setShowForgotModal(true)}
             className="text-xs font-semibold text-primary hover:text-primary-hover transition-colors cursor-pointer"
           >
-            Forgot password?
+            Lupa kata sandi?
           </button>
         </div>
 
@@ -272,7 +263,7 @@ export const LoginForm = ({ className }: LoginFormProps) => {
             disabled={loading}
             className="w-full gap-2 text-sm font-bold justify-center shadow-soft-md"
           >
-            <span>{loading ? 'Authenticating...' : `Sign in to ${role === 'admin' ? 'console' : 'workspace'}`}</span>
+            <span>{loading ? 'Mengautentikasi...' : `Masuk ke ${role === 'admin' ? 'Konsol Admin' : 'Ruang Kerja'}`}</span>
             <ChevronRightIcon className="w-4 h-4" />
           </Button>
         </div>
@@ -281,21 +272,21 @@ export const LoginForm = ({ className }: LoginFormProps) => {
       {/* Footer Navigation */}
       <div className="text-center space-y-4 pt-2">
         <p className="text-xs text-text-secondary font-medium">
-          New to Mindora?{' '}
+          Belum punya akun Mindora?{' '}
           <Link
             to="/register"
             className="font-bold text-primary hover:text-primary-hover transition-colors"
           >
-            Create an account
+            Daftar akun baru
           </Link>
         </p>
 
         <p className="text-[11px] text-text-muted">
-          Secured with JWT authentication, refresh token rotation & Cloudflare Turnstile.
+          Diamankan dengan autentikasi JWT, rotasi refresh token & Cloudflare Turnstile.
         </p>
       </div>
 
-      {/* Forgot Password Modal (Pending Backend Implementation) */}
+      {/* Forgot Password Modal */}
       {showForgotModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-fadeIn">
           <div className="bg-surface-card border border-border rounded-2xl p-6 max-w-sm w-full space-y-4 shadow-soft-xl">
@@ -303,12 +294,12 @@ export const LoginForm = ({ className }: LoginFormProps) => {
               <LockIcon className="w-5 h-5" />
             </div>
             <div className="text-center space-y-2">
-              <h3 className="text-base font-bold text-text-primary">Password Reset Notice</h3>
+              <h3 className="text-base font-bold text-text-primary">Pemberitahuan Atur Ulang Kata Sandi</h3>
               <p className="text-xs text-text-secondary leading-relaxed">
-                Self-service password recovery is currently pending administrative rollout in accordance with institutional security policies.
+                Pemulihan kata sandi mandiri saat ini sedang dalam proses penerapan administratif sesuai kebijakan keamanan institusi.
               </p>
               <p className="text-xs text-text-muted">
-                Please contact your campus administrator or write to <span className="font-semibold text-primary">support@mindora.app</span> to request credential verification.
+                Silakan hubungi administrator kampus Anda atau kirim email ke <span className="font-semibold text-primary">support@mindora.app</span> untuk verifikasi kredensial.
               </p>
             </div>
             <Button
@@ -318,7 +309,7 @@ export const LoginForm = ({ className }: LoginFormProps) => {
               onClick={() => setShowForgotModal(false)}
               className="w-full text-xs font-bold"
             >
-              Understood
+              Mengerti
             </Button>
           </div>
         </div>

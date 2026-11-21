@@ -1,7 +1,7 @@
 import type { KPICardData } from '../../types';
 import { MetricCard } from '../molecules';
 import { ChevronDownIcon, CalendarIcon } from '../atoms';
-import { cn } from '../../utils';
+import { cn, getGreeting } from '../../utils';
 
 export interface AdminOverviewRowProps {
   userName?: string;
@@ -10,7 +10,7 @@ export interface AdminOverviewRowProps {
 }
 
 export const AdminOverviewRow = ({
-  userName = 'John',
+  userName = 'Admin',
   kpis,
   className,
 }: AdminOverviewRowProps) => {
@@ -20,20 +20,20 @@ export const AdminOverviewRow = ({
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div className="space-y-1">
           <span className="text-[11px] font-bold text-primary tracking-wider uppercase block">
-            Admin Overview
+            Ringkasan Administrator
           </span>
           <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-text-primary">
-            Good morning, {userName}
+            {getGreeting(userName)}
           </h2>
           <p className="text-sm text-text-secondary font-medium">
-            Here's what's happening across your team.
+            Berikut aktivitas terkini di seluruh tim dan instansi Anda.
           </p>
         </div>
 
         {/* Date Filter Dropdown */}
         <div className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl border border-border bg-white text-xs font-semibold text-text-primary shadow-soft-sm cursor-pointer hover:bg-surface-muted self-start sm:self-auto transition-colors">
           <CalendarIcon className="w-4 h-4 text-primary" />
-          <span>This week</span>
+          <span>Minggu Ini</span>
           <ChevronDownIcon className="w-3.5 h-3.5 text-text-secondary" />
         </div>
       </div>

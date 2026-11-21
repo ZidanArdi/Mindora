@@ -5,7 +5,7 @@ import { productivityService } from '../services/productivityService';
 import { mockUpcomingSchedules } from '../mocks';
 import type { UserProfile, TaskItem } from '../types';
 import { useAuth } from '../hooks';
-import { cn } from '../utils';
+import { cn, translatePriority } from '../utils';
 
 interface CalendarEventItem {
   id: string;
@@ -25,15 +25,15 @@ export default function CalendarPage() {
         email: user.email,
         role: user.role,
         avatarText: user.name.slice(0, 2).toUpperCase(),
-        workspaceName: 'Academic Workspace',
+        workspaceName: 'Ruang Kerja Akademik',
       }
     : {
         id: 'usr_guest',
-        name: 'Student',
+        name: 'Mahasiswa',
         email: 'student@mindora.app',
         role: 'user',
-        avatarText: 'ST',
-        workspaceName: 'Academic Workspace',
+        avatarText: 'MH',
+        workspaceName: 'Ruang Kerja Akademik',
       };
 
   // Current view date (year and month)
@@ -48,7 +48,7 @@ export default function CalendarPage() {
   // New Event Form
   const [newTitle, setNewTitle] = useState('');
   const [newDate, setNewDate] = useState(() => new Date().toISOString().split('T')[0]);
-  const [newTime, setNewTime] = useState('10:00 AM - 11:30 AM');
+  const [newTime, setNewTime] = useState('10:00 - 11:30');
   const [newType, setNewType] = useState<'meeting' | 'study' | 'deadline' | 'lecture'>('study');
 
   // Load real tasks for deadline integration
@@ -70,14 +70,14 @@ export default function CalendarPage() {
     };
   }, []);
 
-  const daysOfWeek = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+  const daysOfWeek = ['Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab', 'Min'];
 
   const year = currentDate.getFullYear();
   const month = currentDate.getMonth();
 
   const monthNames = [
-    'January', 'February', 'March', 'April', 'May', 'June',
-    'July', 'August', 'September', 'October', 'November', 'December'
+    'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
+    'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
   ];
 
   // Base mock events combined with task deadlines and custom events
@@ -98,9 +98,9 @@ export default function CalendarPage() {
         const timePart = t.deadline && t.deadline.includes('T') ? t.deadline.split('T')[1].slice(0, 5) : '23:59';
         return {
           id: `task_${t.id}`,
-          title: `Due: ${t.title} (${t.priority || 'normal'})`,
+          title: `Tenggat: ${t.title} (${translatePriority(t.priority || 'normal')})`,
           date: d,
-          timeRange: `Deadline at ${timePart}`,
+          timeRange: `Batas waktu ${timePart}`,
           type: 'deadline' as const,
         };
       });
@@ -189,13 +189,28 @@ export default function CalendarPage() {
       id: `evt_${Date.now()}`,
       title: newTitle.trim(),
       date: newDate,
-      timeRange: newTime.trim() || 'All Day',
+      timeRange: newTime.trim() || 'Sepanjang Hari',
       type: newType,
     };
 
     setCustomEvents((prev) => [...prev, event]);
     setNewTitle('');
     setIsAddOpen(false);
+  };
+
+  const getEventTypeLabel = (type: string) => {
+    switch (type) {
+      case 'deadline':
+        return 'Tenggat';
+      case 'lecture':
+        return 'Kuliah';
+      case 'study':
+        return 'Belajar';
+      case 'meeting':
+        return 'Pertemuan';
+      default:
+        return type;
+    }
   };
 
   const selectedDayEvents = allEvents.filter((e) => {
@@ -211,10 +226,10 @@ export default function CalendarPage() {
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
             <h1 className="text-2xl font-bold tracking-tight text-[#123C32]">
-              Academic Calendar & Schedules
+              Kalender & Jadwal Akademik
             </h1>
             <p className="text-xs text-text-secondary mt-1">
-              Coordinate lecture timetables, assignment submission deadlines, and structured study blocks.
+              Koordinasikan jadwal kuliah, tenggat pengumpulan tugas, dan sesi belajar terstruktur.
             </p>
           </div>
           <div className="flex items-center gap-2">
@@ -224,7 +239,7 @@ export default function CalendarPage() {
               onClick={handleToday}
               className="text-xs font-semibold"
             >
-              Today
+              Hari Ini
             </Button>
             <Button
               variant="primary"
@@ -236,7 +251,7 @@ export default function CalendarPage() {
               className="text-xs font-bold gap-1.5 shadow-soft-xs"
             >
               <PlusIcon className="w-4 h-4" />
-              <span>Add Event</span>
+              <span>Tambah Agenda</span>
             </Button>
           </div>
         </div>
@@ -257,7 +272,7 @@ export default function CalendarPage() {
                   type="button"
                   onClick={handlePrevMonth}
                   className="p-1.5 rounded-xl border border-border hover:bg-surface-muted text-text-secondary transition-colors"
-                  aria-label="Previous month"
+                  aria-label="Bulan sebelumnya"
                 >
                   <ChevronLeftIcon className="w-4 h-4" />
                 </button>
@@ -265,7 +280,7 @@ export default function CalendarPage() {
                   type="button"
                   onClick={handleNextMonth}
                   className="p-1.5 rounded-xl border border-border hover:bg-surface-muted text-text-secondary transition-colors"
-                  aria-label="Next month"
+                  aria-label="Bulan berikutnya"
                 >
                   <ChevronRightIcon className="w-4 h-4" />
                 </button>
@@ -315,7 +330,7 @@ export default function CalendarPage() {
                       <div className="flex items-center gap-1 w-full pl-0.5 pb-0.5">
                         <span className="w-2 h-2 rounded-full bg-[#138F78]" />
                         <span className="text-[10px] text-text-secondary hidden sm:inline truncate">
-                          Event
+                          Agenda
                         </span>
                       </div>
                     )}
@@ -330,21 +345,21 @@ export default function CalendarPage() {
             <div className="bg-white rounded-3xl border border-border p-6 shadow-soft-xs space-y-4">
               <div className="flex items-center justify-between pb-2 border-b border-border">
                 <div>
-                  <h3 className="text-sm font-bold text-[#123C32]">Schedule for Date</h3>
+                  <h3 className="text-sm font-bold text-[#123C32]">Jadwal Tanggal Ini</h3>
                   <span className="text-xs text-text-secondary">{selectedDateStr}</span>
                 </div>
                 <span className="text-[11px] font-bold text-[#138F78] bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
-                  {selectedDayEvents.length} items
+                  {selectedDayEvents.length} agenda
                 </span>
               </div>
 
               {/* Filter Pills */}
               <div className="flex items-center gap-1.5 flex-wrap">
                 {[
-                  { label: 'All', value: 'all' },
-                  { label: 'Lectures', value: 'lecture' },
-                  { label: 'Deadlines', value: 'deadline' },
-                  { label: 'Study', value: 'study' },
+                  { label: 'Semua', value: 'all' },
+                  { label: 'Kuliah', value: 'lecture' },
+                  { label: 'Tenggat', value: 'deadline' },
+                  { label: 'Belajar', value: 'study' },
                 ].map((pill) => (
                   <button
                     key={pill.value}
@@ -366,9 +381,9 @@ export default function CalendarPage() {
               {selectedDayEvents.length === 0 ? (
                 <div className="py-8 text-center space-y-2 bg-surface-muted/30 rounded-2xl border border-dashed border-border">
                   <span className="text-2xl block">📅</span>
-                  <p className="text-xs font-semibold text-text-primary">No events for this date</p>
-                  <p className="text-[11px] text-text-secondary max-w-[200px] mx-auto">
-                    Click 'Add Event' above or create a task with this deadline.
+                  <p className="text-xs font-semibold text-text-primary">Tidak ada agenda untuk tanggal ini</p>
+                  <p className="text-[11px] text-text-secondary max-w-[220px] mx-auto">
+                    Klik 'Tambah Agenda' di atas atau buat tugas dengan tenggat pada tanggal ini.
                   </p>
                 </div>
               ) : (
@@ -396,7 +411,7 @@ export default function CalendarPage() {
                               : 'bg-emerald-200 text-emerald-900'
                           )}
                         >
-                          {evt.type}
+                          {getEventTypeLabel(evt.type)}
                         </span>
                         <div className="flex items-center gap-1 text-[11px] font-medium text-text-secondary">
                           <ClockIcon className="w-3.5 h-3.5" />
@@ -412,9 +427,9 @@ export default function CalendarPage() {
 
             {/* Quick Helper Card */}
             <div className="p-5 rounded-3xl bg-gradient-to-br from-emerald-50 to-teal-50/40 border border-emerald-200/60 space-y-2">
-              <span className="text-xs font-bold text-[#123C32] block">💡 Academic Tip</span>
+              <span className="text-xs font-bold text-[#123C32] block">💡 Tips Akademik</span>
               <p className="text-[11px] text-[#526B60] leading-relaxed">
-                Sync your study goals with assignment deadlines. Study sessions completed in Mindora automatically feed into your Phase 3 Productivity Analytics.
+                Sinkronkan target belajar dengan tenggat tugas. Sesi belajar yang diselesaikan di Mindora akan terintegrasi langsung ke Analisis Produktivitas Anda.
               </p>
             </div>
           </div>
@@ -425,7 +440,7 @@ export default function CalendarPage() {
           <div className="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-xs flex items-center justify-center p-4">
             <div className="bg-white rounded-3xl border border-border max-w-md w-full p-6 shadow-soft-lg space-y-4 animate-scaleUp">
               <div className="flex items-center justify-between">
-                <h3 className="text-base font-bold text-[#123C32]">Schedule Academic Event</h3>
+                <h3 className="text-base font-bold text-[#123C32]">Jadwalkan Agenda Akademik</h3>
                 <button
                   type="button"
                   onClick={() => setIsAddOpen(false)}
@@ -438,12 +453,12 @@ export default function CalendarPage() {
               <form onSubmit={handleAddEvent} className="space-y-3.5">
                 <div>
                   <label className="text-xs font-bold text-text-primary block mb-1">
-                    Event Title *
+                    Judul Agenda *
                   </label>
                   <input
                     type="text"
                     required
-                    placeholder="e.g. Distributed Systems Lecture, Math Exam"
+                    placeholder="Contoh: Kuliah Sistem Terdistribusi, Ujian Matematika"
                     value={newTitle}
                     onChange={(e) => setNewTitle(e.target.value)}
                     className="w-full h-10 px-3 rounded-xl border border-border text-xs focus:ring-2 focus:ring-[#138F78]/20 focus:outline-none"
@@ -453,7 +468,7 @@ export default function CalendarPage() {
                 <div className="grid grid-cols-2 gap-3">
                   <div>
                     <label className="text-xs font-bold text-text-primary block mb-1">
-                      Event Date *
+                      Tanggal Agenda *
                     </label>
                     <input
                       type="date"
@@ -466,28 +481,28 @@ export default function CalendarPage() {
 
                   <div>
                     <label className="text-xs font-bold text-text-primary block mb-1">
-                      Category
+                      Kategori
                     </label>
                     <select
                       value={newType}
                       onChange={(e) => setNewType(e.target.value as 'meeting' | 'study' | 'deadline' | 'lecture')}
                       className="w-full h-10 px-3 rounded-xl border border-border text-xs focus:ring-2 focus:ring-[#138F78]/20 focus:outline-none"
                     >
-                      <option value="lecture">Lecture / Class</option>
-                      <option value="study">Study Block</option>
-                      <option value="deadline">Assignment Due</option>
-                      <option value="meeting">Meeting / Group</option>
+                      <option value="lecture">Kuliah / Kelas</option>
+                      <option value="study">Sesi Belajar</option>
+                      <option value="deadline">Tenggat Tugas</option>
+                      <option value="meeting">Pertemuan / Diskusi</option>
                     </select>
                   </div>
                 </div>
 
                 <div>
                   <label className="text-xs font-bold text-text-primary block mb-1">
-                    Time Window
+                    Rentang Waktu
                   </label>
                   <input
                     type="text"
-                    placeholder="e.g. 02:00 PM - 04:00 PM"
+                    placeholder="Contoh: 14:00 - 16:00"
                     value={newTime}
                     onChange={(e) => setNewTime(e.target.value)}
                     className="w-full h-10 px-3 rounded-xl border border-border text-xs focus:ring-2 focus:ring-[#138F78]/20 focus:outline-none"
@@ -502,7 +517,7 @@ export default function CalendarPage() {
                     onClick={() => setIsAddOpen(false)}
                     className="text-xs"
                   >
-                    Cancel
+                    Batal
                   </Button>
                   <Button
                     type="submit"
@@ -510,7 +525,7 @@ export default function CalendarPage() {
                     size="sm"
                     className="text-xs font-bold shadow-soft-xs"
                   >
-                    Save Event
+                    Simpan Agenda
                   </Button>
                 </div>
               </form>

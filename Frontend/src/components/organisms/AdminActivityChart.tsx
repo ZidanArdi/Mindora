@@ -34,10 +34,10 @@ export const AdminActivityChart = ({
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div>
             <h4 className="text-base font-bold text-text-primary tracking-tight">
-              Task productivity
+              Produktivitas Tugas
             </h4>
             <p className="text-xs text-text-secondary font-medium">
-              Tasks created and completed this week
+              Tugas yang dibuat dan diselesaikan minggu ini
             </p>
           </div>
 
@@ -45,11 +45,11 @@ export const AdminActivityChart = ({
           <div className="flex items-center gap-4 text-xs font-semibold text-text-secondary">
             <div className="flex items-center gap-1.5">
               <span className="w-2.5 h-2.5 rounded-sm bg-primary" />
-              <span>Completed</span>
+              <span>Selesai</span>
             </div>
             <div className="flex items-center gap-1.5">
               <span className="w-2.5 h-2.5 rounded-sm bg-nature-sage" />
-              <span>Created</span>
+              <span>Dibuat</span>
             </div>
           </div>
         </div>
@@ -64,13 +64,13 @@ export const AdminActivityChart = ({
                   <div
                     className="w-1/2 bg-primary hover:bg-primary-hover rounded-t-sm transition-all duration-300 relative group-hover:opacity-90"
                     style={{ height: `${item.completed}%` }}
-                    title={`Completed: ${item.completed}`}
+                    title={`Selesai: ${item.completed}`}
                   />
                   {/* Created bar */}
                   <div
                     className="w-1/2 bg-nature-sage hover:bg-emerald-300 rounded-t-sm transition-all duration-300 relative group-hover:opacity-90"
                     style={{ height: `${item.created}%` }}
-                    title={`Created: ${item.created}`}
+                    title={`Dibuat: ${item.created}`}
                   />
                 </div>
                 <span className="text-xs font-semibold text-text-secondary group-hover:text-primary transition-colors">
@@ -87,13 +87,13 @@ export const AdminActivityChart = ({
         <div className="flex items-center justify-between pb-1 border-b border-border-subtle">
           <div>
             <h4 className="text-base font-bold text-text-primary tracking-tight">
-              Recent activity
+              Aktivitas Terkini
             </h4>
             <p className="text-xs text-text-secondary font-medium">
-              Latest team updates
+              Pembaruan tim terbaru
             </p>
           </div>
-          <button type="button" className="text-text-secondary hover:text-text-primary p-1" aria-label="More options">
+          <button type="button" className="text-text-secondary hover:text-text-primary p-1 cursor-pointer" aria-label="Opsi lainnya">
             <MoreHorizontalIcon className="w-4 h-4" />
           </button>
         </div>
@@ -121,7 +121,7 @@ export const AdminActivityChart = ({
             type="button"
             className="text-xs font-semibold text-primary hover:text-primary-hover transition-colors cursor-pointer"
           >
-            View all activity
+            Lihat semua aktivitas
           </button>
         </div>
       </div>

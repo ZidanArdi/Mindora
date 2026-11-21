@@ -12,10 +12,10 @@ export interface TaskSectionProps {
 export const TaskSection = ({ initialTasks, className }: TaskSectionProps) => {
   const [tasks, setTasks] = useState<TaskItem[]>(initialTasks);
   const [newTaskTitle, setNewTaskTitle] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('Inbox');
-  const [selectedWhen, setSelectedWhen] = useState('Now');
+  const [selectedCategory, setSelectedCategory] = useState('Kotak Masuk');
+  const [selectedWhen, setSelectedWhen] = useState('Sekarang');
 
-  const chips = ['Now', 'Tomorrow', 'Next week', 'Custom'];
+  const chips = ['Sekarang', 'Besok', 'Minggu Depan', 'Kustom'];
 
   const handleAddTask = () => {
     if (!newTaskTitle.trim()) return;
@@ -25,14 +25,14 @@ export const TaskSection = ({ initialTasks, className }: TaskSectionProps) => {
       title: newTaskTitle.trim(),
       category: selectedCategory,
       categoryColor:
-        selectedCategory === 'Work'
+        selectedCategory === 'Pekerjaan'
           ? '#10B981'
-          : selectedCategory === 'Study'
+          : selectedCategory === 'Belajar'
           ? '#F59E0B'
-          : selectedCategory === 'Health'
+          : selectedCategory === 'Kesehatan'
           ? '#EC4899'
           : '#3B82F6',
-      time: 'Just now',
+      time: 'Baru saja',
       completed: false,
     };
 
@@ -54,14 +54,14 @@ export const TaskSection = ({ initialTasks, className }: TaskSectionProps) => {
             value={newTaskTitle}
             onChange={(e) => setNewTaskTitle(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && handleAddTask()}
-            placeholder="Add task for today"
+            placeholder="Tambah tugas untuk hari ini"
             className="flex-1 text-sm text-text-primary placeholder:text-text-secondary/70 focus:outline-none bg-transparent py-1"
           />
           <button
             type="button"
             onClick={handleAddTask}
             className="p-1.5 rounded-lg text-text-secondary hover:text-primary transition-colors cursor-pointer"
-            aria-label="Send or tag task"
+            aria-label="Kirim atau tandai tugas"
           >
             <SendIcon className="w-4 h-4" />
           </button>
@@ -69,7 +69,7 @@ export const TaskSection = ({ initialTasks, className }: TaskSectionProps) => {
             type="button"
             onClick={handleAddTask}
             className="p-1.5 rounded-lg bg-primary hover:bg-primary-hover text-white transition-colors cursor-pointer"
-            aria-label="Add task button"
+            aria-label="Tombol tambah tugas"
           >
             <PlusIcon className="w-4 h-4" />
           </button>
@@ -80,16 +80,16 @@ export const TaskSection = ({ initialTasks, className }: TaskSectionProps) => {
           {/* Category Dropdown simulation */}
           <div
             onClick={() => {
-              const cats = ['Inbox', 'Work', 'Study', 'Health'];
+              const cats = ['Kotak Masuk', 'Pekerjaan', 'Belajar', 'Kesehatan'];
               const next = cats[(cats.indexOf(selectedCategory) + 1) % cats.length];
               setSelectedCategory(next);
             }}
             className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-surface-muted border border-border font-medium text-text-primary cursor-pointer hover:bg-slate-100"
-            title="Click to change category"
+            title="Klik untuk mengubah kategori"
           >
             <span className="w-2 h-2 rounded-full bg-blue-500" />
             <span>{selectedCategory}</span>
-            <ChevronDownIcon className="w-3 h-3 text-text-secondary" />
+            <ChevronDownIcon className="w-3.5 h-3.5 text-text-secondary" />
           </div>
 
           {/* Time chips */}
@@ -118,10 +118,10 @@ export const TaskSection = ({ initialTasks, className }: TaskSectionProps) => {
       <div className="bg-white rounded-2xl border border-border p-5 sm:p-6 shadow-soft-sm space-y-3">
         <div className="flex items-center justify-between pb-2">
           <h4 className="text-base font-bold text-text-primary tracking-tight">
-            Today's task
+            Tugas Hari Ini
           </h4>
           <span className="text-xs text-text-secondary font-medium">
-            {tasks.filter((t) => t.completed).length} of {tasks.length} completed
+            {tasks.filter((t) => t.completed).length} dari {tasks.length} selesai
           </span>
         </div>
 

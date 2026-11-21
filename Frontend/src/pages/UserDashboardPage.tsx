@@ -7,6 +7,7 @@ import { ShieldIcon, Button, CheckIcon } from '../components/atoms';
 import { productivityService } from '../services/productivityService';
 import type { DashboardSummary, UserProfile, TaskStatus, ProductivityPrediction } from '../types';
 import { useAuth } from '../hooks';
+import { translatePriority, translateCategory, formatDate } from '../utils/i18n';
 
 export default function UserDashboardPage() {
   const navigate = useNavigate();
@@ -41,16 +42,16 @@ export default function UserDashboardPage() {
             .map((n) => n[0])
             .join('')
             .slice(0, 2)
-            .toUpperCase() || 'ST',
-        workspaceName: 'Academic Workspace',
+            .toUpperCase() || 'MH',
+        workspaceName: 'Ruang Kerja Akademik',
       }
     : {
         id: 'usr_guest',
-        name: 'Student',
+        name: 'Mahasiswa',
         email: 'student@mindora.app',
         role: 'user',
-        avatarText: 'ST',
-        workspaceName: 'Academic Workspace',
+        avatarText: 'MH',
+        workspaceName: 'Ruang Kerja Akademik',
       };
 
   useEffect(() => {
@@ -101,9 +102,9 @@ export default function UserDashboardPage() {
     if (mins >= 60) {
       const h = Math.floor(mins / 60);
       const m = mins % 60;
-      return `${h}h ${m}m`;
+      return `${h} jam ${m} mnt`;
     }
-    return `${mins}m`;
+    return `${mins} mnt`;
   };
 
   return (
@@ -114,10 +115,10 @@ export default function UserDashboardPage() {
             <ShieldIcon className="w-6 h-6" />
           </div>
           <h2 className="text-xl font-bold text-text-primary">
-            Student Privacy Policy Enforcement
+            Penegakan Kebijakan Privasi Mahasiswa
           </h2>
           <p className="text-sm text-text-secondary leading-relaxed">
-            In accordance with Mindora RBAC and student data privacy rules, personal productivity records, private study tasks, and focus timer sessions are strictly isolated and cannot be accessed from an administrative account.
+            Sesuai dengan RBAC Mindora dan aturan privasi data mahasiswa, catatan produktivitas pribadi, tugas belajar, dan sesi timer fokus terisolasi secara ketat dan tidak dapat diakses dari akun administrator.
           </p>
           <div className="pt-2 flex justify-center">
             <Button
@@ -126,7 +127,7 @@ export default function UserDashboardPage() {
               onClick={() => navigate('/admin')}
               className="text-xs font-bold"
             >
-              Go to Admin Console
+              Buka Konsol Admin
             </Button>
           </div>
         </div>
@@ -144,10 +145,10 @@ export default function UserDashboardPage() {
             <div className="p-5 rounded-2xl bg-white border border-border shadow-soft-xs flex flex-col justify-between">
               <div className="flex items-center justify-between">
                 <span className="text-xs font-semibold text-text-secondary uppercase tracking-wider">
-                  Task Progress
+                  Progres Tugas
                 </span>
                 <Link to="/tasks" className="text-[11px] font-bold text-primary hover:underline">
-                  View →
+                  Lihat →
                 </Link>
               </div>
               <div className="my-2">
@@ -165,8 +166,8 @@ export default function UserDashboardPage() {
               </div>
               <span className="text-[11px] text-[#526B60]">
                 {summary
-                  ? `${summary.completed_tasks} of ${summary.total_tasks} tasks completed`
-                  : '0 tasks created'}
+                  ? `${summary.completed_tasks} dari ${summary.total_tasks} tugas selesai`
+                  : '0 tugas dibuat'}
               </span>
             </div>
 
@@ -174,19 +175,19 @@ export default function UserDashboardPage() {
             <div className="p-5 rounded-2xl bg-white border border-border shadow-soft-xs flex flex-col justify-between">
               <div className="flex items-center justify-between">
                 <span className="text-xs font-semibold text-text-secondary uppercase tracking-wider">
-                  Today's Study
+                  Belajar Hari Ini
                 </span>
                 <Link to="/study" className="text-[11px] font-bold text-primary hover:underline">
-                  Study Room →
+                  Ruang Belajar →
                 </Link>
               </div>
               <div className="my-2 text-2xl font-black text-[#123C32]">
-                {summary ? formatMinutes(summary.total_study_seconds) : '0m'}
+                {summary ? formatMinutes(summary.total_study_seconds) : '0 mnt'}
               </div>
               <span className="text-[11px] text-[#526B60]">
                 {summary
-                  ? `${summary.completed_study_sessions} study sessions finished`
-                  : 'No active session'}
+                  ? `${summary.completed_study_sessions} sesi belajar selesai`
+                  : 'Tidak ada sesi aktif'}
               </span>
             </div>
 
@@ -194,10 +195,10 @@ export default function UserDashboardPage() {
             <div className="p-5 rounded-2xl bg-white border border-border shadow-soft-xs flex flex-col justify-between">
               <div className="flex items-center justify-between">
                 <span className="text-xs font-semibold text-text-secondary uppercase tracking-wider">
-                  Deep Focus Blocks
+                  Blok Fokus Mendalam
                 </span>
                 <Link to="/focus" className="text-[11px] font-bold text-primary hover:underline">
-                  Intervals →
+                  Interval →
                 </Link>
               </div>
               <div className="my-2 text-2xl font-black text-[#138F78]">
@@ -205,8 +206,8 @@ export default function UserDashboardPage() {
               </div>
               <span className="text-[11px] text-[#526B60]">
                 {summary
-                  ? `${summary.completed_breaks_count} breaks · ${summary.total_interruptions} distractions`
-                  : '0 intervals'}
+                  ? `${summary.completed_breaks_count} istirahat · ${summary.total_interruptions} distraksi`
+                  : '0 interval'}
               </span>
             </div>
 
@@ -214,29 +215,29 @@ export default function UserDashboardPage() {
             <div className="p-5 rounded-2xl bg-white border border-border shadow-soft-xs flex flex-col justify-between">
               <div className="flex items-center justify-between">
                 <span className="text-xs font-semibold text-text-secondary uppercase tracking-wider">
-                  Habit Calibration
+                  Kalibrasi Kebiasaan
                 </span>
                 <Link to="/lifestyle" className="text-[11px] font-bold text-primary hover:underline">
-                  Calibrate →
+                  Kalibrasi →
                 </Link>
               </div>
               <div className="my-2">
                 {summary?.today_lifestyle_logged ? (
                   <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-100 text-[#123C32] text-xs font-bold border border-emerald-300">
                     <span className="w-2 h-2 rounded-full bg-[#138F78]" />
-                    Calibrated Today
+                    Terkalibrasi Hari Ini
                   </span>
                 ) : (
                   <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-100 text-amber-900 text-xs font-bold border border-amber-300">
                     <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
-                    Pending Entry
+                    Menunggu Input
                   </span>
                 )}
               </div>
               <span className="text-[11px] text-[#526B60]">
                 {summary?.today_lifestyle_logged
-                  ? 'All 8 variables recorded'
-                  : 'Log sleep & screen time today'}
+                  ? 'Semua 8 variabel tercatat'
+                  : 'Catat tidur & waktu layar hari ini'}
               </span>
             </div>
           </div>
@@ -252,36 +253,36 @@ export default function UserDashboardPage() {
               <div className="bg-white rounded-3xl border border-border p-6 shadow-soft-xs space-y-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <h2 className="text-base font-bold text-[#123C32]">Active Study Tasks</h2>
+                    <h2 className="text-base font-bold text-[#123C32]">Tugas Belajar Aktif</h2>
                     <p className="text-xs text-[#526B60]">
-                      Your upcoming academic deliverables and assignments.
+                      Target akademik dan tugas kuliah Anda yang akan datang.
                     </p>
                   </div>
                   <Link
                     to="/tasks"
                     className="px-3.5 py-1.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-[#123C32] text-xs font-bold border border-emerald-200 transition-colors"
                   >
-                    Manage All Tasks →
+                    Kelola Semua Tugas →
                   </Link>
                 </div>
 
                 {loading ? (
-                  <div className="py-8 text-center text-xs text-text-muted">Loading tasks...</div>
+                  <div className="py-8 text-center text-xs text-text-muted">Memuat tugas...</div>
                 ) : !summary || summary.recent_tasks.length === 0 ? (
                   <div className="py-10 text-center space-y-3 bg-surface-muted/30 rounded-2xl border border-dashed border-border">
                     <span className="text-3xl block">📝</span>
                     <p className="text-sm font-semibold text-text-primary">
-                      No tasks created yet
+                      Belum ada tugas dibuat
                     </p>
                     <p className="text-xs text-text-secondary max-w-sm mx-auto">
-                      Organize your homework, course readings, and project deadlines with our task manager.
+                      Atur PR, materi kuliah, dan tenggat waktu proyek Anda dengan pengelola tugas kami.
                     </p>
                     <div className="pt-2">
                       <Link
                         to="/tasks"
                         className="inline-flex px-4 py-2 rounded-xl text-xs font-bold text-white bg-[#138F78] hover:bg-[#123C32] transition-colors shadow-soft-xs"
                       >
-                        + Create Your First Task
+                        + Buat Tugas Pertama Anda
                       </Link>
                     </div>
                   </div>
@@ -308,19 +309,19 @@ export default function UserDashboardPage() {
                             <span
                               className={`text-xs font-semibold block truncate ${
                                 task.status === 'completed'
-                                  ? 'line-through text-text-muted'
-                                  : 'text-text-primary group-hover:text-primary transition-colors'
+                                    ? 'line-through text-text-muted'
+                                    : 'text-text-primary group-hover:text-primary transition-colors'
                               }`}
                             >
                               {task.title}
                             </span>
                             <div className="flex items-center gap-2 mt-0.5">
                               <span className="text-[10px] font-medium text-text-secondary">
-                                {task.category}
+                                {translateCategory(task.category)}
                               </span>
                               {task.deadline && (
                                 <span className="text-[10px] font-medium text-amber-700">
-                                  Due: {new Date(task.deadline).toLocaleDateString([], { month: 'short', day: 'numeric' })}
+                                  Tenggat: {formatDate(task.deadline, { month: 'short', day: 'numeric' })}
                                 </span>
                               )}
                             </div>
@@ -337,7 +338,7 @@ export default function UserDashboardPage() {
                                 : 'bg-slate-100 text-slate-700'
                             }`}
                           >
-                            {task.priority}
+                            {translatePriority(task.priority)}
                           </span>
                         </div>
                       </div>
@@ -359,8 +360,9 @@ export default function UserDashboardPage() {
                         : 'bg-white/10 text-emerald-300'
                     }`}
                   >
-                    {latestPrediction?.state_label ||
-                      (latestPrediction?.is_baseline ? 'Baseline Estimate' : 'Personalized Estimate')}
+                    {latestPrediction?.is_baseline || latestPrediction?.prediction_state === 'baseline'
+                      ? 'Estimasi Awal'
+                      : (latestPrediction?.state_label || 'Estimasi Terpersonalisasi')}
                   </span>
                   <span className="text-[10px] font-mono text-white/60">Ridge v1.0.0</span>
                 </div>
@@ -371,19 +373,19 @@ export default function UserDashboardPage() {
                       <span className="text-sm font-normal text-white/50">/100</span>
                     </div>
                     <span className="text-[11px] text-white/70 block mt-0.5">
-                      {latestPrediction ? `For ${latestPrediction.prediction_date}` : 'No estimate recorded today'}
+                      {latestPrediction ? `Untuk ${latestPrediction.prediction_date}` : 'Belum ada estimasi hari ini'}
                     </span>
                   </div>
                   <Link
                     to="/analytics"
                     className="text-xs font-bold text-emerald-300 hover:text-white transition-colors"
                   >
-                    Full Analytics →
+                    Analitik Lengkap →
                   </Link>
                 </div>
                 <p className="text-[10px] text-white/60 border-t border-white/10 pt-2 leading-relaxed">
                   {latestPrediction?.state_description ||
-                    'Estimated from habit patterns (study, sleep, phone, stress). Strictly not an objective grade.'}
+                    'Diestimasi dari pola kebiasaan (belajar, tidur, ponsel, stres). Bukan merupakan nilai akademik objektif.'}
                 </p>
               </div>
 

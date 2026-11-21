@@ -4,6 +4,7 @@ import { Button, Input } from '../components/atoms';
 import { productivityService } from '../services/productivityService';
 import type { StudySession, StudyDailyStats, TaskItem } from '../types';
 import { useAuth } from '../hooks';
+import { formatDateTime, translateStatus } from '../utils/i18n';
 
 export default function StudyTrackingPage() {
   const { user } = useAuth();
@@ -135,7 +136,7 @@ export default function StudyTrackingPage() {
 
   const handleCancel = async () => {
     if (!activeSession) return;
-    if (!confirm('Are you sure you want to cancel this session? Uncompleted duration will be discarded.')) return;
+    if (!confirm('Apakah Anda yakin ingin membatalkan sesi ini? Durasi yang belum selesai tidak akan disimpan.')) return;
     try {
       await productivityService.cancelStudySession(activeSession.id);
       setActiveSession(null);
@@ -163,7 +164,7 @@ export default function StudyTrackingPage() {
         role: user.role,
         avatarText: user.name.slice(0, 2).toUpperCase(),
       }
-    : { id: '', name: 'Student', email: '', role: 'user' as const, avatarText: 'ST' };
+    : { id: '', name: 'Mahasiswa', email: '', role: 'user' as const, avatarText: 'MH' };
 
   return (
     <DashboardTemplate role="user" currentUser={currentUserProfile}>
@@ -171,10 +172,10 @@ export default function StudyTrackingPage() {
         {/* Header */}
         <div className="pb-2 border-b border-border">
           <h1 className="text-2xl font-bold text-text-primary tracking-tight">
-            Study Tracking
+            Pelacakan Belajar
           </h1>
           <p className="text-xs text-text-secondary mt-1">
-            Record continuous academic study blocks, associate sessions with tasks, and measure daily study hours.
+            Catat sesi belajar akademik berkelanjutan, hubungkan sesi dengan tugas, dan ukur total jam belajar harian Anda.
           </p>
         </div>
 
@@ -185,12 +186,12 @@ export default function StudyTrackingPage() {
               ⏱️
             </div>
             <div>
-              <p className="text-xs font-semibold text-text-secondary">Today's Study Hours</p>
+              <p className="text-xs font-semibold text-text-secondary">Jam Belajar Hari Ini</p>
               <h3 className="text-2xl font-black text-text-primary mt-0.5">
-                {(dailyStats.total_completed_seconds / 3600).toFixed(1)} hrs
+                {(dailyStats.total_completed_seconds / 3600).toFixed(1)} jam
               </h3>
               <p className="text-[10px] text-text-muted mt-0.5">
-                {Math.floor(dailyStats.total_completed_seconds / 60)} completed minutes logged
+                {Math.floor(dailyStats.total_completed_seconds / 60)} menit terselesaikan tercatat
               </p>
             </div>
           </div>
@@ -200,11 +201,11 @@ export default function StudyTrackingPage() {
               📚
             </div>
             <div>
-              <p className="text-xs font-semibold text-text-secondary">Completed Sessions</p>
+              <p className="text-xs font-semibold text-text-secondary">Sesi Selesai</p>
               <h3 className="text-2xl font-black text-text-primary mt-0.5">
                 {dailyStats.completed_sessions_count}
               </h3>
-              <p className="text-[10px] text-text-muted mt-0.5">Finished sessions contributing to daily totals</p>
+              <p className="text-[10px] text-text-muted mt-0.5">Sesi selesai yang berkontribusi pada total harian</p>
             </div>
           </div>
         </div>
@@ -216,12 +217,12 @@ export default function StudyTrackingPage() {
               <div>
                 <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-300 text-xs font-bold border border-emerald-400/30">
                   <span className={`w-2 h-2 rounded-full ${activeSession.status === 'active' ? 'bg-emerald-400 animate-ping' : 'bg-amber-400'}`} />
-                  {activeSession.status === 'active' ? 'SESSION IN PROGRESS' : 'SESSION PAUSED'}
+                  {activeSession.status === 'active' ? 'SESI SEDANG BERJALAN' : 'SESI DIJEDA'}
                 </span>
                 <h2 className="text-2xl font-bold tracking-tight mt-2">{activeSession.subject}</h2>
                 {activeSession.task && (
                   <p className="text-xs text-emerald-200 mt-1">
-                    Linked to task: <strong className="underline">{activeSession.task.title}</strong>
+                    Terhubung dengan tugas: <strong className="underline">{activeSession.task.title}</strong>
                   </p>
                 )}
               </div>
@@ -232,7 +233,7 @@ export default function StudyTrackingPage() {
                   {formatTimer(elapsedSeconds)}
                 </span>
                 <p className="text-[10px] text-emerald-200/80 mt-1 uppercase tracking-wider">
-                  Server Synchronized Elapsed Time
+                  Waktu Berjalan Tersinkronisasi Server
                 </p>
               </div>
             </div>
@@ -246,7 +247,7 @@ export default function StudyTrackingPage() {
                   onClick={handlePause}
                   className="bg-white/10 hover:bg-white/20 text-white border-white/20 text-xs font-semibold"
                 >
-                  Pause Session
+                  Jeda Sesi
                 </Button>
               ) : (
                 <Button
@@ -255,7 +256,7 @@ export default function StudyTrackingPage() {
                   onClick={handleResume}
                   className="!bg-emerald-500 hover:!bg-emerald-600 text-white text-xs font-semibold"
                 >
-                  Resume Session
+                  Lanjutkan Sesi
                 </Button>
               )}
 
@@ -265,7 +266,7 @@ export default function StudyTrackingPage() {
                 onClick={handleFinish}
                 className="!bg-[#138F78] hover:!bg-[#0e6f5d] text-white text-xs font-bold"
               >
-                Finish & Log Study Block
+                Selesaikan & Catat Sesi
               </Button>
 
               <button
@@ -273,22 +274,22 @@ export default function StudyTrackingPage() {
                 onClick={handleCancel}
                 className="px-4 py-2 rounded-xl text-xs font-semibold text-rose-300 hover:text-rose-100 hover:bg-rose-900/30 transition-colors ml-auto"
               >
-                Cancel Session
+                Batalkan Sesi
               </button>
             </div>
           </div>
         ) : (
           <div className="p-6 rounded-3xl bg-white border border-border shadow-soft-xs space-y-4">
-            <h2 className="text-base font-bold text-text-primary">Start a New Study Session</h2>
+            <h2 className="text-base font-bold text-text-primary">Mulai Sesi Belajar Baru</h2>
             <form onSubmit={handleStart} className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-xs font-semibold text-text-primary mb-1">
-                    Study Subject / Topic *
+                    Mata Kuliah / Topik Belajar *
                   </label>
                   <Input
                     required
-                    placeholder="e.g. Distributed Consensus Algorithms Lecture 5"
+                    placeholder="cth. Kuliah Algoritma Terdistribusi Pertemuan 5"
                     value={subject}
                     onChange={(e) => setSubject(e.target.value)}
                     className="w-full text-xs"
@@ -297,14 +298,14 @@ export default function StudyTrackingPage() {
 
                 <div>
                   <label className="block text-xs font-semibold text-text-primary mb-1">
-                    Associate with Existing Task (Optional)
+                    Hubungkan dengan Tugas (Opsional)
                   </label>
                   <select
                     value={selectedTaskID}
                     onChange={(e) => setSelectedTaskID(e.target.value)}
                     className="w-full h-10 px-3 rounded-xl border border-border bg-white text-xs text-text-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
                   >
-                    <option value="">No task association (Independent study)</option>
+                    <option value="">Tanpa tautan tugas (Belajar mandiri)</option>
                     {availableTasks.map((t) => (
                       <option key={t.id} value={t.id}>
                         [{t.category}] {t.title}
@@ -322,7 +323,7 @@ export default function StudyTrackingPage() {
                   disabled={submitting || !subject.trim()}
                   className="text-xs font-bold gap-2"
                 >
-                  <span>Start Study Session</span>
+                  <span>Mulai Sesi Belajar</span>
                 </Button>
               </div>
             </form>
@@ -331,24 +332,24 @@ export default function StudyTrackingPage() {
 
         {/* Study History Table */}
         <div className="bg-white rounded-3xl border border-border shadow-soft-xs p-6 space-y-4">
-          <h2 className="text-base font-bold text-text-primary">Recent Study Sessions</h2>
+          <h2 className="text-base font-bold text-text-primary">Riwayat Sesi Belajar Terkini</h2>
 
           {loading ? (
-            <p className="text-xs text-text-secondary animate-pulse">Loading study sessions...</p>
+            <p className="text-xs text-text-secondary animate-pulse">Memuat sesi belajar...</p>
           ) : history.length === 0 ? (
             <div className="p-8 text-center text-xs text-text-muted border-2 border-dashed border-border rounded-2xl">
-              No study sessions logged yet. Start a session above to begin tracking your academic focus.
+              Belum ada sesi belajar tercatat. Mulai sesi di atas untuk mulai memantau fokus belajar Anda.
             </div>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-left text-xs text-text-primary">
                 <thead>
                   <tr className="border-b border-border text-[11px] font-bold text-text-secondary uppercase tracking-wider">
-                    <th className="py-3 px-4">Subject</th>
-                    <th className="py-3 px-4">Duration</th>
+                    <th className="py-3 px-4">Mata Kuliah / Topik</th>
+                    <th className="py-3 px-4">Durasi</th>
                     <th className="py-3 px-4">Status</th>
-                    <th className="py-3 px-4">Linked Task</th>
-                    <th className="py-3 px-4">Date</th>
+                    <th className="py-3 px-4">Tugas Terkait</th>
+                    <th className="py-3 px-4">Tanggal & Waktu</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border/60">
@@ -356,7 +357,7 @@ export default function StudyTrackingPage() {
                     <tr key={sess.id} className="hover:bg-surface-muted/50 transition-colors">
                       <td className="py-3 px-4 font-semibold">{sess.subject}</td>
                       <td className="py-3 px-4 font-mono">
-                        {Math.floor(sess.duration_seconds / 60)} mins ({formatTimer(sess.duration_seconds)})
+                        {Math.floor(sess.duration_seconds / 60)} mnt ({formatTimer(sess.duration_seconds)})
                       </td>
                       <td className="py-3 px-4">
                         <span
@@ -370,14 +371,14 @@ export default function StudyTrackingPage() {
                               : 'bg-slate-100 text-slate-700'
                           }`}
                         >
-                          {sess.status}
+                          {translateStatus(sess.status)}
                         </span>
                       </td>
                       <td className="py-3 px-4 text-text-secondary">
                         {sess.task ? sess.task.title : '—'}
                       </td>
                       <td className="py-3 px-4 text-text-muted">
-                        {new Date(sess.started_at).toLocaleString()}
+                        {formatDateTime(sess.started_at)}
                       </td>
                     </tr>
                   ))}

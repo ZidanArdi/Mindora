@@ -10,7 +10,7 @@ export interface FocusTimerWidgetProps {
 
 export const FocusTimerWidget = ({
   initialMinutes = 30,
-  initialTaskName = 'Cleaning up desk',
+  initialTaskName = 'Merapikan meja belajar',
   className,
 }: FocusTimerWidgetProps) => {
   const [minutes, setMinutes] = useState(initialMinutes);
@@ -26,7 +26,6 @@ export const FocusTimerWidget = ({
           setSeconds((prev) => prev - 1);
         } else if (minutes > 0) {
           setMinutes((prev) => prev - 1);
-          setSeconds(59);
         } else {
           setIsRunning(false);
         }
@@ -60,7 +59,7 @@ export const FocusTimerWidget = ({
         {/* Header and task selector */}
         <div className="space-y-1">
           <h4 className="text-lg font-bold text-primary-900 tracking-tight">
-            Focus timer
+            Timer Fokus
           </h4>
           <div className="inline-flex items-center gap-1.5 text-xs font-semibold text-primary cursor-pointer hover:underline">
             <span>{taskName}</span>
@@ -75,7 +74,7 @@ export const FocusTimerWidget = ({
             onClick={handleMinus}
             disabled={isRunning || minutes <= 5}
             className="w-8 h-8 rounded-full bg-white border border-border flex items-center justify-center text-text-secondary hover:text-text-primary hover:border-primary disabled:opacity-40 transition-colors shadow-soft-sm cursor-pointer"
-            aria-label="Decrease time"
+            aria-label="Kurangi waktu"
           >
             <MinusIcon className="w-4 h-4" />
           </button>
@@ -84,7 +83,7 @@ export const FocusTimerWidget = ({
             <span className="text-3xl font-extrabold text-primary-900 tracking-tight">
               {isRunning
                 ? `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`
-                : `${minutes} mins`}
+                : `${minutes} mnt`}
             </span>
           </div>
 
@@ -93,7 +92,7 @@ export const FocusTimerWidget = ({
             onClick={handlePlus}
             disabled={isRunning || minutes >= 120}
             className="w-8 h-8 rounded-full bg-white border border-border flex items-center justify-center text-text-secondary hover:text-text-primary hover:border-primary disabled:opacity-40 transition-colors shadow-soft-sm cursor-pointer"
-            aria-label="Increase time"
+            aria-label="Tambah waktu"
           >
             <PlusIcon className="w-4 h-4" />
           </button>
@@ -114,57 +113,41 @@ export const FocusTimerWidget = ({
             {isRunning ? (
               <>
                 <PauseIcon className="w-3.5 h-3.5 text-white" />
-                <span>Pause</span>
+                <span>Jeda</span>
               </>
             ) : (
               <>
                 <PlayIcon className="w-3.5 h-3.5 text-primary" />
-                <span>Start</span>
+                <span>Mulai</span>
               </>
             )}
           </button>
         </div>
       </div>
 
-      {/* Nature Botanical Pine Tree Silhouette (per Dashboard User.pdf) */}
+      {/* Nature Botanical Pine Tree Silhouette */}
       <div className="relative pt-6 -mx-6 -mb-6 pointer-events-none select-none">
         <svg viewBox="0 0 320 80" fill="none" className="w-full h-16 object-cover">
-          {/* Rolling green hills */}
           <path d="M0 65 Q 80 40 160 55 T 320 50 L 320 80 L 0 80 Z" fill="#6F9F78" opacity="0.6" />
           <path d="M0 60 Q 120 70 240 50 T 320 62 L 320 80 L 0 80 Z" fill="#20B8A5" opacity="0.4" />
-          
-          {/* Pine trees */}
-          {/* Tree 1 */}
           <path d="M40 30 L48 45 L32 45 Z" fill="#168F7A" />
           <path d="M40 40 L50 56 L30 56 Z" fill="#183B35" />
           <rect x="38" y="56" width="4" height="6" fill="#183B35" />
-
-          {/* Tree 2 */}
           <path d="M75 22 L85 40 L65 40 Z" fill="#168F7A" />
           <path d="M75 35 L88 52 L62 52 Z" fill="#183B35" />
           <rect x="73" y="52" width="4" height="6" fill="#183B35" />
-
-          {/* Tree 3 */}
           <path d="M110 32 L118 47 L102 47 Z" fill="#168F7A" />
           <path d="M110 42 L120 57 L100 57 Z" fill="#183B35" />
           <rect x="108" y="57" width="4" height="6" fill="#183B35" />
-
-          {/* Tree 4 */}
           <path d="M150 18 L162 38 L138 38 Z" fill="#168F7A" />
           <path d="M150 32 L165 52 L135 52 Z" fill="#183B35" />
           <rect x="148" y="52" width="4" height="6" fill="#183B35" />
-
-          {/* Tree 5 */}
           <path d="M195 26 L205 42 L185 42 Z" fill="#168F7A" />
           <path d="M195 38 L208 55 L182 55 Z" fill="#183B35" />
           <rect x="193" y="55" width="4" height="6" fill="#183B35" />
-
-          {/* Tree 6 */}
           <path d="M235 22 L245 40 L225 40 Z" fill="#168F7A" />
           <path d="M235 35 L248 53 L222 53 Z" fill="#183B35" />
           <rect x="233" y="53" width="4" height="6" fill="#183B35" />
-
-          {/* Tree 7 */}
           <path d="M275 30 L284 46 L266 46 Z" fill="#168F7A" />
           <path d="M275 42 L286 58 L264 58 Z" fill="#183B35" />
           <rect x="273" y="58" width="4" height="6" fill="#183B35" />

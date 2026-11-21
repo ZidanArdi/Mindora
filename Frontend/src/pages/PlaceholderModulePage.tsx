@@ -15,92 +15,92 @@ interface ModuleConfig {
 
 const moduleConfigs: Record<string, ModuleConfig> = {
   '/analytics': {
-    title: 'Cognitive & Habit Analytics',
-    subtitle: 'Correlations between study duration, lifestyle variables, and distraction density.',
-    phase: 'Phase 3',
-    badge: 'Coming in Phase 3',
+    title: 'Analisis Kognitif & Kebiasaan',
+    subtitle: 'Korelasi antara durasi belajar, variabel gaya hidup, dan densitas distraksi.',
+    phase: 'Fase 3',
+    badge: 'Hadir di Fase 3',
     description:
-      'The Analytics module will provide deep statistical charts and longitudinal correlations across sleep, screen time, caffeine, and study consistency.',
+      'Modul Analisis menyajikan visualisasi statistik mendalam dan korelasi data antara pola tidur, waktu layar, kafein, serta konsistensi belajar.',
     expectedFeatures: [
-      'Circadian energy curve vs study performance',
-      'Caffeine intake vs focus duration correlation',
-      'Distraction frequency trends by time-of-day',
-      'Weekly habit consistency radar chart',
+      'Kurva energi sirkadian vs performa belajar',
+      'Korelasi konsumsi kafein vs durasi fokus',
+      'Tren frekuensi distraksi berdasarkan waktu belajar',
+      'Diagram radar konsistensi kebiasaan mingguan',
     ],
     icon: '📊',
   },
   '/reports': {
-    title: 'Productivity Reports & Export',
-    subtitle: 'Comprehensive PDF summaries and CSV data portability.',
-    phase: 'Phase 4',
-    badge: 'Coming in Phase 4',
+    title: 'Laporan Produktivitas & Ekspor',
+    subtitle: 'Ringkasan PDF komprehensif dan portabilitas data CSV.',
+    phase: 'Fase 4',
+    badge: 'Hadir di Fase 4',
     description:
-      'Generate academic milestone reports, verify study hours for scholarship requirements, and export your personal data safely.',
+      'Hasilkan laporan capaian akademik, verifikasi jam belajar untuk keperluan beasiswa, dan ekspor data pribadi Anda secara aman.',
     expectedFeatures: [
-      'Downloadable PDF monthly productivity dossiers',
-      'Raw CSV export for personal research analysis',
-      'Automated weekly email summaries',
-      'Verified study proof certifications',
+      'Dokumen PDF laporan produktivitas bulanan',
+      'Ekspor data mentah CSV untuk analisis penelitian pribadi',
+      'Ringkasan mingguan otomatis via email',
+      'Sertifikasi bukti waktu belajar terverifikasi',
     ],
     icon: '📑',
   },
   '/messages': {
-    title: 'Study Groups & Messages',
-    subtitle: 'Peer collaboration, study group discussions, and academic messaging.',
-    phase: 'Phase 4',
-    badge: 'Coming in Phase 4',
+    title: 'Grup Belajar & Pesan',
+    subtitle: 'Kolaborasi rekan sejawat, diskusi kelompok belajar, dan pesan akademik.',
+    phase: 'Fase 4',
+    badge: 'Hadir di Fase 4',
     description:
-      'Connect with classmates, share study room invites, and collaborate on group assignments with real-time peer messaging.',
+      'Terhubung dengan teman sekelas, bagikan undangan ruang belajar, dan kolaborasi mengerjakan tugas kelompok dengan komunikasi waktu-nyata.',
     expectedFeatures: [
-      'Course-based peer study group channels',
-      'Direct peer-to-peer messaging',
-      'Study session invitations and shared focus rooms',
-      'Assignment file attachments and peer reviews',
+      'Saluran kelompok belajar berbasis mata kuliah',
+      'Pesan langsung antarmahasiswa (P2P)',
+      'Undangan sesi belajar dan ruang fokus bersama',
+      'Lampiran dokumen tugas dan ulasan rekan sebaya',
     ],
     icon: '💬',
   },
   '/recommendations': {
-    title: 'AI Productivity Recommendations',
-    subtitle: 'Machine learning suggestions based on your personal habit calibration.',
-    phase: 'Phase 3',
-    badge: 'Coming in Phase 3',
+    title: 'Rekomendasi Produktivitas AI',
+    subtitle: 'Saran pembelajaran mesin berdasarkan kalibrasi kebiasaan pribadi Anda.',
+    phase: 'Fase 3',
+    badge: 'Hadir di Fase 3',
     description:
-      'Once sufficient habit data is collected, the Machine Learning recommendation engine will suggest optimal study hours and sleep adjustments.',
+      'Setelah data kebiasaan yang memadai terkumpul, mesin rekomendasi Machine Learning akan memberikan saran jam belajar optimal dan penyesuaian waktu tidur.',
     expectedFeatures: [
-      'Tailored study session length recommendations',
-      'Target bedtime notifications based on next-day study plan',
-      'Screen-time intervention alerts prior to deep focus blocks',
-      'Context-aware study break suggestions',
+      'Rekomendasi durasi sesi belajar yang dipersonalisasi',
+      'Notifikasi target jam tidur berdasarkan jadwal belajar esok hari',
+      'Peringatan jeda waktu layar sebelum blok fokus mendalam',
+      'Saran istirahat belajar yang adaptif terhadap konteks',
     ],
     icon: '✨',
   },
   '/profile': {
-    title: 'Student Profile & Academic Context',
-    subtitle: 'Manage your major, study goals, and academic semester schedule.',
-    phase: 'Phase 4',
-    badge: 'Coming in Phase 4',
+    title: 'Profil Mahasiswa & Konteks Akademik',
+    subtitle: 'Kelola program studi, target belajar, dan jadwal semester akademik.',
+    phase: 'Fase 4',
+    badge: 'Hadir di Fase 4',
     description:
-      'Customize your student details, academic curriculum, exam periods, and notification preferences.',
+      'Kustomisasi rincian mahasiswa, kurikulum akademik, periode ujian, dan preferensi notifikasi Anda.',
     expectedFeatures: [
-      'Academic semester & exam schedule manager',
-      'Subject syllabus and credit weight mapping',
-      'Profile avatar and student identity customization',
-      'Session notification preferences',
+      'Pengelola jadwal semester akademik & periode ujian',
+      'Pemetaan silabus mata kuliah dan bobot SKS',
+      'Kustomisasi avatar profil dan identitas mahasiswa',
+      'Preferensi notifikasi sesi dan pengingat',
     ],
     icon: '🎓',
   },
   '/settings': {
-    title: 'Settings & Security',
-    subtitle: 'Account authentication, session management, and privacy preferences.',
-    phase: 'Phase 4',
-    badge: 'Coming in Phase 4',
+    title: 'Pengaturan & Keamanan',
+    subtitle: 'Otentikasi akun, manajemen sesi, dan preferensi privasi.',
+    phase: 'Fase 4',
+    badge: 'Hadir di Fase 4',
     description:
-      'Configure password changes, 2FA security, active device session review, and data privacy policies.',
+      'Konfigurasi pergantian kata sandi, keamanan 2FA, tinjauan sesi perangkat aktif, dan kebijakan privasi data.',
     expectedFeatures: [
-      'Multi-factor authentication (MFA / 2FA)',
-      'Active session inspection and remote logout',
-      'Theme customization (Botanical Sage / Forest Night)',
-      'Account export and privacy controls',
+      'Otentikasi multi-faktor (MFA / 2FA)',
+      'Inspeksi sesi aktif dan keluar jarak jauh',
+      'Kustomisasi tema tampilan (Botanical Sage / Forest Night)',
+      'Ekspor akun dan kontrol privasi data',
     ],
     icon: '⚙️',
   },
@@ -112,12 +112,12 @@ export default function PlaceholderModulePage() {
 
   const currentPath = location.pathname;
   const config = moduleConfigs[currentPath] || {
-    title: 'Productivity Module',
-    subtitle: 'This feature is currently under active development.',
-    phase: 'Phase 3 / 4',
-    badge: 'In Development',
-    description: 'This module is scheduled for development in subsequent Mindora releases.',
-    expectedFeatures: ['Deep feature integration', 'Responsive interface', 'Export capabilities'],
+    title: 'Modul Produktivitas',
+    subtitle: 'Fitur ini sedang dalam tahap pengembangan aktif.',
+    phase: 'Fase 3 / 4',
+    badge: 'Dalam Pengembangan',
+    description: 'Modul ini dijadwalkan untuk dirilis pada pembaruan Mindora berikutnya.',
+    expectedFeatures: ['Integrasi fitur mendalam', 'Antarmuka responsif', 'Kemampuan ekspor data'],
     icon: '🌱',
   };
 
@@ -128,15 +128,15 @@ export default function PlaceholderModulePage() {
         email: user.email,
         role: user.role,
         avatarText: user.name.slice(0, 2).toUpperCase(),
-        workspaceName: 'Academic Workspace',
+        workspaceName: 'Ruang Kerja Akademik',
       }
     : {
         id: 'usr_guest',
-        name: 'Student',
+        name: 'Mahasiswa',
         email: 'student@mindora.app',
         role: 'user',
-        avatarText: 'ST',
-        workspaceName: 'Academic Workspace',
+        avatarText: 'MH',
+        workspaceName: 'Ruang Kerja Akademik',
       };
 
   return (
@@ -178,7 +178,7 @@ export default function PlaceholderModulePage() {
 
         {/* Planned Capabilities Section */}
         <div className="bg-white rounded-3xl border border-border p-6 sm:p-8 shadow-soft-xs space-y-4">
-          <h2 className="text-base font-bold text-[#123C32]">Planned Capabilities in {config.phase}</h2>
+          <h2 className="text-base font-bold text-[#123C32]">Kemampuan Terencana di {config.phase}</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
             {config.expectedFeatures.map((feat, idx) => (
               <div
@@ -195,20 +195,20 @@ export default function PlaceholderModulePage() {
 
           <div className="pt-4 border-t border-border/60 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <span className="text-xs text-text-secondary">
-              Core productivity tracking (Tasks, Study, Focus, Lifestyle) is fully active in Phase 2.
+              Pelacakan produktivitas inti (Tugas, Belajar, Fokus, Gaya Hidup) aktif sepenuhnya.
             </span>
             <div className="flex items-center gap-3">
               <Link
                 to="/dashboard"
                 className="px-4 py-2 rounded-xl text-xs font-bold text-[#123C32] bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 transition-colors"
               >
-                ← Return to Dashboard
+                ← Kembali ke Dasbor
               </Link>
               <Link
                 to="/tasks"
                 className="px-4 py-2 rounded-xl text-xs font-bold text-white bg-[#138F78] hover:bg-[#123C32] transition-colors shadow-soft-xs"
               >
-                Open Tasks Manager →
+                Buka Pengelola Tugas →
               </Link>
             </div>
           </div>

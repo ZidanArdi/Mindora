@@ -4,6 +4,7 @@ import { Button } from '../components/atoms';
 import { productivityService } from '../services/productivityService';
 import type { FocusSession, FocusDailyStats, UserProfile } from '../types';
 import { useAuth } from '../hooks';
+import { formatDateTime, formatTime, translateStatus } from '../utils/i18n';
 
 export default function FocusTrackingPage() {
   const { user } = useAuth();
@@ -32,15 +33,15 @@ export default function FocusTrackingPage() {
         email: user.email,
         role: user.role,
         avatarText: user.name.slice(0, 2).toUpperCase(),
-        workspaceName: 'Academic Workspace',
+        workspaceName: 'Ruang Kerja Akademik',
       }
     : {
         id: 'usr_guest',
-        name: 'Student',
+        name: 'Mahasiswa',
         email: 'student@mindora.app',
         role: 'user',
-        avatarText: 'ST',
-        workspaceName: 'Academic Workspace',
+        avatarText: 'MH',
+        workspaceName: 'Ruang Kerja Akademik',
       };
 
   const focusPresets = [15, 25, 45, 60];
@@ -115,7 +116,7 @@ export default function FocusTrackingPage() {
       await loadData();
     } catch (err: unknown) {
       console.error('Failed to start focus interval:', err);
-      alert('Failed to start session. Please ensure no other interval is active.');
+      alert('Gagal memulai sesi. Pastikan tidak ada interval lain yang sedang aktif.');
     } finally {
       setSubmitting(false);
     }
@@ -143,7 +144,7 @@ export default function FocusTrackingPage() {
       await loadData();
     } catch (err: unknown) {
       console.error('Failed to finish interval:', err);
-      alert('Failed to finish interval.');
+      alert('Gagal menyelesaikan interval.');
     } finally {
       setSubmitting(false);
     }
@@ -151,7 +152,7 @@ export default function FocusTrackingPage() {
 
   const handleAbandonInterval = async () => {
     if (!activeInterval) return;
-    if (!window.confirm('Are you sure you want to abandon this interval?')) return;
+    if (!window.confirm('Apakah Anda yakin ingin membatalkan interval ini?')) return;
     try {
       setSubmitting(true);
       await productivityService.abandonFocusInterval(activeInterval.id);
@@ -176,9 +177,9 @@ export default function FocusTrackingPage() {
     if (minutes >= 60) {
       const h = Math.floor(minutes / 60);
       const m = minutes % 60;
-      return `${h}h ${m}m`;
+      return `${h} jam ${m} mnt`;
     }
-    return `${minutes}m`;
+    return `${minutes} mnt`;
   };
 
   const targetSecs = targetMinutes * 60;
@@ -194,16 +195,16 @@ export default function FocusTrackingPage() {
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-border/60">
           <div>
             <h1 className="text-2xl sm:text-3xl font-extrabold text-[#123C32] tracking-tight">
-              Focus & Pomodoro Intervals
+              Interval Fokus & Pomodoro
             </h1>
             <p className="text-sm text-[#526B60] mt-1">
-              Atomic focus sessions and restorative breaks with verified interruption tracking.
+              Sesi fokus berkala dan istirahat pemulihan dengan pelacakan distraksi yang terverifikasi.
             </p>
           </div>
           {activeInterval && (
             <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-100/80 border border-emerald-300 text-emerald-800 text-xs font-bold animate-pulse">
               <span className="w-2 h-2 rounded-full bg-emerald-600" />
-              <span>Interval In Progress ({activeInterval.session_type.toUpperCase()})</span>
+              <span>Interval Sedang Berjalan ({activeInterval.session_type === 'focus' ? 'FOKUS' : 'ISTIRAHAT'})</span>
             </div>
           )}
         </div>
@@ -212,46 +213,46 @@ export default function FocusTrackingPage() {
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           <div className="p-4 rounded-2xl bg-white border border-border shadow-soft-xs flex flex-col justify-between">
             <span className="text-xs font-semibold text-text-secondary uppercase tracking-wider">
-              Focus Time Today
+              Waktu Fokus Hari Ini
             </span>
             <div className="mt-2 text-2xl font-black text-[#123C32]">
               {formatMinutesDisplay(dailyStats.completed_focus_minutes)}
             </div>
             <span className="text-[11px] text-[#526B60] mt-1">
-              {dailyStats.completed_focus_count} completed focus blocks
+              {dailyStats.completed_focus_count} blok fokus selesai
             </span>
           </div>
 
           <div className="p-4 rounded-2xl bg-white border border-border shadow-soft-xs flex flex-col justify-between">
             <span className="text-xs font-semibold text-text-secondary uppercase tracking-wider">
-              Break Blocks
+              Blok Istirahat
             </span>
             <div className="mt-2 text-2xl font-black text-teal-700">
               {dailyStats.completed_breaks_count}
             </div>
             <span className="text-[11px] text-[#526B60] mt-1">
-              Restorative recovery intervals
+              Interval istirahat pemulihan
             </span>
           </div>
 
           <div className="p-4 rounded-2xl bg-white border border-border shadow-soft-xs flex flex-col justify-between">
             <span className="text-xs font-semibold text-text-secondary uppercase tracking-wider">
-              Completed Intervals
+              Interval Selesai
             </span>
             <div className="mt-2 text-2xl font-black text-[#138F78]">
               {dailyStats.completed_focus_count + dailyStats.completed_breaks_count}
             </div>
-            <span className="text-[11px] text-[#526B60] mt-1">Across all session types</span>
+            <span className="text-[11px] text-[#526B60] mt-1">Di semua jenis sesi</span>
           </div>
 
           <div className="p-4 rounded-2xl bg-white border border-border shadow-soft-xs flex flex-col justify-between">
             <span className="text-xs font-semibold text-text-secondary uppercase tracking-wider">
-              Total Interruptions
+              Total Distraksi
             </span>
             <div className="mt-2 text-2xl font-black text-amber-600">
               {dailyStats.total_interruptions}
             </div>
-            <span className="text-[11px] text-[#526B60] mt-1">Distraction points logged</span>
+            <span className="text-[11px] text-[#526B60] mt-1">Poin distraksi tercatat</span>
           </div>
         </div>
 
@@ -283,7 +284,7 @@ export default function FocusTrackingPage() {
                         : 'text-[#526B60] hover:text-[#123C32]'
                     }`}
                   >
-                    Deep Focus
+                    Fokus Mendalam
                   </button>
                   <button
                     type="button"
@@ -297,7 +298,7 @@ export default function FocusTrackingPage() {
                         : 'text-[#526B60] hover:text-[#123C32]'
                     }`}
                   >
-                    Restorative Break
+                    Istirahat Pemulihan
                   </button>
                 </div>
               ) : (
@@ -308,7 +309,7 @@ export default function FocusTrackingPage() {
                     }`}
                   />
                   <span className="text-xs font-bold text-[#123C32] uppercase tracking-wider">
-                    {activeInterval.session_type === 'focus' ? 'Deep Focus Session' : 'Restorative Break'}
+                    {activeInterval.session_type === 'focus' ? 'Sesi Fokus Mendalam' : 'Istirahat Pemulihan'}
                   </span>
                 </div>
               )}
@@ -347,7 +348,7 @@ export default function FocusTrackingPage() {
                     {formatTimerDigits(elapsedSeconds)}
                   </span>
                   <span className="text-xs font-medium text-[#526B60] mt-1">
-                    Target: {targetMinutes} min
+                    Target: {targetMinutes} mnt
                   </span>
                 </div>
               </div>
@@ -356,7 +357,7 @@ export default function FocusTrackingPage() {
               {!activeInterval && (
                 <div className="w-full space-y-3">
                   <span className="text-xs font-semibold text-text-secondary uppercase tracking-wider">
-                    Select Target Duration
+                    Pilih Target Durasi
                   </span>
                   <div className="flex flex-wrap justify-center gap-2">
                     {(sessionType === 'focus' ? focusPresets : breakPresets).map((m) => (
@@ -370,7 +371,7 @@ export default function FocusTrackingPage() {
                             : 'bg-white text-[#526B60] border-border hover:border-emerald-300'
                         }`}
                       >
-                        {m} min
+                        {m} mnt
                       </button>
                     ))}
                   </div>
@@ -382,10 +383,10 @@ export default function FocusTrackingPage() {
                 <div className="w-full max-w-sm p-4 rounded-2xl bg-amber-50/70 border border-amber-200/80 flex items-center justify-between">
                   <div className="text-left">
                     <span className="text-xs font-bold text-amber-900 block">
-                      Logged Interruptions
+                      Distraksi Tercatat
                     </span>
                     <span className="text-xs text-amber-700">
-                      Phone call, knock, or urge to check social media
+                      Panggilan telepon, ketukan pintu, atau dorongan membuka medsos
                     </span>
                   </div>
                   <div className="flex items-center gap-3">
@@ -395,7 +396,7 @@ export default function FocusTrackingPage() {
                       onClick={handleIncrementInterruption}
                       className="px-3 py-1.5 rounded-xl bg-amber-200 hover:bg-amber-300 text-amber-900 text-xs font-bold transition-colors cursor-pointer active:scale-95"
                     >
-                      +1 Log
+                      +1 Catat
                     </button>
                   </div>
                 </div>
@@ -411,7 +412,7 @@ export default function FocusTrackingPage() {
                     disabled={submitting}
                     className="px-8 font-bold text-sm bg-[#138F78] hover:bg-[#123C32] text-white rounded-2xl shadow-soft-sm"
                   >
-                    Start {sessionType === 'focus' ? 'Focus Interval' : 'Break'}
+                    Mulai {sessionType === 'focus' ? 'Sesi Fokus' : 'Istirahat'}
                   </Button>
                 ) : (
                   <>
@@ -422,7 +423,7 @@ export default function FocusTrackingPage() {
                       disabled={submitting}
                       className="px-6 font-bold text-xs bg-[#138F78] hover:bg-[#123C32] text-white rounded-xl shadow-soft-sm"
                     >
-                      Finish & Save Block
+                      Selesaikan & Simpan Blok
                     </Button>
                     <button
                       type="button"
@@ -430,7 +431,7 @@ export default function FocusTrackingPage() {
                       disabled={submitting}
                       className="px-4 py-2 rounded-xl text-xs font-bold text-rose-600 hover:bg-rose-50 border border-rose-200 transition-colors"
                     >
-                      Abandon
+                      Batalkan
                     </button>
                   </>
                 )}
@@ -441,9 +442,9 @@ export default function FocusTrackingPage() {
           {/* Quick Context & Guide (5 cols) */}
           <div className="lg:col-span-5 space-y-6">
             <div className="bg-white rounded-3xl border border-border p-6 shadow-soft-xs space-y-4">
-              <h3 className="text-base font-bold text-[#123C32]">The Mindora Focus Principle</h3>
+              <h3 className="text-base font-bold text-[#123C32]">Prinsip Fokus Mindora</h3>
               <p className="text-xs leading-relaxed text-[#526B60]">
-                Unlike conventional monolithic timers, Mindora treats focus sessions and restorative breaks as distinct, individual records.
+                Berbeda dengan timer konvensional, Mindora memperlakukan sesi fokus dan istirahat pemulihan sebagai catatan terpisah yang unik.
               </p>
               <div className="space-y-3 pt-2">
                 <div className="flex items-start gap-3 p-3 rounded-xl bg-emerald-50/60 border border-emerald-100">
@@ -451,9 +452,9 @@ export default function FocusTrackingPage() {
                     1
                   </span>
                   <div>
-                    <span className="text-xs font-bold text-emerald-950 block">Atomic Records</span>
+                    <span className="text-xs font-bold text-emerald-950 block">Catatan Berkala (Atomic)</span>
                     <span className="text-[11px] text-emerald-800">
-                      A 25-minute study block creates its own row. Taking a 5-minute breather creates a separate break record.
+                      Blok belajar 25 menit membuat barisnya sendiri. Mengambil istirahat 5 menit membuat catatan istirahat terpisah.
                     </span>
                   </div>
                 </div>
@@ -463,9 +464,9 @@ export default function FocusTrackingPage() {
                     2
                   </span>
                   <div>
-                    <span className="text-xs font-bold text-teal-950 block">Interruption Calibration</span>
+                    <span className="text-xs font-bold text-teal-950 block">Kalibrasi Distraksi</span>
                     <span className="text-[11px] text-teal-800">
-                      Logging interruptions allows future ML models to evaluate deep work quality versus distraction density.
+                      Mencatat distraksi memungkinkan evaluasi kualitas fokus mendalam dibandingkan kepadatan distraksi.
                     </span>
                   </div>
                 </div>
@@ -475,9 +476,9 @@ export default function FocusTrackingPage() {
                     3
                   </span>
                   <div>
-                    <span className="text-xs font-bold text-slate-900 block">Server-Verified Elapsed Time</span>
+                    <span className="text-xs font-bold text-slate-900 block">Waktu Berjalan Terverifikasi Server</span>
                     <span className="text-[11px] text-slate-600">
-                      Closing the browser or switching tabs does not reset your session. Elapsed time is recalculated accurately on the server.
+                      Menutup peramban atau berpindah tab tidak mereset sesi Anda. Waktu berjalan dihitung ulang secara akurat di server.
                     </span>
                   </div>
                 </div>
@@ -489,20 +490,20 @@ export default function FocusTrackingPage() {
         {/* Interval History Table */}
         <div className="bg-white rounded-3xl border border-border p-6 shadow-soft-xs space-y-4">
           <div className="flex items-center justify-between">
-            <h2 className="text-lg font-bold text-[#123C32]">Recent Focus & Break Intervals</h2>
+            <h2 className="text-lg font-bold text-[#123C32]">Riwayat Interval Fokus & Istirahat</h2>
             <span className="text-xs font-medium text-text-secondary">
-              Showing last {history.length} records
+              Menampilkan {history.length} catatan terakhir
             </span>
           </div>
 
           {loading ? (
-            <div className="py-12 text-center text-sm text-text-muted">Loading intervals...</div>
+            <div className="py-12 text-center text-sm text-text-muted">Memuat interval...</div>
           ) : history.length === 0 ? (
             <div className="py-12 text-center space-y-2">
               <span className="text-3xl block">⏳</span>
-              <p className="text-sm font-semibold text-text-primary">No focus intervals recorded yet</p>
+              <p className="text-sm font-semibold text-text-primary">Belum ada interval fokus tercatat</p>
               <p className="text-xs text-text-secondary">
-                Select your focus duration above and start your first interval.
+                Pilih target durasi fokus di atas dan mulai interval pertama Anda.
               </p>
             </div>
           ) : (
@@ -510,12 +511,12 @@ export default function FocusTrackingPage() {
               <table className="w-full text-left text-xs">
                 <thead>
                   <tr className="border-b border-border/80 text-text-secondary uppercase tracking-wider font-semibold">
-                    <th className="py-3 px-3">Type</th>
+                    <th className="py-3 px-3">Jenis</th>
                     <th className="py-3 px-3">Status</th>
-                    <th className="py-3 px-3">Duration (Actual)</th>
-                    <th className="py-3 px-3">Interruptions</th>
-                    <th className="py-3 px-3">Started At</th>
-                    <th className="py-3 px-3">Completed At</th>
+                    <th className="py-3 px-3">Durasi (Aktual)</th>
+                    <th className="py-3 px-3">Distraksi</th>
+                    <th className="py-3 px-3">Mulai</th>
+                    <th className="py-3 px-3">Selesai</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border/40">
@@ -529,7 +530,7 @@ export default function FocusTrackingPage() {
                               : 'bg-teal-100 text-teal-800'
                           }`}
                         >
-                          {row.session_type === 'focus' ? '🎯 Focus' : '☕ Break'}
+                          {row.session_type === 'focus' ? '🎯 Fokus' : '☕ Istirahat'}
                         </span>
                       </td>
                       <td className="py-3.5 px-3">
@@ -542,30 +543,20 @@ export default function FocusTrackingPage() {
                               : 'bg-rose-50 text-rose-700 border border-rose-200'
                           }`}
                         >
-                          {row.status}
+                          {translateStatus(row.status)}
                         </span>
                       </td>
                       <td className="py-3.5 px-3 font-medium text-text-primary">
-                        {row.duration_minutes > 0 ? `${row.duration_minutes} min` : '< 1 min'}
+                        {row.duration_minutes > 0 ? `${row.duration_minutes} mnt` : '< 1 mnt'}
                       </td>
                       <td className="py-3.5 px-3 font-semibold text-amber-700">
                         {row.interruption_count}
                       </td>
                       <td className="py-3.5 px-3 text-text-secondary">
-                        {new Date(row.started_at).toLocaleString([], {
-                          month: 'short',
-                          day: 'numeric',
-                          hour: '2-digit',
-                          minute: '2-digit',
-                        })}
+                        {formatDateTime(row.started_at)}
                       </td>
                       <td className="py-3.5 px-3 text-text-secondary">
-                        {row.ended_at
-                          ? new Date(row.ended_at).toLocaleTimeString([], {
-                              hour: '2-digit',
-                              minute: '2-digit',
-                            })
-                          : '—'}
+                        {row.ended_at ? formatTime(row.ended_at) : '—'}
                       </td>
                     </tr>
                   ))}

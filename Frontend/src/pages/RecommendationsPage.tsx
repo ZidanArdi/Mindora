@@ -16,6 +16,7 @@ import type {
   UserProfile,
 } from '../types';
 import { useAuth } from '../hooks';
+import { formatDate, formatDateTime, translatePriority, translateCategory } from '../utils/i18n';
 
 export default function RecommendationsPage() {
   const { user } = useAuth();
@@ -40,16 +41,16 @@ export default function RecommendationsPage() {
             .map((n) => n[0])
             .join('')
             .slice(0, 2)
-            .toUpperCase() || 'ST',
-        workspaceName: 'Academic Workspace',
+            .toUpperCase() || 'MH',
+        workspaceName: 'Ruang Kerja Akademik',
       }
     : {
         id: 'usr_guest',
-        name: 'Student',
+        name: 'Mahasiswa',
         email: 'student@mindora.app',
         role: 'user',
-        avatarText: 'ST',
-        workspaceName: 'Academic Workspace',
+        avatarText: 'MH',
+        workspaceName: 'Ruang Kerja Akademik',
       };
 
   const fetchRecommendations = useCallback(async (shouldEvaluate: boolean = false) => {
@@ -65,7 +66,7 @@ export default function RecommendationsPage() {
       setRecommendations(res.items || []);
       setDataTier(res.user_data_tier || 'cold_start');
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : 'Failed to retrieve recommendations';
+      const msg = err instanceof Error ? err.message : 'Gagal memuat rekomendasi';
       setErrorMessage(msg);
     } finally {
       setLoading(false);
@@ -85,12 +86,12 @@ export default function RecommendationsPage() {
       setRecommendations((prev) => prev.filter((r) => r.id !== id));
       setActionSuccessMessage(
         status === 'completed'
-          ? 'Recommendation marked as completed.'
-          : 'Recommendation dismissed for 48 hours.'
+          ? 'Rekomendasi ditandai selesai.'
+          : 'Rekomendasi diabaikan selama 48 jam.'
       );
       setTimeout(() => setActionSuccessMessage(null), 4000);
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : 'Failed to update status';
+      const msg = err instanceof Error ? err.message : 'Gagal memperbarui status';
       setErrorMessage(msg);
     }
   };
@@ -104,12 +105,12 @@ export default function RecommendationsPage() {
 
   // Categories list derived from current recommendations + defaults
   const categories = [
-    { id: 'all', label: 'All Recommendations' },
-    { id: 'Task Prioritization', label: 'Tasks' },
-    { id: 'Study Consistency', label: 'Study Consistency' },
-    { id: 'Sleep Hygiene & Rest', label: 'Sleep & Rest' },
-    { id: 'Break Management & Recovery', label: 'Breaks & Timer' },
-    { id: 'Lifestyle Balance', label: 'Habits & Lifestyle' },
+    { id: 'all', label: 'Semua Rekomendasi' },
+    { id: 'Task Prioritization', label: 'Tugas & Prioritas' },
+    { id: 'Study Consistency', label: 'Konsistensi Belajar' },
+    { id: 'Sleep Hygiene & Rest', label: 'Tidur & Istirahat' },
+    { id: 'Break Management & Recovery', label: 'Jeda & Pemulihan' },
+    { id: 'Lifestyle Balance', label: 'Keseimbangan Gaya Hidup' },
   ];
 
   const filteredRecommendations = recommendations.filter((r) => {
@@ -136,43 +137,43 @@ export default function RecommendationsPage() {
     switch (tier) {
       case 'longitudinal':
         return {
-          title: 'Tier 4: Longitudinal Trajectory',
-          badge: 'High Personalization',
+          title: 'Tingkat 4: Trajektori Longitudinal',
+          badge: 'Personalisasi Penuh',
           description:
-            'Your profile has established 14+ days of verified study, habit, and machine learning tracking. Full historical models are active.',
+            'Profil Anda telah memiliki 14+ hari data pelacakan belajar, kebiasaan, dan machine learning yang terverifikasi. Model historis lengkap telah aktif.',
           bg: 'bg-emerald-900 text-white',
         };
       case 'calibrated':
         return {
-          title: 'Tier 3: Habit Calibrated',
-          badge: 'High Confidence',
+          title: 'Tingkat 3: Kebiasaan Terkalibrasi',
+          badge: 'Kepercayaan Tinggi',
           description:
-            'Calibrated baseline established. The engine evaluates rolling multi-day averages for study cadence, sleep deficit, and interval balance.',
+            'Data dasar terkalibrasi telah terbentuk. Mesin mengevaluasi rata-rata bergulir multi-hari untuk ritme belajar, defisit tidur, dan keseimbangan interval.',
           bg: 'bg-[#123C32] text-white',
         };
       case 'nascent':
         return {
-          title: 'Tier 2: Intraday Active',
-          badge: 'Emerging Patterns',
+          title: 'Tingkat 2: Aktif Harian',
+          badge: 'Pola Mulai Terlihat',
           description:
-            'Activity recorded today. Focus-to-break pacing and active task alerts are enabled. Log daily habits to reach calibrated status.',
+            'Aktivitas hari ini telah tercatat. Penyelarasan fokus-istirahat dan peringatan tugas aktif telah diaktifkan. Lengkapi kebiasaan harian untuk mencapai status terkalibrasi.',
           bg: 'bg-emerald-800 text-white',
         };
       case 'cold_start':
         return {
-          title: 'Tier 1A: Onboarding Cold Start',
-          badge: 'Baseline Guidance',
+          title: 'Tingkat 1A: Pengenalan (Cold Start)',
+          badge: 'Panduan Dasar',
           description:
-            'Welcome to Mindora! Cold-start recommendations focus on habit calibration and deadline setup without making premature behavioral assumptions.',
+            'Selamat datang di Mindora! Rekomendasi awal difokuskan pada kalibrasi kebiasaan dan tenggat waktu tanpa asumsi perilaku prematur.',
           bg: 'bg-slate-800 text-white',
         };
       case 'dormant':
       default:
         return {
-          title: 'Tier 1B: Reactivation Mode',
-          badge: 'Dormant Cadence',
+          title: 'Tingkat 1B: Mode Reaktivasi',
+          badge: 'Aktivitas Dormant',
           description:
-            'No recent study or habit activity recorded. Start a study block or schedule upcoming deliverables to refresh recommendations.',
+            'Belum ada aktivitas belajar atau pencatatan kebiasaan terkini. Mulai sesi belajar atau jadwalkan tugas kuliah untuk memperbarui rekomendasi.',
           bg: 'bg-slate-800 text-white',
         };
     }
@@ -188,13 +189,13 @@ export default function RecommendationsPage() {
           <div className="space-y-1.5">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-100 text-[#123C32] text-xs font-bold border border-emerald-200">
               <SparklesIcon className="w-3.5 h-3.5 text-[#138F78]" />
-              <span>DETERMINISTIC RECOMMENDATION ENGINE</span>
+              <span>MESIN REKOMENDASI DETERMINISTIK</span>
             </div>
             <h1 className="text-2xl sm:text-3xl font-black text-[#123C32] tracking-tight">
-              Personalized Recommendations
+              Rekomendasi Dipersonalisasi
             </h1>
             <p className="text-xs sm:text-sm text-[#526B60] max-w-2xl leading-relaxed">
-              Targeted, explainable interventions based on verified study sessions, Pomodoro intervals, daily habits, and task deadlines.
+              Intervensi terarah dan transparan berdasarkan sesi belajar terverifikasi, interval Pomodoro, kebiasaan harian, dan tenggat waktu tugas.
             </p>
           </div>
 
@@ -207,7 +208,7 @@ export default function RecommendationsPage() {
               className="text-xs font-bold border-emerald-300 text-[#123C32] hover:bg-emerald-50 cursor-pointer"
             >
               <SparklesIcon className={`w-3.5 h-3.5 mr-1.5 ${evaluating ? 'animate-spin' : ''}`} />
-              {evaluating ? 'Evaluating Rules...' : 'Re-evaluate Recommendations'}
+              {evaluating ? 'Mengevaluasi Aturan...' : 'Evaluasi Ulang Rekomendasi'}
             </Button>
           </div>
         </div>
@@ -219,7 +220,7 @@ export default function RecommendationsPage() {
               <span className="text-[10px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-white/20 text-emerald-200">
                 {tierInfo.badge}
               </span>
-              <span className="text-xs font-semibold text-white/70">Personalization Level</span>
+              <span className="text-xs font-semibold text-white/70">Tingkat Personalisasi</span>
             </div>
             <h2 className="text-lg font-bold text-white">{tierInfo.title}</h2>
             <p className="text-xs text-white/80 max-w-3xl leading-relaxed">
@@ -229,7 +230,7 @@ export default function RecommendationsPage() {
 
           <div className="shrink-0 flex items-center gap-2 text-xs text-white/70 bg-white/10 px-3.5 py-2 rounded-2xl border border-white/10">
             <ShieldIcon className="w-4 h-4 text-emerald-300" />
-            <span>Strict Zero vs NULL Integrity Protected</span>
+            <span>Integritas Nol vs NULL Terlindungi</span>
           </div>
         </div>
 
@@ -250,7 +251,7 @@ export default function RecommendationsPage() {
               onClick={() => fetchRecommendations(true)}
               className="text-[11px] font-bold text-rose-800 border-rose-300 hover:bg-rose-100"
             >
-              Retry
+              Coba Lagi
             </Button>
           </div>
         )}
@@ -297,12 +298,12 @@ export default function RecommendationsPage() {
             </div>
             <div className="space-y-1">
               <h3 className="text-base font-bold text-[#123C32]">
-                No Pending Recommendations
+                Tidak Ada Rekomendasi Tertunda
               </h3>
               <p className="text-xs text-[#526B60] max-w-md mx-auto leading-relaxed">
                 {selectedCategory === 'all'
-                  ? "You're completely on track! No overdue high-priority deliverables, chronic sleep deficits, or pacing imbalances were detected."
-                  : `No active recommendations found under the "${selectedCategory}" category.`}
+                  ? 'Semua target Anda berjalan optimal! Tidak ditemukan tugas mendesak yang terlewat, defisit tidur kronis, atau ketidakseimbangan ritme belajar.'
+                  : `Tidak ada rekomendasi aktif dalam kategori "${selectedCategory}".`}
               </p>
             </div>
             <div className="pt-2">
@@ -312,7 +313,7 @@ export default function RecommendationsPage() {
                 onClick={() => fetchRecommendations(true)}
                 className="text-xs font-bold border-emerald-300 text-[#123C32] hover:bg-emerald-50"
               >
-                Re-evaluate Rules
+                Evaluasi Ulang Aturan
               </Button>
             </div>
           </div>
@@ -335,10 +336,10 @@ export default function RecommendationsPage() {
                           rec.priority
                         )}`}
                       >
-                        {rec.priority} Priority
+                        Prioritas {translatePriority(rec.priority)}
                       </span>
                       <span className="px-2.5 py-0.5 rounded-lg bg-slate-100 text-slate-700 text-[11px] font-semibold border border-slate-200">
-                        {rec.category}
+                        {translateCategory(rec.category)}
                       </span>
                       <span className="text-[10px] font-mono text-slate-400">
                         {rec.rule_id}
@@ -346,13 +347,8 @@ export default function RecommendationsPage() {
                     </div>
 
                     <span className="text-[11px] text-[#526B60]">
-                      Valid until:{' '}
-                      {new Date(rec.valid_until).toLocaleDateString([], {
-                        month: 'short',
-                        day: 'numeric',
-                        hour: '2-digit',
-                        minute: '2-digit',
-                      })}
+                      Berlaku hingga:{' '}
+                      {formatDateTime(rec.valid_until)}
                     </span>
                   </div>
 
@@ -369,7 +365,7 @@ export default function RecommendationsPage() {
                   {/* Explanation Callout */}
                   <div className="p-4 rounded-2xl bg-[#E8F5F1]/70 border border-emerald-100 text-xs text-[#123C32] leading-relaxed">
                     <span className="font-bold block text-[11px] uppercase tracking-wider text-[#138F78] mb-1">
-                      Why this recommendation matters
+                      Mengapa rekomendasi ini penting
                     </span>
                     {rec.explanation}
                   </div>
@@ -383,9 +379,9 @@ export default function RecommendationsPage() {
                     >
                       <div className="flex items-center gap-2">
                         <ShieldIcon className="w-4 h-4 text-[#138F78]" />
-                        <span>Verified Evidence & Provenance</span>
+                        <span>Bukti & Parameter Terverifikasi</span>
                         <span className="text-[10px] font-normal text-slate-500">
-                          ({evidenceKeys.length} verifiable parameters)
+                          ({evidenceKeys.length} parameter terverifikasi)
                         </span>
                       </div>
                       <ChevronDownIcon
@@ -424,9 +420,9 @@ export default function RecommendationsPage() {
                           })}
                         </div>
                         <p className="text-[10px] text-slate-400 leading-relaxed border-t border-slate-100 pt-2">
-                          Evaluation period:{' '}
-                          {new Date(rec.evaluation_period_start).toLocaleDateString()} –{' '}
-                          {new Date(rec.evaluation_period_end).toLocaleDateString()} (Key:{' '}
+                          Periode evaluasi:{' '}
+                          {formatDate(rec.evaluation_period_start)} –{' '}
+                          {formatDate(rec.evaluation_period_end)} (Kunci:{' '}
                           <code className="font-mono text-[9px] bg-slate-100 px-1 py-0.5 rounded">
                             {rec.evaluation_key}
                           </code>
@@ -444,7 +440,7 @@ export default function RecommendationsPage() {
                           to={rec.action_route}
                           className="inline-flex items-center px-4 py-2 rounded-xl text-xs font-bold text-white bg-[#138F78] hover:bg-[#123C32] transition-colors shadow-soft-xs"
                         >
-                          {rec.action_label || 'Take Action →'}
+                          {rec.action_label || 'Ambil Tindakan →'}
                         </Link>
                       )}
                     </div>
@@ -457,7 +453,7 @@ export default function RecommendationsPage() {
                         className="text-xs font-bold text-emerald-800 border-emerald-300 hover:bg-emerald-50 cursor-pointer"
                       >
                         <CheckIcon className="w-3.5 h-3.5 mr-1 text-[#138F78]" />
-                        Mark Done
+                        Tandai Selesai
                       </Button>
 
                       <Button
@@ -467,7 +463,7 @@ export default function RecommendationsPage() {
                         className="text-xs font-semibold text-slate-500 hover:text-rose-700 hover:bg-rose-50 cursor-pointer"
                       >
                         <CloseIcon className="w-3.5 h-3.5 mr-1" />
-                        Dismiss (48h)
+                        Abaikan (48 Jam)
                       </Button>
                     </div>
                   </div>
