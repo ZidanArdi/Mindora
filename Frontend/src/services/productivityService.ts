@@ -20,6 +20,8 @@ import type {
   ProductivityPrediction,
   PredictionInput,
   PredictionHistoryResponse,
+  RecommendationItem,
+  RecommendationsResponse,
 } from '../types';
 
 export const productivityService = {
@@ -409,6 +411,22 @@ export const productivityService = {
     return data.data;
   },
 
+  async getRangeAnalytics(startDate: string, endDate: string, tz?: string): Promise<WeeklyAnalytics> {
+    const params = new URLSearchParams();
+    params.set('start_date', startDate);
+    params.set('end_date', endDate);
+    if (tz) params.set('tz', tz);
+
+    const res = await apiFetch(`/analytics/range?${params.toString()}`);
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.message || (res.statusText ? `Failed to fetch range analytics (${res.status} ${res.statusText})` : 'Failed to fetch range analytics'));
+    }
+    const data: ApiResponse<WeeklyAnalytics> = await res.json();
+    if (!data.data) throw new Error('No range analytics returned');
+    return data.data;
+  },
+
   async getAnalyticsSummary(tz?: string): Promise<AnalyticsSummary> {
     const query = tz ? `?tz=${encodeURIComponent(tz)}` : '';
     const res = await apiFetch(`/analytics/summary${query}`);
@@ -463,6 +481,47 @@ export const productivityService = {
     }
     const data: ApiResponse<ProductivityPrediction> = await res.json();
     if (!data.data) throw new Error('No prediction found');
+    return data.data;
+  },
+
+  // =========================================================================
+  // 6. Recommendation Engine APIs (Phase 4.1)
+  // =========================================================================
+  async getRecommendations(params: { evaluate?: boolean } = {}): Promise<RecommendationsResponse> {
+    const query = params.evaluate ? '?evaluate=true' : '';
+    const res = await apiFetch(`/recommendations${query}`);
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.message || 'Failed to retrieve recommendations');
+    }
+    const data: ApiResponse<RecommendationsResponse> = await res.json();
+    return (
+      data.data || {
+        items: [],
+        total: 0,
+        user_data_tier: 'cold_start',
+        generated_at: new Date().toISOString(),
+      }
+    );
+  },
+
+  async updateRecommendationStatus(
+    id: string,
+    status: 'dismissed' | 'completed'
+  ): Promise<RecommendationItem> {
+    const res = await apiFetch(`/recommendations/${id}/status`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ status }),
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.message || 'Failed to update recommendation status');
+    }
+    const data: ApiResponse<RecommendationItem> = await res.json();
+    if (!data.data) throw new Error('No updated recommendation data returned');
     return data.data;
   },
 };

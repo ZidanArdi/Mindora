@@ -136,6 +136,26 @@ export const authService = {
   },
 
   /**
+   * Update the current authenticated user's display name.
+   */
+  updateProfile: async (name: string): Promise<UserResponse> => {
+    const res = await apiFetch('/user/profile', {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ name }),
+    });
+
+    const json = await res.json();
+    if (!res.ok || !json.success) {
+      throw new Error(json.message || 'Failed to update user profile');
+    }
+
+    return json.data;
+  },
+
+  /**
    * Redirect browser to backend Google OAuth 2.0 PKCE initiation endpoint.
    */
   redirectToGoogle: (turnstileToken?: string) => {

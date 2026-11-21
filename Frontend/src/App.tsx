@@ -12,7 +12,11 @@ import {
   FocusTrackingPage,
   LifestyleTrackingPage,
   AnalyticsPage,
-  PlaceholderModulePage,
+  RecommendationsPage,
+  ReportsPage,
+  MessagesPage,
+  ProfilePage,
+  SettingsPage,
 } from './pages';
 import { AuthProvider } from './context/AuthContext';
 import { ProtectedRoute } from './components/auth/ProtectedRoute';
@@ -105,7 +109,7 @@ export default function App() {
             path="/messages"
             element={
               <ProtectedRoute allowedRoles={['user', 'admin']}>
-                <PlaceholderModulePage />
+                <MessagesPage />
               </ProtectedRoute>
             }
           />
@@ -113,15 +117,15 @@ export default function App() {
             path="/reports"
             element={
               <ProtectedRoute allowedRoles={['user', 'admin']}>
-                <PlaceholderModulePage />
+                <ReportsPage />
               </ProtectedRoute>
             }
           />
           <Route
             path="/recommendations"
             element={
-              <ProtectedRoute allowedRoles={['user', 'admin']}>
-                <PlaceholderModulePage />
+              <ProtectedRoute allowedRoles={['user']}>
+                <RecommendationsPage />
               </ProtectedRoute>
             }
           />
@@ -129,7 +133,7 @@ export default function App() {
             path="/profile"
             element={
               <ProtectedRoute allowedRoles={['user', 'admin']}>
-                <PlaceholderModulePage />
+                <ProfilePage />
               </ProtectedRoute>
             }
           />
@@ -137,7 +141,7 @@ export default function App() {
             path="/settings"
             element={
               <ProtectedRoute allowedRoles={['user', 'admin']}>
-                <PlaceholderModulePage />
+                <SettingsPage />
               </ProtectedRoute>
             }
           />

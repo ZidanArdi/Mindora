@@ -355,3 +355,40 @@ export interface AnalyticsSummary {
   active_focus_session?: FocusSession;
 }
 
+// =========================================================================
+// Phase 4: Personalized Productivity Recommendation Engine Types
+// =========================================================================
+
+export type RecommendationPriority = 'critical' | 'high' | 'medium' | 'low';
+export type RecommendationStatus = 'pending' | 'dismissed' | 'completed' | 'expired' | 'invalidated';
+
+export interface RecommendationItem {
+  id: string;
+  user_id: string;
+  rule_id: string;
+  category: string;
+  priority: RecommendationPriority;
+  title: string;
+  message: string;
+  explanation: string;
+  evidence: Record<string, unknown>;
+  action_route?: string;
+  action_label?: string;
+  status: RecommendationStatus;
+  evaluation_period_start: string;
+  evaluation_period_end: string;
+  evaluation_key: string;
+  dismissed_until?: string;
+  valid_until: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface RecommendationsResponse {
+  items: RecommendationItem[];
+  total: number;
+  user_data_tier: string;
+  generated_at: string;
+}
+
+

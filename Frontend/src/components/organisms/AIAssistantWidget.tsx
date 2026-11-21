@@ -1,7 +1,10 @@
-import { useState } from 'react';
-import { SparklesIcon, SendIcon } from '../atoms';
+import { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
+import { SparklesIcon, SendIcon, CheckIcon, CloseIcon } from '../atoms';
 import { QuickActionChips } from '../molecules';
 import { cn } from '../../utils';
+import { productivityService } from '../../services/productivityService';
+import type { RecommendationItem } from '../../types';
 
 export interface AIAssistantWidgetProps {
   className?: string;
@@ -14,6 +17,50 @@ export const AIAssistantWidget = ({
 }: AIAssistantWidgetProps) => {
   const [prompt, setPrompt] = useState('');
   const [responseMsg, setResponseMsg] = useState<string | null>(null);
+  const [urgentRecs, setUrgentRecs] = useState<RecommendationItem[]>([]);
+  const [loadingRecs, setLoadingRecs] = useState<boolean>(true);
+
+  // Fetch top 1-2 active recommendations (read-only evaluate=false)
+  useEffect(() => {
+    let isMounted = true;
+    const fetchTopRecs = async () => {
+      try {
+        const res = await productivityService.getRecommendations({ evaluate: false });
+        if (isMounted) {
+          // Take top 2 items
+          setUrgentRecs(res.items.slice(0, 2));
+        }
+      } catch (err: unknown) {
+        // Silently catch to keep AI assistant functional
+        console.error('Failed to load dashboard recommendations:', err);
+      } finally {
+        if (isMounted) setLoadingRecs(false);
+      }
+    };
+
+    fetchTopRecs();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  const handleDismissRec = async (id: string) => {
+    try {
+      await productivityService.updateRecommendationStatus(id, 'dismissed');
+      setUrgentRecs((prev) => prev.filter((r) => r.id !== id));
+    } catch (err: unknown) {
+      console.error('Failed to dismiss recommendation:', err);
+    }
+  };
+
+  const handleCompleteRec = async (id: string) => {
+    try {
+      await productivityService.updateRecommendationStatus(id, 'completed');
+      setUrgentRecs((prev) => prev.filter((r) => r.id !== id));
+    } catch (err: unknown) {
+      console.error('Failed to complete recommendation:', err);
+    }
+  };
 
   const quickPrompts = ['Plan my day', 'Prioritize tasks', 'Create focus plan'];
 
@@ -21,15 +68,9 @@ export const AIAssistantWidget = ({
     const text = textToSend || prompt;
     if (!text.trim()) return;
 
-    if (text === 'Plan my day') {
-      setResponseMsg('Based on your schedule, start with "Client meeting prep" at 10:20 AM, followed by 30 mins focused deep work.');
-    } else if (text === 'Prioritize tasks') {
-      setResponseMsg('Highest priority today: 1. Client meeting prep, 2. Machine Learning research paper, 3. Project 3 draft check.');
-    } else if (text === 'Create focus plan') {
-      setResponseMsg('Focus recommendation: 2 Pomodoro intervals (25 mins focus + 5 mins break) before lunchtime.');
-    } else {
-      setResponseMsg(`Planning with Mindora AI for "${text}"... Tasks optimized for your productivity patterns.`);
-    }
+    setResponseMsg(
+      'Conversational LLM planning is deferred in this release. Personal schedule interventions are generated deterministically by the Recommendation Engine.'
+    );
 
     onAskAI?.(text);
     setPrompt('');
@@ -49,9 +90,92 @@ export const AIAssistantWidget = ({
           <span>AI PLANNING ASSISTANT</span>
         </div>
         <span className="text-[11px] font-medium text-text-secondary">
-          Powered by your preferred LLM
+          Powered by your verified productivity data
         </span>
       </div>
+
+      {/* Top Urgent Recommendation Integration */}
+      {!loadingRecs && urgentRecs.length > 0 && (
+        <div className="space-y-2 pt-1 pb-1">
+          <div className="flex items-center justify-between text-[11px] font-bold text-text-secondary">
+            <span className="uppercase tracking-wider text-[#138F78] flex items-center gap-1.5">
+              <span className="w-2 h-2 rounded-full bg-[#138F78] animate-pulse" />
+              Urgent Productivity Insights
+            </span>
+            <Link
+              to="/recommendations"
+              className="text-[#138F78] hover:text-[#123C32] hover:underline transition-colors"
+            >
+              View Hub ({urgentRecs.length}) →
+            </Link>
+          </div>
+
+          <div className="space-y-2">
+            {urgentRecs.map((rec) => (
+              <div
+                key={rec.id}
+                className="p-3.5 rounded-xl bg-white border border-emerald-200/80 shadow-soft-xs hover:border-emerald-400 transition-all space-y-2"
+              >
+                <div className="flex items-start justify-between gap-2">
+                  <div className="space-y-0.5">
+                    <div className="flex items-center gap-2">
+                      <span
+                        className={`text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded ${
+                          rec.priority === 'critical'
+                            ? 'bg-rose-100 text-rose-800'
+                            : rec.priority === 'high'
+                            ? 'bg-amber-100 text-amber-900'
+                            : 'bg-emerald-100 text-[#123C32]'
+                        }`}
+                      >
+                        {rec.priority}
+                      </span>
+                      <span className="text-xs font-bold text-[#123C32]">
+                        {rec.title}
+                      </span>
+                    </div>
+                    <p className="text-[11px] text-[#526B60] leading-snug pt-0.5">
+                      {rec.message}
+                    </p>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => handleDismissRec(rec.id)}
+                    className="text-slate-400 hover:text-slate-600 p-1 rounded-lg hover:bg-slate-100 transition-colors cursor-pointer shrink-0"
+                    title="Dismiss (48h)"
+                    aria-label="Dismiss recommendation"
+                  >
+                    <CloseIcon className="w-3 h-3" />
+                  </button>
+                </div>
+
+                <div className="flex items-center justify-between pt-1 border-t border-slate-100 text-[11px]">
+                  {rec.action_route ? (
+                    <Link
+                      to={rec.action_route}
+                      className="font-bold text-[#138F78] hover:text-[#123C32] hover:underline"
+                    >
+                      {rec.action_label || 'Take Action →'}
+                    </Link>
+                  ) : (
+                    <span />
+                  )}
+
+                  <button
+                    type="button"
+                    onClick={() => handleCompleteRec(rec.id)}
+                    className="inline-flex items-center gap-1 font-semibold text-slate-500 hover:text-emerald-700 cursor-pointer"
+                  >
+                    <CheckIcon className="w-3 h-3 text-[#138F78]" />
+                    <span>Done</span>
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Headline */}
       <h3 className="text-lg sm:text-xl font-bold tracking-tight text-text-primary">
@@ -85,11 +209,19 @@ export const AIAssistantWidget = ({
         </button>
       </div>
 
-      {/* Mock AI Response message */}
+      {/* Conversational LLM Deferred Policy Notice */}
       {responseMsg && (
-        <div className="p-3.5 rounded-xl bg-nature-mint/60 border border-primary-200 text-xs text-primary-900 leading-relaxed font-medium animate-fadeIn">
-          <span className="font-bold mr-1">Mindora AI:</span>
-          {responseMsg}
+        <div className="p-3.5 rounded-xl bg-amber-50 border border-amber-200 text-xs text-amber-900 leading-relaxed font-medium animate-fadeIn flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+          <div>
+            <span className="font-bold mr-1">Notice:</span>
+            {responseMsg}
+          </div>
+          <Link
+            to="/recommendations"
+            className="text-primary font-bold hover:underline shrink-0"
+          >
+            Recommendations Hub →
+          </Link>
         </div>
       )}
     </div>
