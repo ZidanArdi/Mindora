@@ -1,4 +1,4 @@
-﻿import type { TeamMember } from '../../types';
+import type { TeamMember } from '../../types';
 import { Avatar, Badge, MoreHorizontalIcon, ChevronRightIcon } from '../../components/atoms';
 import { cn } from '../../utils';
 

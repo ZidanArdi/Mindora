@@ -1,6 +1,6 @@
-﻿import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { DashboardTemplate } from '../../components/templates';
-import { Button } from '../../components/atoms';
+import { Button, ClockIcon } from '../../components/atoms';
 import { productivityService } from '../../services/productivityService';
 import type { FocusSession, FocusDailyStats, UserProfile } from '../../types';
 import { useAuth } from '../../hooks';
@@ -500,7 +500,7 @@ export default function FocusTrackingPage() {
             <div className="py-12 text-center text-sm text-text-muted">Memuat interval...</div>
           ) : history.length === 0 ? (
             <div className="py-12 text-center space-y-2">
-              <span className="text-3xl block">â³</span>
+              <div className="w-12 h-12 rounded-2xl bg-emerald-50 text-[#138F78] flex items-center justify-center mx-auto mb-2"><ClockIcon className="w-6 h-6" /></div>
               <p className="text-sm font-semibold text-text-primary">Belum ada interval fokus tercatat</p>
               <p className="text-xs text-text-secondary">
                 Pilih target durasi fokus di atas dan mulai interval pertama Anda.
@@ -530,7 +530,7 @@ export default function FocusTrackingPage() {
                               : 'bg-teal-100 text-teal-800'
                           }`}
                         >
-                          {row.session_type === 'focus' ? 'ðŸŽ¯ Fokus' : 'â˜• Istirahat'}
+                          {row.session_type === 'focus' ? 'Fokus' : 'Istirahat'}
                         </span>
                       </td>
                       <td className="py-3.5 px-3">
@@ -556,7 +556,7 @@ export default function FocusTrackingPage() {
                         {formatDateTime(row.started_at)}
                       </td>
                       <td className="py-3.5 px-3 text-text-secondary">
-                        {row.ended_at ? formatTime(row.ended_at) : 'â€”'}
+                        {row.ended_at ? formatTime(row.ended_at) : '—'}
                       </td>
                     </tr>
                   ))}

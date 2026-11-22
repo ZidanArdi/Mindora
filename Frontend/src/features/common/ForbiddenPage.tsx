@@ -1,4 +1,4 @@
-﻿import { useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { ShieldIcon, Button, ChevronLeftIcon } from '../../components/atoms';
 import { useAuth } from '../../hooks';
 
@@ -30,7 +30,7 @@ export default function ForbiddenPage() {
         {/* Content */}
         <div className="space-y-2">
           <span className="text-xs font-bold text-amber-600 uppercase tracking-widest block">
-            403 â€” Akses Dibatasi
+            403 — Akses Dibatasi
           </span>
           <h1 className="text-2xl font-bold tracking-tight text-text-primary">
             Izin Tidak Mencukupi

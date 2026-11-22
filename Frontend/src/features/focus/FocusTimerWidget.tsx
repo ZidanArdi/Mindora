@@ -1,4 +1,4 @@
-﻿import { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { MinusIcon, PlusIcon, PlayIcon, PauseIcon, ChevronDownIcon } from '../../components/atoms';
 import { cn } from '../../utils';
 

@@ -199,8 +199,12 @@ export const productivityService = {
     };
   },
 
-  async getDailyStudyStats(date?: string): Promise<StudyDailyStats> {
-    const query = date ? `?date=${date}` : '';
+  async getDailyStudyStats(date?: string, tz?: string): Promise<StudyDailyStats> {
+    const params = new URLSearchParams();
+    if (date) params.set('date', date);
+    const resolvedTz = tz || Intl.DateTimeFormat().resolvedOptions().timeZone;
+    if (resolvedTz) params.set('tz', resolvedTz);
+    const query = params.toString() ? `?${params.toString()}` : '';
     const res = await apiFetch(`/study/stats/daily${query}`);
     if (!res.ok) throw new Error('Failed to fetch study statistics');
     const data: ApiResponse<StudyDailyStats> = await res.json();

@@ -1,4 +1,4 @@
-﻿import { useState, useEffect, useCallback, useId } from 'react';
+import { useState, useEffect, useCallback, useId } from 'react';
 import { DashboardTemplate } from '../../components/templates';
 import { Button } from '../../components/atoms';
 import { productivityService } from '../../services/productivityService';
@@ -381,13 +381,13 @@ export default function AnalyticsPage() {
                           </td>
                           <td className="py-2.5 px-3 text-text-secondary">{item.study_hours} jam</td>
                           <td className="py-2.5 px-3 text-text-secondary">
-                            {item.sleep_hours !== undefined && item.sleep_hours !== null ? `${item.sleep_hours} jam` : 'â€”'}
+                            {item.sleep_hours !== undefined && item.sleep_hours !== null ? `${item.sleep_hours} jam` : '—'}
                           </td>
                           <td className="py-2.5 px-3 text-text-secondary">
-                            {item.phone_usage_hours !== undefined && item.phone_usage_hours !== null ? `${item.phone_usage_hours} jam` : 'â€”'}
+                            {item.phone_usage_hours !== undefined && item.phone_usage_hours !== null ? `${item.phone_usage_hours} jam` : '—'}
                           </td>
                           <td className="py-2.5 px-3 text-text-secondary">
-                            {item.stress_level !== undefined && item.stress_level !== null ? `${item.stress_level}/10` : 'â€”'}
+                            {item.stress_level !== undefined && item.stress_level !== null ? `${item.stress_level}/10` : '—'}
                           </td>
                           <td className="py-2.5 px-3 font-mono text-[10px] text-text-muted">
                             {item.model_version.split('-')[2] || 'v1.0.0'}
@@ -466,7 +466,7 @@ export default function AnalyticsPage() {
                   <span className="text-sm font-semibold text-text-muted">/ {dailyData.total_break_minutes} mnt istirahat</span>
                 </div>
                 <span className="text-xs text-text-secondary block">
-                  {dailyData.completed_focus_count} blok fokus Â· {dailyData.completed_breaks_count} interval istirahat
+                  {dailyData.completed_focus_count} blok fokus · {dailyData.completed_breaks_count} interval istirahat
                 </span>
               </div>
 
@@ -519,13 +519,13 @@ export default function AnalyticsPage() {
                           <td className="py-2.5 px-3 text-emerald-600">{point.break_duration_hours} jam</td>
                           <td className="py-2.5 px-3 text-text-primary font-bold">{point.completed_tasks_count}</td>
                           <td className="py-2.5 px-3 text-text-secondary">
-                            {point.sleep_hours !== undefined && point.sleep_hours !== null ? `${point.sleep_hours} jam` : 'â€”'}
+                            {point.sleep_hours !== undefined && point.sleep_hours !== null ? `${point.sleep_hours} jam` : '—'}
                           </td>
                           <td className="py-2.5 px-3 text-text-secondary">
-                            {point.phone_usage_hours !== undefined && point.phone_usage_hours !== null ? `${point.phone_usage_hours} jam` : 'â€”'}
+                            {point.phone_usage_hours !== undefined && point.phone_usage_hours !== null ? `${point.phone_usage_hours} jam` : '—'}
                           </td>
                           <td className="py-2.5 px-3 text-text-secondary">
-                            {point.stress_level !== undefined && point.stress_level !== null ? `${point.stress_level}/10` : 'â€”'}
+                            {point.stress_level !== undefined && point.stress_level !== null ? `${point.stress_level}/10` : '—'}
                           </td>
                         </tr>
                       )

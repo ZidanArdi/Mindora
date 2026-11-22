@@ -1,6 +1,6 @@
-﻿import { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { SparklesIcon, SendIcon, CheckIcon, CloseIcon } from '../../components/atoms';
+import { SparklesIcon, SendIcon, CheckIcon, CloseIcon, ArrowRightIcon } from '../../components/atoms';
 import { QuickActionChips } from '../../components/molecules';
 import { cn, translatePriority } from '../../utils';
 import { productivityService } from '../../services/productivityService';
@@ -102,9 +102,10 @@ export const AIAssistantWidget = ({
             </span>
             <Link
               to="/recommendations"
-              className="text-[#138F78] hover:text-[#123C32] hover:underline transition-colors"
+              className="text-[#138F78] hover:text-[#123C32] hover:underline transition-colors inline-flex items-center gap-1"
             >
-              Lihat Pusat Rekomendasi ({urgentRecs.length}) â†’
+              <span>Lihat Pusat Rekomendasi ({urgentRecs.length})</span>
+              <ArrowRightIcon className="w-3 h-3" />
             </Link>
           </div>
 
@@ -152,9 +153,10 @@ export const AIAssistantWidget = ({
                   {rec.action_route ? (
                     <Link
                       to={rec.action_route}
-                      className="font-bold text-[#138F78] hover:text-[#123C32] hover:underline"
+                      className="font-bold text-[#138F78] hover:text-[#123C32] hover:underline inline-flex items-center gap-1"
                     >
-                      {rec.action_label || 'Ambil Tindakan â†’'}
+                      <span>{rec.action_label || 'Ambil Tindakan'}</span>
+                      <ArrowRightIcon className="w-3 h-3" />
                     </Link>
                   ) : (
                     <span />
@@ -216,9 +218,10 @@ export const AIAssistantWidget = ({
           </div>
           <Link
             to="/recommendations"
-            className="text-primary font-bold hover:underline shrink-0"
+            className="text-primary font-bold hover:underline shrink-0 inline-flex items-center gap-1"
           >
-            Pusat Rekomendasi â†’
+            <span>Pusat Rekomendasi</span>
+            <ArrowRightIcon className="w-3 h-3" />
           </Link>
         </div>
       )}

@@ -1,4 +1,4 @@
-﻿import type { ProductivityChartData, ActivityItem } from '../../types';
+import type { ProductivityChartData, ActivityItem } from '../../types';
 import { UsersIcon, ListIcon, FolderIcon, ShieldIcon, MoreHorizontalIcon } from '../../components/atoms';
 import { cn } from '../../utils';
 

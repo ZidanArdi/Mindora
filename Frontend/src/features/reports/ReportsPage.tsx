@@ -1,4 +1,4 @@
-﻿import { useState, useEffect, useCallback, useId } from 'react';
+import { useState, useEffect, useCallback, useId } from 'react';
 import { Link } from 'react-router-dom';
 import { DashboardTemplate } from '../../components/templates';
 import { Button } from '../../components/atoms';
@@ -572,7 +572,7 @@ export default function ReportsPage() {
                   <strong className="text-text-primary font-bold">
                     {reportData.average_sleep_hours !== undefined && reportData.average_sleep_hours !== null
                       ? `${reportData.average_sleep_hours.toFixed(1)} jam/malam`
-                      : 'â€” (Belum dicatat)'}
+                      : '— (Belum dicatat)'}
                   </strong>
                 </span>
                 <span>
@@ -580,7 +580,7 @@ export default function ReportsPage() {
                   <strong className="text-text-primary font-bold">
                     {reportData.average_phone_usage_hours !== undefined && reportData.average_phone_usage_hours !== null
                       ? `${reportData.average_phone_usage_hours.toFixed(1)} jam/hari`
-                      : 'â€” (Belum dicatat)'}
+                      : '— (Belum dicatat)'}
                   </strong>
                 </span>
                 <span>
@@ -588,7 +588,7 @@ export default function ReportsPage() {
                   <strong className="text-text-primary font-bold">
                     {reportData.average_stress_level !== undefined && reportData.average_stress_level !== null
                       ? `${reportData.average_stress_level.toFixed(1)} / 10`
-                      : 'â€” (Belum dicatat)'}
+                      : '— (Belum dicatat)'}
                   </strong>
                 </span>
               </div>
@@ -721,17 +721,17 @@ export default function ReportsPage() {
                           <td className="py-2.5 px-3 text-text-secondary">
                             {point.sleep_hours !== undefined && point.sleep_hours !== null
                               ? `${point.sleep_hours} jam`
-                              : 'â€”'}
+                              : '—'}
                           </td>
                           <td className="py-2.5 px-3 text-text-secondary">
                             {point.phone_usage_hours !== undefined && point.phone_usage_hours !== null
                               ? `${point.phone_usage_hours} jam`
-                              : 'â€”'}
+                              : '—'}
                           </td>
                           <td className="py-2.5 px-3 text-text-secondary">
                             {point.stress_level !== undefined && point.stress_level !== null
                               ? `${point.stress_level}/10`
-                              : 'â€”'}
+                              : '—'}
                           </td>
                         </tr>
                       ))}

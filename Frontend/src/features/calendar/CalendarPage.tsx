@@ -1,6 +1,6 @@
-﻿import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { DashboardTemplate } from '../../components/templates';
-import { Button, ChevronLeftIcon, ChevronRightIcon, ClockIcon, PlusIcon, CloseIcon } from '../../components/atoms';
+import { Button, ChevronLeftIcon, ChevronRightIcon, ClockIcon, PlusIcon, CloseIcon, CalendarIcon } from '../../components/atoms';
 import { productivityService } from '../../services/productivityService';
 import { mockUpcomingSchedules } from '../../mocks';
 import type { UserProfile, TaskItem } from '../../types';
@@ -380,7 +380,7 @@ export default function CalendarPage() {
               {/* Event List */}
               {selectedDayEvents.length === 0 ? (
                 <div className="py-8 text-center space-y-2 bg-surface-muted/30 rounded-2xl border border-dashed border-border">
-                  <span className="text-2xl block">ðŸ“…</span>
+                  <div className="w-10 h-10 rounded-xl bg-emerald-50 text-primary flex items-center justify-center mx-auto mb-1"><CalendarIcon className="w-5 h-5" /></div>
                   <p className="text-xs font-semibold text-text-primary">Tidak ada agenda untuk tanggal ini</p>
                   <p className="text-[11px] text-text-secondary max-w-[220px] mx-auto">
                     Klik 'Tambah Agenda' di atas atau buat tugas dengan tenggat pada tanggal ini.
@@ -427,7 +427,7 @@ export default function CalendarPage() {
 
             {/* Quick Helper Card */}
             <div className="p-5 rounded-3xl bg-gradient-to-br from-emerald-50 to-teal-50/40 border border-emerald-200/60 space-y-2">
-              <span className="text-xs font-bold text-[#123C32] block">ðŸ’¡ Tips Akademik</span>
+              <span className="text-xs font-bold text-[#123C32] block">Tips Akademik</span>
               <p className="text-[11px] text-[#526B60] leading-relaxed">
                 Sinkronkan target belajar dengan tenggat tugas. Sesi belajar yang diselesaikan di Mindora akan terintegrasi langsung ke Analisis Produktivitas Anda.
               </p>

@@ -1,4 +1,4 @@
-﻿import type { KPICardData } from '../../types';
+import type { KPICardData } from '../../types';
 import { MetricCard } from '../../components/molecules';
 import { ChevronDownIcon, CalendarIcon } from '../../components/atoms';
 import { cn, getGreeting } from '../../utils';

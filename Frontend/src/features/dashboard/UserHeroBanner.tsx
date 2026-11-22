@@ -1,4 +1,4 @@
-﻿import type { UpcomingSchedule } from '../../types';
+import type { UpcomingSchedule } from '../../types';
 import { UpcomingMeetingCard } from '../../components/molecules';
 import { ChevronDownIcon } from '../../components/atoms';
 import { cn, getGreeting } from '../../utils';

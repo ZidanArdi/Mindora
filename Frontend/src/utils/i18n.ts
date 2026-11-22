@@ -90,6 +90,59 @@ export function formatDuration(seconds: number): string {
 }
 
 /**
+ * Formats seconds into consistent, human-readable Indonesian study session duration.
+ * Accurately differentiates short seconds from multi-hour sessions without misleading truncation.
+ *
+ * Examples:
+ * - 6s     -> "6 detik"
+ * - 45s    -> "45 detik"
+ * - 300s   -> "5 menit"
+ * - 330s   -> "5 menit 30 detik"
+ * - 7200s  -> "2 jam"
+ * - 15349s -> "4 jam 15 menit"
+ * - 16815s -> "4 jam 40 menit"
+ */
+export function formatStudyDuration(totalSeconds: number): string {
+  if (isNaN(totalSeconds) || totalSeconds <= 0) return '0 detik';
+
+  const sec = Math.floor(totalSeconds);
+  if (sec < 60) {
+    return `${sec} detik`;
+  }
+
+  const hours = Math.floor(sec / 3600);
+  const remainingMins = Math.floor((sec % 3600) / 60);
+  const remainingSecs = sec % 60;
+
+  if (hours > 0) {
+    if (remainingMins === 0) {
+      return remainingSecs > 0 ? `${hours} jam ${remainingSecs} detik` : `${hours} jam`;
+    }
+    return `${hours} jam ${remainingMins} menit`;
+  }
+
+  // Under 1 hour
+  if (remainingSecs === 0) {
+    return `${remainingMins} menit`;
+  }
+  return `${remainingMins} menit ${remainingSecs} detik`;
+}
+
+/**
+ * Formats seconds into HH:MM:SS digital timer clock string.
+ * Example: 15349 -> "04:15:49", 6 -> "00:00:06"
+ */
+export function formatTimer(totalSec: number): string {
+  if (isNaN(totalSec) || totalSec <= 0) return '00:00:00';
+  const hrs = Math.floor(totalSec / 3600);
+  const mins = Math.floor((totalSec % 3600) / 60);
+  const secs = Math.floor(totalSec % 60);
+  return `${hrs.toString().padStart(2, '0')}:${mins
+    .toString()
+    .padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+}
+
+/**
  * Formats seconds into hours with 1 decimal place using Indonesian decimal comma.
  * Example: "2,5 jam"
  */
@@ -137,20 +190,105 @@ export function formatPercent(num: number, decimals: number = 0): string {
 }
 
 /**
- * Generates an appropriate time-aware Indonesian greeting.
+ * Formats a prediction target date (YYYY-MM-DD or ISO timestamp) into localized date string
+ * without accidental timezone date shift.
+ * Example: "2026-11-22T00:00:00Z" -> "22 November 2026"
  */
-export function getGreeting(userName?: string): string {
-  const hour = new Date().getHours();
-  let greet = 'Selamat Datang';
-  if (hour >= 4 && hour < 11) {
-    greet = 'Selamat Pagi';
-  } else if (hour >= 11 && hour < 15) {
-    greet = 'Selamat Siang';
-  } else if (hour >= 15 && hour < 18) {
-    greet = 'Selamat Sore';
-  } else {
-    greet = 'Selamat Malam';
+export function formatTargetDate(
+  dateStr: string | null | undefined,
+  locale: string = ID_LOCALE
+): string {
+  if (!dateStr) return '—';
+  const match = dateStr.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if (match) {
+    const [, yStr, mStr, dStr] = match;
+    const year = parseInt(yStr, 10);
+    const monthIndex = parseInt(mStr, 10) - 1;
+    const day = parseInt(dStr, 10);
+    const localDate = new Date(year, monthIndex, day);
+    return new Intl.DateTimeFormat(locale, {
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric',
+    }).format(localDate);
   }
+  return formatDate(dateStr, { day: 'numeric', month: 'long', year: 'numeric' });
+}
+
+/**
+ * Translates prediction state labels consistently.
+ */
+export function translatePredictionState(
+  state?: string,
+  fallbackLabel?: string,
+  locale: string = ID_LOCALE
+): string {
+  const isEn = locale.startsWith('en');
+  if (state === 'baseline' || fallbackLabel === 'Baseline Estimate') {
+    return isEn ? 'Baseline Estimate' : 'Estimasi Awal';
+  }
+  if (state === 'personalized' || fallbackLabel === 'Personalized Estimate') {
+    return isEn ? 'Personalized Estimate' : 'Estimasi Terpersonalisasi';
+  }
+  return fallbackLabel || (isEn ? 'Personalized Estimate' : 'Estimasi Terpersonalisasi');
+}
+
+/**
+ * Translates prediction description strings to avoid raw English sentences in Indonesian locale.
+ */
+export function translatePredictionDescription(
+  desc?: string,
+  state?: string,
+  locale: string = ID_LOCALE
+): string {
+  const isEn = locale.startsWith('en');
+  if (isEn) {
+    if (state === 'baseline' || desc?.includes('reference values')) {
+      return 'This estimate uses reference values for one or more unrecorded habits. Record your daily habits to obtain a more personalized estimate.';
+    }
+    return desc || 'Estimated from habit patterns (study, sleep, phone, stress). Not an objective academic evaluation.';
+  }
+
+  // Indonesian
+  if (state === 'baseline' || desc?.includes('reference values')) {
+    return 'Estimasi ini menggunakan nilai referensi untuk kebiasaan yang belum dicatat. Catat kebiasaan harian Anda untuk memperoleh estimasi yang lebih personal.';
+  }
+  if (state === 'personalized' || desc?.includes('recorded study duration') || desc?.includes('calculated using')) {
+    return 'Estimasi ini dihitung berdasarkan durasi belajar, tidur, penggunaan ponsel, dan tingkat stres yang Anda catat.';
+  }
+  return desc || 'Diestimasi dari pola kebiasaan (belajar, tidur, ponsel, stres). Bukan merupakan nilai akademik objektif.';
+}
+
+/**
+ * Generates an appropriate time-aware greeting in user's locale.
+ */
+export function getGreeting(userName?: string, locale: string = ID_LOCALE): string {
+  const hour = new Date().getHours();
+  const isEn = locale.startsWith('en');
+  let greet: string;
+
+  if (isEn) {
+    if (hour >= 4 && hour < 12) {
+      greet = 'Good morning';
+    } else if (hour >= 12 && hour < 17) {
+      greet = 'Good afternoon';
+    } else if (hour >= 17 && hour < 21) {
+      greet = 'Good evening';
+    } else {
+      greet = 'Good night';
+    }
+  } else {
+    if (hour >= 4 && hour < 11) {
+      greet = 'Selamat Pagi';
+    } else if (hour >= 11 && hour < 15) {
+      greet = 'Selamat Siang';
+    } else if (hour >= 15 && hour < 18) {
+      greet = 'Selamat Sore';
+    } else {
+      greet = 'Selamat Malam';
+    }
+  }
+
   return userName ? `${greet}, ${userName}` : greet;
 }
 

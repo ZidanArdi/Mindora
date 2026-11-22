@@ -1,4 +1,4 @@
-﻿import { Link } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { DashboardTemplate } from '../../components/templates';
 import { Button } from '../../components/atoms';
 import {

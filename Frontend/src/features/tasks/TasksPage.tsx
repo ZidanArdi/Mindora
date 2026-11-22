@@ -1,6 +1,6 @@
-﻿import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { DashboardTemplate } from '../../components/templates';
-import { Button, Input, PlusIcon, CloseIcon } from '../../components/atoms';
+import { Button, TrashIcon, ListIcon, Input, PlusIcon, CloseIcon } from '../../components/atoms';
 import { productivityService } from '../../services/productivityService';
 import type { TaskItem, TaskPriority, TaskStatus } from '../../types';
 import { useAuth } from '../../hooks';
@@ -277,7 +277,7 @@ export default function TasksPage() {
         ) : tasks.length === 0 ? (
           <div className="p-12 text-center bg-white rounded-2xl border border-border space-y-3">
             <div className="w-12 h-12 rounded-full bg-primary-100 text-primary flex items-center justify-center mx-auto text-xl">
-              ðŸ“
+              <ListIcon className="w-6 h-6" />
             </div>
             <h3 className="text-sm font-bold text-text-primary">Tidak ada tugas ditemukan</h3>
             <p className="text-xs text-text-secondary max-w-sm mx-auto">
@@ -387,7 +387,7 @@ export default function TasksPage() {
                   <div className="flex items-center gap-4 shrink-0">
                     {task.deadline && (
                       <span className="text-[11px] font-mono text-text-secondary">
-                        ðŸ“… {formatDate(task.deadline)}
+                        {formatDate(task.deadline)}
                       </span>
                     )}
                     <div className="flex items-center gap-2 opacity-90 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
@@ -536,8 +536,8 @@ export default function TasksPage() {
         {deletingTask && (
           <div className="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center p-4">
             <div className="bg-white rounded-3xl max-w-sm w-full p-6 shadow-soft-xl border border-border space-y-4 text-center">
-              <div className="w-12 h-12 rounded-full bg-red-100 text-red-600 flex items-center justify-center mx-auto text-xl font-bold">
-                ðŸ—‘ï¸
+              <div className="w-12 h-12 rounded-full bg-red-100 text-red-600 flex items-center justify-center mx-auto">
+                <TrashIcon className="w-6 h-6" />
               </div>
               <h3 className="text-base font-bold text-text-primary">Hapus Tugas?</h3>
               <p className="text-xs text-text-secondary leading-relaxed">

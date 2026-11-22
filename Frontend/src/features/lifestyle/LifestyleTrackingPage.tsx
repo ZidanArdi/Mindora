@@ -1,6 +1,6 @@
-﻿import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { DashboardTemplate } from '../../components/templates';
-import { Button } from '../../components/atoms';
+import { Button, SparklesIcon } from '../../components/atoms';
 import { productivityService } from '../../services/productivityService';
 import type { LifestyleRecord, UpsertLifestylePayload, UserProfile } from '../../types';
 import { useAuth } from '../../hooks';
@@ -14,44 +14,44 @@ interface DropdownOption {
 // 1. Sleep Duration Options (midpoints: 2.0, 4.5, 5.5, 6.5, 7.5, 8.5; open-ended: 9.5)
 const SLEEP_OPTIONS: DropdownOption[] = [
   { value: '', label: 'Tidak dicatat' },
-  { value: '2.0', label: '0â€“4 jam' },
-  { value: '4.5', label: '4â€“5 jam' },
-  { value: '5.5', label: '5â€“6 jam' },
-  { value: '6.5', label: '6â€“7 jam' },
-  { value: '7.5', label: '7â€“8 jam' },
-  { value: '8.5', label: '8â€“9 jam' },
+  { value: '2.0', label: '0–4 jam' },
+  { value: '4.5', label: '4–5 jam' },
+  { value: '5.5', label: '5–6 jam' },
+  { value: '6.5', label: '6–7 jam' },
+  { value: '7.5', label: '7–8 jam' },
+  { value: '8.5', label: '8–9 jam' },
   { value: '9.5', label: '9+ jam' },
 ];
 
 // 2. Phone Screen Time Options (midpoints: 0.5, 1.5, 2.5, 3.5, 4.5, 5.5; open-ended: 6.5)
 const PHONE_OPTIONS: DropdownOption[] = [
   { value: '', label: 'Tidak dicatat' },
-  { value: '0.5', label: '0â€“1 jam' },
-  { value: '1.5', label: '1â€“2 jam' },
-  { value: '2.5', label: '2â€“3 jam' },
-  { value: '3.5', label: '3â€“4 jam' },
-  { value: '4.5', label: '4â€“5 jam' },
-  { value: '5.5', label: '5â€“6 jam' },
+  { value: '0.5', label: '0–1 jam' },
+  { value: '1.5', label: '1–2 jam' },
+  { value: '2.5', label: '2–3 jam' },
+  { value: '3.5', label: '3–4 jam' },
+  { value: '4.5', label: '4–5 jam' },
+  { value: '5.5', label: '5–6 jam' },
   { value: '6.5', label: '6+ jam' },
 ];
 
 // 3. Social Media Options (midpoints: 0.5, 1.5, 2.5, 3.5; open-ended: 4.5)
 const SOCIAL_OPTIONS: DropdownOption[] = [
   { value: '', label: 'Tidak dicatat' },
-  { value: '0.5', label: '0â€“1 jam' },
-  { value: '1.5', label: '1â€“2 jam' },
-  { value: '2.5', label: '2â€“3 jam' },
-  { value: '3.5', label: '3â€“4 jam' },
+  { value: '0.5', label: '0–1 jam' },
+  { value: '1.5', label: '1–2 jam' },
+  { value: '2.5', label: '2–3 jam' },
+  { value: '3.5', label: '3–4 jam' },
   { value: '4.5', label: '4+ jam' },
 ];
 
 // 4. YouTube Stream Options (midpoints: 0.5, 1.5, 2.5, 3.5; open-ended: 4.5)
 const YOUTUBE_OPTIONS: DropdownOption[] = [
   { value: '', label: 'Tidak dicatat' },
-  { value: '0.5', label: '0â€“1 jam' },
-  { value: '1.5', label: '1â€“2 jam' },
-  { value: '2.5', label: '2â€“3 jam' },
-  { value: '3.5', label: '3â€“4 jam' },
+  { value: '0.5', label: '0–1 jam' },
+  { value: '1.5', label: '1–2 jam' },
+  { value: '2.5', label: '2–3 jam' },
+  { value: '3.5', label: '3–4 jam' },
   { value: '4.5', label: '4+ jam' },
 ];
 
@@ -59,9 +59,9 @@ const YOUTUBE_OPTIONS: DropdownOption[] = [
 const GAMING_OPTIONS: DropdownOption[] = [
   { value: '', label: 'Tidak dicatat' },
   { value: '0', label: '0 jam' },
-  { value: '1.5', label: '1â€“2 jam' },
-  { value: '2.5', label: '2â€“3 jam' },
-  { value: '3.5', label: '3â€“4 jam' },
+  { value: '1.5', label: '1–2 jam' },
+  { value: '2.5', label: '2–3 jam' },
+  { value: '3.5', label: '3–4 jam' },
   { value: '4.5', label: '4+ jam' },
 ];
 
@@ -69,11 +69,11 @@ const GAMING_OPTIONS: DropdownOption[] = [
 const CAFFEINE_OPTIONS: DropdownOption[] = [
   { value: '', label: 'Tidak dicatat' },
   { value: '0', label: '0 mg' },
-  { value: '25', label: '1â€“50 mg' },
-  { value: '75', label: '51â€“100 mg' },
-  { value: '125', label: '101â€“150 mg' },
-  { value: '175', label: '151â€“200 mg' },
-  { value: '250', label: '201â€“300 mg' },
+  { value: '25', label: '1–50 mg' },
+  { value: '75', label: '51–100 mg' },
+  { value: '125', label: '101–150 mg' },
+  { value: '175', label: '151–200 mg' },
+  { value: '250', label: '201–300 mg' },
   { value: '350', label: '300+ mg' },
 ];
 
@@ -81,11 +81,11 @@ const CAFFEINE_OPTIONS: DropdownOption[] = [
 const EXERCISE_OPTIONS: DropdownOption[] = [
   { value: '', label: 'Tidak dicatat' },
   { value: '0', label: '0 menit' },
-  { value: '8', label: '1â€“15 menit' },
-  { value: '23', label: '16â€“30 menit' },
-  { value: '38', label: '31â€“45 menit' },
-  { value: '53', label: '46â€“60 menit' },
-  { value: '75', label: '61â€“90 menit' },
+  { value: '8', label: '1–15 menit' },
+  { value: '23', label: '16–30 menit' },
+  { value: '38', label: '31–45 menit' },
+  { value: '53', label: '46–60 menit' },
+  { value: '75', label: '61–90 menit' },
   { value: '105', label: '90+ menit' },
 ];
 
@@ -512,7 +512,7 @@ export default function LifestyleTrackingPage() {
                   ))}
                 </select>
                 <p className="text-[10px] text-text-secondary leading-tight">
-                  1 cangkir kopi tubruk â‰ˆ 80â€“100mg; 1 espresso â‰ˆ 64mg.
+                  1 cangkir kopi tubruk ≈ 80–100mg; 1 espresso ≈ 64mg.
                   {coffeeIntakeMg !== '' && (
                     <span className="text-amber-700 font-bold block mt-0.5">
                       Terkalibrasi sebagai {coffeeIntakeMg} mg
@@ -560,7 +560,7 @@ export default function LifestyleTrackingPage() {
                     Tingkat Stres Subjektif
                   </label>
                   <span className="text-[11px] font-semibold text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded-full border border-indigo-200">
-                    Skala 1â€“10
+                    Skala 1–10
                   </span>
                 </div>
                 <select
@@ -626,7 +626,9 @@ export default function LifestyleTrackingPage() {
 
           {history.length === 0 ? (
             <div className="py-12 text-center space-y-2">
-              <span className="text-3xl block">ðŸŒ¿</span>
+              <div className="w-12 h-12 rounded-2xl bg-emerald-50 text-[#138F78] flex items-center justify-center mx-auto mb-2">
+                <SparklesIcon className="w-6 h-6" />
+              </div>
               <p className="text-sm font-semibold text-text-primary">Belum ada catatan gaya hidup tersimpan</p>
               <p className="text-xs text-text-secondary">
                 Kalibrasi metrik hari ini di atas untuk membangun data dasar kebiasaan Anda.
@@ -658,37 +660,37 @@ export default function LifestyleTrackingPage() {
                       <td className="py-3.5 px-3">
                         {record.sleep_hours !== null && record.sleep_hours !== undefined
                           ? `${record.sleep_hours} jam`
-                          : <span className="text-text-muted">â€”</span>}
+                          : <span className="text-text-muted">—</span>}
                       </td>
                       <td className="py-3.5 px-3">
                         {record.phone_usage_hours !== null && record.phone_usage_hours !== undefined
                           ? `${record.phone_usage_hours} jam`
-                          : <span className="text-text-muted">â€”</span>}
+                          : <span className="text-text-muted">—</span>}
                       </td>
                       <td className="py-3.5 px-3">
                         {record.social_media_hours !== null && record.social_media_hours !== undefined
                           ? `${record.social_media_hours} jam`
-                          : <span className="text-text-muted">â€”</span>}
+                          : <span className="text-text-muted">—</span>}
                       </td>
                       <td className="py-3.5 px-3">
                         {record.youtube_hours !== null && record.youtube_hours !== undefined
                           ? `${record.youtube_hours} jam`
-                          : <span className="text-text-muted">â€”</span>}
+                          : <span className="text-text-muted">—</span>}
                       </td>
                       <td className="py-3.5 px-3">
                         {record.gaming_hours !== null && record.gaming_hours !== undefined
                           ? `${record.gaming_hours} jam`
-                          : <span className="text-text-muted">â€”</span>}
+                          : <span className="text-text-muted">—</span>}
                       </td>
                       <td className="py-3.5 px-3">
                         {record.coffee_intake_mg !== null && record.coffee_intake_mg !== undefined
                           ? `${record.coffee_intake_mg} mg`
-                          : <span className="text-text-muted">â€”</span>}
+                          : <span className="text-text-muted">—</span>}
                       </td>
                       <td className="py-3.5 px-3">
                         {record.exercise_minutes !== null && record.exercise_minutes !== undefined
                           ? `${record.exercise_minutes} mnt`
-                          : <span className="text-text-muted">â€”</span>}
+                          : <span className="text-text-muted">—</span>}
                       </td>
                       <td className="py-3.5 px-3">
                         {record.stress_level !== null && record.stress_level !== undefined ? (
@@ -704,7 +706,7 @@ export default function LifestyleTrackingPage() {
                             {record.stress_level}/10
                           </span>
                         ) : (
-                          <span className="text-text-muted">â€”</span>
+                          <span className="text-text-muted">—</span>
                         )}
                       </td>
                       <td className="py-3.5 px-3 text-right">

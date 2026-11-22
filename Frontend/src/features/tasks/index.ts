@@ -1,2 +1,2 @@
-﻿export { default as TasksPage } from './TasksPage';
+export { default as TasksPage } from './TasksPage';
 export * from './TaskSection';

@@ -1,10 +1,10 @@
-﻿import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { DashboardTemplate } from '../../components/templates';
-import { Button, Input } from '../../components/atoms';
+import { Button, Input, ClockIcon, BookOpenIcon } from '../../components/atoms';
 import { productivityService } from '../../services/productivityService';
 import type { StudySession, StudyDailyStats, TaskItem } from '../../types';
 import { useAuth } from '../../hooks';
-import { formatDateTime, translateStatus } from '../../utils/i18n';
+import { formatDateTime, translateStatus, formatStudyDuration, formatTimer } from '../../utils/i18n';
 
 export default function StudyTrackingPage() {
   const { user } = useAuth();
@@ -147,15 +147,6 @@ export default function StudyTrackingPage() {
     }
   };
 
-  const formatTimer = (totalSec: number) => {
-    const hrs = Math.floor(totalSec / 3600);
-    const mins = Math.floor((totalSec % 3600) / 60);
-    const secs = totalSec % 60;
-    return `${hrs.toString().padStart(2, '0')}:${mins
-      .toString()
-      .padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-  };
-
   const currentUserProfile = user
     ? {
         id: user.id,
@@ -182,8 +173,8 @@ export default function StudyTrackingPage() {
         {/* Daily Stats KPI Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div className="p-5 rounded-2xl bg-white border border-border shadow-soft-xs flex items-center gap-4">
-            <div className="w-12 h-12 rounded-xl bg-emerald-100 text-emerald-800 flex items-center justify-center text-xl font-bold">
-              â±ï¸
+            <div className="w-12 h-12 rounded-xl bg-emerald-100 text-emerald-800 flex items-center justify-center">
+              <ClockIcon className="w-6 h-6 text-emerald-800" />
             </div>
             <div>
               <p className="text-xs font-semibold text-text-secondary">Jam Belajar Hari Ini</p>
@@ -191,14 +182,18 @@ export default function StudyTrackingPage() {
                 {(dailyStats.total_completed_seconds / 3600).toFixed(1)} jam
               </h3>
               <p className="text-[10px] text-text-muted mt-0.5">
-                {Math.floor(dailyStats.total_completed_seconds / 60)} menit terselesaikan tercatat
+                {dailyStats.total_completed_seconds === 0
+                  ? '0 menit terselesaikan tercatat'
+                  : dailyStats.total_completed_seconds < 60
+                  ? `${dailyStats.total_completed_seconds} detik terselesaikan tercatat`
+                  : `${Math.floor(dailyStats.total_completed_seconds / 60)} menit terselesaikan tercatat`}
               </p>
             </div>
           </div>
 
           <div className="p-5 rounded-2xl bg-white border border-border shadow-soft-xs flex items-center gap-4">
-            <div className="w-12 h-12 rounded-xl bg-primary-100 text-primary flex items-center justify-center text-xl font-bold">
-              ðŸ“š
+            <div className="w-12 h-12 rounded-xl bg-primary-100 text-primary flex items-center justify-center">
+              <BookOpenIcon className="w-6 h-6 text-primary" />
             </div>
             <div>
               <p className="text-xs font-semibold text-text-secondary">Sesi Selesai</p>
@@ -356,8 +351,13 @@ export default function StudyTrackingPage() {
                   {history.map((sess) => (
                     <tr key={sess.id} className="hover:bg-surface-muted/50 transition-colors">
                       <td className="py-3 px-4 font-semibold">{sess.subject}</td>
-                      <td className="py-3 px-4 font-mono">
-                        {Math.floor(sess.duration_seconds / 60)} mnt ({formatTimer(sess.duration_seconds)})
+                      <td className="py-3 px-4">
+                        <div className="font-medium text-text-primary">
+                          {formatStudyDuration(sess.duration_seconds)}
+                        </div>
+                        <div className="text-[10px] text-text-muted font-mono">
+                          {formatTimer(sess.duration_seconds)}
+                        </div>
                       </td>
                       <td className="py-3 px-4">
                         <span
@@ -375,7 +375,11 @@ export default function StudyTrackingPage() {
                         </span>
                       </td>
                       <td className="py-3 px-4 text-text-secondary">
-                        {sess.task ? sess.task.title : 'â€”'}
+                        {sess.task && sess.task.title ? (
+                          <span className="font-medium text-text-primary">{sess.task.title}</span>
+                        ) : (
+                          <span className="text-text-muted italic">Belajar mandiri</span>
+                        )}
                       </td>
                       <td className="py-3 px-4 text-text-muted">
                         {formatDateTime(sess.started_at)}
@@ -391,4 +395,3 @@ export default function StudyTrackingPage() {
     </DashboardTemplate>
   );
 }
-

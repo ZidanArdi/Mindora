@@ -1,4 +1,4 @@
-﻿import { Link } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { DashboardTemplate } from '../../components/templates';
 import { Button } from '../../components/atoms';
 import {
@@ -46,7 +46,7 @@ export default function MessagesPage() {
           <div>
             <div className="flex items-center gap-2">
               <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-amber-100 text-amber-800 border border-amber-200">
-                Fase 4.3 Â· Layanan LLM Ditangguhkan
+                Fase 4.3 · Layanan LLM Ditangguhkan
               </span>
               <span className="text-xs text-text-muted">Komunikasi Akademik & Panduan AI</span>
             </div>
@@ -81,7 +81,7 @@ export default function MessagesPage() {
             <div className="space-y-1.5 flex-1">
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <h2 className="text-base font-bold text-primary-900">
-                  Mesin Perencanaan AI Percakapan â€” Status Ditangguhkan
+                  Mesin Perencanaan AI Percakapan — Status Ditangguhkan
                 </h2>
                 <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-amber-100 text-amber-900">
                   <span className="w-2 h-2 rounded-full bg-amber-600 animate-pulse" />

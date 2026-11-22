@@ -1,4 +1,4 @@
-﻿import { useLocation, Link } from 'react-router-dom';
+import { useLocation, Link } from 'react-router-dom';
 import { DashboardTemplate } from '../../components/templates';
 import type { UserProfile } from '../../types';
 import { useAuth } from '../../hooks';
@@ -27,7 +27,7 @@ const moduleConfigs: Record<string, ModuleConfig> = {
       'Tren frekuensi distraksi berdasarkan waktu belajar',
       'Diagram radar konsistensi kebiasaan mingguan',
     ],
-    icon: 'ðŸ“Š',
+    icon: 'Chart',
   },
   '/reports': {
     title: 'Laporan Produktivitas & Ekspor',
@@ -42,7 +42,7 @@ const moduleConfigs: Record<string, ModuleConfig> = {
       'Ringkasan mingguan otomatis via email',
       'Sertifikasi bukti waktu belajar terverifikasi',
     ],
-    icon: 'ðŸ“‘',
+    icon: 'Report',
   },
   '/messages': {
     title: 'Grup Belajar & Pesan',
@@ -57,7 +57,7 @@ const moduleConfigs: Record<string, ModuleConfig> = {
       'Undangan sesi belajar dan ruang fokus bersama',
       'Lampiran dokumen tugas dan ulasan rekan sebaya',
     ],
-    icon: 'ðŸ’¬',
+    icon: 'Chat',
   },
   '/recommendations': {
     title: 'Rekomendasi Produktivitas AI',
@@ -72,7 +72,7 @@ const moduleConfigs: Record<string, ModuleConfig> = {
       'Peringatan jeda waktu layar sebelum blok fokus mendalam',
       'Saran istirahat belajar yang adaptif terhadap konteks',
     ],
-    icon: 'âœ¨',
+    icon: 'AI',
   },
   '/profile': {
     title: 'Profil Mahasiswa & Konteks Akademik',
@@ -87,7 +87,7 @@ const moduleConfigs: Record<string, ModuleConfig> = {
       'Kustomisasi avatar profil dan identitas mahasiswa',
       'Preferensi notifikasi sesi dan pengingat',
     ],
-    icon: 'ðŸŽ“',
+    icon: 'Education',
   },
   '/settings': {
     title: 'Pengaturan & Keamanan',
@@ -102,7 +102,7 @@ const moduleConfigs: Record<string, ModuleConfig> = {
       'Kustomisasi tema tampilan (Botanical Sage / Forest Night)',
       'Ekspor akun dan kontrol privasi data',
     ],
-    icon: 'âš™ï¸',
+    icon: 'Settings',
   },
 };
 
@@ -118,7 +118,7 @@ export default function PlaceholderModulePage() {
     badge: 'Dalam Pengembangan',
     description: 'Modul ini dijadwalkan untuk dirilis pada pembaruan Mindora berikutnya.',
     expectedFeatures: ['Integrasi fitur mendalam', 'Antarmuka responsif', 'Kemampuan ekspor data'],
-    icon: 'ðŸŒ±',
+    icon: 'Habit',
   };
 
   const displayUser: UserProfile = user
@@ -186,7 +186,7 @@ export default function PlaceholderModulePage() {
                 className="flex items-center gap-3 p-3.5 rounded-2xl bg-slate-50/80 border border-slate-200/60"
               >
                 <span className="w-6 h-6 rounded-full bg-emerald-100 text-[#123C32] text-xs font-bold flex items-center justify-center shrink-0">
-                  âœ“
+                  ✓
                 </span>
                 <span className="text-xs font-semibold text-text-primary">{feat}</span>
               </div>
@@ -202,13 +202,13 @@ export default function PlaceholderModulePage() {
                 to="/dashboard"
                 className="px-4 py-2 rounded-xl text-xs font-bold text-[#123C32] bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 transition-colors"
               >
-                â† Kembali ke Dasbor
+                ← Kembali ke Dasbor
               </Link>
               <Link
                 to="/tasks"
                 className="px-4 py-2 rounded-xl text-xs font-bold text-white bg-[#138F78] hover:bg-[#123C32] transition-colors shadow-soft-xs"
               >
-                Buka Pengelola Tugas â†’
+                Buka Pengelola Tugas →
               </Link>
             </div>
           </div>

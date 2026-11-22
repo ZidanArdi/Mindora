@@ -1,4 +1,4 @@
-﻿import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Button, ChevronRightIcon, ShieldIcon, UserIcon } from '../../components/atoms';
 import { useAuth } from '../../hooks';
 

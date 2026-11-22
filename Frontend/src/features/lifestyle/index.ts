@@ -1,1 +1,1 @@
-﻿export { default as LifestyleTrackingPage } from './LifestyleTrackingPage';
+export { default as LifestyleTrackingPage } from './LifestyleTrackingPage';

@@ -1,4 +1,4 @@
-﻿import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { DashboardTemplate } from '../../components/templates';
 import {
@@ -294,7 +294,7 @@ export default function RecommendationsPage() {
         ) : filteredRecommendations.length === 0 ? (
           <div className="bg-white rounded-3xl border border-dashed border-border p-12 text-center space-y-4 shadow-soft-xs">
             <div className="w-14 h-14 rounded-2xl bg-emerald-50 text-[#138F78] flex items-center justify-center mx-auto text-2xl font-bold">
-              âœ“
+              ✓
             </div>
             <div className="space-y-1">
               <h3 className="text-base font-bold text-[#123C32]">
@@ -421,7 +421,7 @@ export default function RecommendationsPage() {
                         </div>
                         <p className="text-[10px] text-slate-400 leading-relaxed border-t border-slate-100 pt-2">
                           Periode evaluasi:{' '}
-                          {formatDate(rec.evaluation_period_start)} â€“{' '}
+                          {formatDate(rec.evaluation_period_start)} –{' '}
                           {formatDate(rec.evaluation_period_end)} (Kunci:{' '}
                           <code className="font-mono text-[9px] bg-slate-100 px-1 py-0.5 rounded">
                             {rec.evaluation_key}
@@ -440,7 +440,7 @@ export default function RecommendationsPage() {
                           to={rec.action_route}
                           className="inline-flex items-center px-4 py-2 rounded-xl text-xs font-bold text-white bg-[#138F78] hover:bg-[#123C32] transition-colors shadow-soft-xs"
                         >
-                          {rec.action_label || 'Ambil Tindakan â†’'}
+                          {rec.action_label || 'Ambil Tindakan'}
                         </Link>
                       )}
                     </div>

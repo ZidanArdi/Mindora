@@ -1,15 +1,22 @@
-﻿import { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { DashboardTemplate } from '../../components/templates';
 import { UserHeroBanner } from './UserHeroBanner';
 import { AIAssistantWidget } from './AIAssistantWidget';
 import { FocusTimerWidget } from '../focus/FocusTimerWidget';
 import { CalendarWidget } from '../../components/molecules';
-import { ShieldIcon, Button, CheckIcon } from '../../components/atoms';
+import { ShieldIcon, Button, CheckIcon, ArrowRightIcon, ListIcon } from '../../components/atoms';
 import { productivityService } from '../../services/productivityService';
 import type { DashboardSummary, UserProfile, TaskStatus, ProductivityPrediction } from '../../types';
 import { useAuth } from '../../hooks';
-import { translatePriority, translateCategory, formatDate } from '../../utils/i18n';
+import {
+  translatePriority,
+  translateCategory,
+  formatDate,
+  formatTargetDate,
+  translatePredictionState,
+  translatePredictionDescription,
+} from '../../utils/i18n';
 
 export default function UserDashboardPage() {
   const navigate = useNavigate();
@@ -149,8 +156,9 @@ export default function UserDashboardPage() {
                 <span className="text-xs font-semibold text-text-secondary uppercase tracking-wider">
                   Progres Tugas
                 </span>
-                <Link to="/tasks" className="text-[11px] font-bold text-primary hover:underline">
-                  Lihat â†’
+                <Link to="/tasks" className="text-[11px] font-bold text-primary hover:underline inline-flex items-center gap-1">
+                  <span>Lihat</span>
+                  <ArrowRightIcon className="w-3 h-3" />
                 </Link>
               </div>
               <div className="my-2">
@@ -179,8 +187,9 @@ export default function UserDashboardPage() {
                 <span className="text-xs font-semibold text-text-secondary uppercase tracking-wider">
                   Belajar Hari Ini
                 </span>
-                <Link to="/study" className="text-[11px] font-bold text-primary hover:underline">
-                  Ruang Belajar â†’
+                <Link to="/study" className="text-[11px] font-bold text-primary hover:underline inline-flex items-center gap-1">
+                  <span>Ruang Belajar</span>
+                  <ArrowRightIcon className="w-3 h-3" />
                 </Link>
               </div>
               <div className="my-2 text-2xl font-black text-[#123C32]">
@@ -199,8 +208,9 @@ export default function UserDashboardPage() {
                 <span className="text-xs font-semibold text-text-secondary uppercase tracking-wider">
                   Blok Fokus Mendalam
                 </span>
-                <Link to="/focus" className="text-[11px] font-bold text-primary hover:underline">
-                  Interval â†’
+                <Link to="/focus" className="text-[11px] font-bold text-primary hover:underline inline-flex items-center gap-1">
+                  <span>Interval</span>
+                  <ArrowRightIcon className="w-3 h-3" />
                 </Link>
               </div>
               <div className="my-2 text-2xl font-black text-[#138F78]">
@@ -208,7 +218,7 @@ export default function UserDashboardPage() {
               </div>
               <span className="text-[11px] text-[#526B60]">
                 {summary
-                  ? `${summary.completed_breaks_count} istirahat Â· ${summary.total_interruptions} distraksi`
+                  ? `${summary.completed_breaks_count} istirahat · ${summary.total_interruptions} distraksi`
                   : '0 interval'}
               </span>
             </div>
@@ -219,8 +229,9 @@ export default function UserDashboardPage() {
                 <span className="text-xs font-semibold text-text-secondary uppercase tracking-wider">
                   Kalibrasi Kebiasaan
                 </span>
-                <Link to="/lifestyle" className="text-[11px] font-bold text-primary hover:underline">
-                  Kalibrasi â†’
+                <Link to="/lifestyle" className="text-[11px] font-bold text-primary hover:underline inline-flex items-center gap-1">
+                  <span>Kalibrasi</span>
+                  <ArrowRightIcon className="w-3 h-3" />
                 </Link>
               </div>
               <div className="my-2">
@@ -262,9 +273,10 @@ export default function UserDashboardPage() {
                   </div>
                   <Link
                     to="/tasks"
-                    className="px-3.5 py-1.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-[#123C32] text-xs font-bold border border-emerald-200 transition-colors"
+                    className="px-3.5 py-1.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-[#123C32] text-xs font-bold border border-emerald-200 transition-colors inline-flex items-center gap-1.5"
                   >
-                    Kelola Semua Tugas â†’
+                    <span>Kelola Semua Tugas</span>
+                    <ArrowRightIcon className="w-3.5 h-3.5" />
                   </Link>
                 </div>
 
@@ -272,7 +284,9 @@ export default function UserDashboardPage() {
                   <div className="py-8 text-center text-xs text-text-muted">Memuat tugas...</div>
                 ) : !summary || summary.recent_tasks.length === 0 ? (
                   <div className="py-10 text-center space-y-3 bg-surface-muted/30 rounded-2xl border border-dashed border-border">
-                    <span className="text-3xl block">ðŸ“</span>
+                    <div className="w-12 h-12 rounded-2xl bg-emerald-50 text-[#138F78] flex items-center justify-center mx-auto mb-2">
+                      <ListIcon className="w-6 h-6" />
+                    </div>
                     <p className="text-sm font-semibold text-text-primary">
                       Belum ada tugas dibuat
                     </p>
@@ -362,9 +376,10 @@ export default function UserDashboardPage() {
                         : 'bg-white/10 text-emerald-300'
                     }`}
                   >
-                    {latestPrediction?.is_baseline || latestPrediction?.prediction_state === 'baseline'
-                      ? 'Estimasi Awal'
-                      : (latestPrediction?.state_label || 'Estimasi Terpersonalisasi')}
+                    {translatePredictionState(
+                      latestPrediction?.prediction_state,
+                      latestPrediction?.state_label
+                    )}
                   </span>
                   <span className="text-[10px] font-mono text-white/60">Ridge v1.0.0</span>
                 </div>
@@ -375,19 +390,22 @@ export default function UserDashboardPage() {
                       <span className="text-sm font-normal text-white/50">/100</span>
                     </div>
                     <span className="text-[11px] text-white/70 block mt-0.5">
-                      {latestPrediction ? `Untuk ${latestPrediction.prediction_date}` : 'Belum ada estimasi hari ini'}
+                      {latestPrediction ? `Untuk ${formatTargetDate(latestPrediction.prediction_date)}` : 'Belum ada estimasi hari ini'}
                     </span>
                   </div>
                   <Link
                     to="/analytics"
-                    className="text-xs font-bold text-emerald-300 hover:text-white transition-colors"
+                    className="text-xs font-bold text-emerald-300 hover:text-white transition-colors inline-flex items-center gap-1"
                   >
-                    Analitik Lengkap â†’
+                    <span>Analitik Lengkap</span>
+                    <ArrowRightIcon className="w-3.5 h-3.5" />
                   </Link>
                 </div>
                 <p className="text-[10px] text-white/60 border-t border-white/10 pt-2 leading-relaxed">
-                  {latestPrediction?.state_description ||
-                    'Diestimasi dari pola kebiasaan (belajar, tidur, ponsel, stres). Bukan merupakan nilai akademik objektif.'}
+                  {translatePredictionDescription(
+                    latestPrediction?.state_description,
+                    latestPrediction?.prediction_state
+                  )}
                 </p>
               </div>
 

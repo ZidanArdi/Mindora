@@ -1,1 +1,1 @@
-﻿export { default as StudyTrackingPage } from './StudyTrackingPage';
+export { default as StudyTrackingPage } from './StudyTrackingPage';
