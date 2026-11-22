@@ -176,16 +176,23 @@ func (h *StudyHandler) List(c *fiber.Ctx) error {
 	}))
 }
 
-// GetDailyStats retrieves study statistics for a specific date.
+// GetDailyStats retrieves study statistics for a specific date and timezone.
 func (h *StudyHandler) GetDailyStats(c *fiber.Ctx) error {
 	userID, err := middleware.GetUserID(c)
 	if err != nil {
 		return c.Status(fiber.StatusUnauthorized).JSON(response.Error("Authentication required"))
 	}
 
-	targetDate := time.Now().UTC()
+	loc := time.UTC
+	if tzParam := c.Query("tz", c.Query("timezone")); tzParam != "" {
+		if l, err := time.LoadLocation(tzParam); err == nil {
+			loc = l
+		}
+	}
+
+	targetDate := time.Now().In(loc)
 	if dateParam := c.Query("date"); dateParam != "" {
-		if t, err := time.Parse("2006-01-02", dateParam); err == nil {
+		if t, err := time.ParseInLocation("2006-01-02", dateParam, loc); err == nil {
 			targetDate = t
 		}
 	}
