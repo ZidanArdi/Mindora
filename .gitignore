@@ -25,6 +25,22 @@ vendor/
 bin/
 *.exe
 
+# Python / Machine Learning
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+.venv/
+venv/
+ENV/
+env/
+.ipynb_checkpoints/
+ML/datasets/*.csv
+!ML/datasets/.gitkeep
+ML/outputs/*
+!ML/outputs/.gitkeep
+
 # Logs
 *.log
 

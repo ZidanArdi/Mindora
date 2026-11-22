@@ -1,150 +1,78 @@
 # Mindora
 
-Mindora adalah aplikasi produktivitas mahasiswa yang dirancang untuk mendukung manajemen aktivitas akademik dan pengembangan diri, dengan arsitektur terpisah antara frontend dan backend serta siap untuk integrasi Machine Learning (ML) dan Large Language Model (LLM) pada tahap berikutnya.
+Mindora adalah platform aplikasi produktivitas akademik mahasiswa yang mengintegrasikan manajemen tugas, pelacakan sesi belajar, fokus Pomodoro, pencatatan gaya hidup harian, sistem rekomendasi berbasis aturan, dan mesin prediksi estimasi produktivitas berbasis machine learning (Ridge Regression).
 
-## Teknologi
+## Arsitektur & Teknologi
 
-### Frontend
-- **Framework / Library:** React.js (v19)
-- **Build Tool:** Vite
-- **Language:** TypeScript
-- **Styling:** Tailwind CSS (v3)
-- **Routing:** React Router DOM (v7)
+- **Frontend:** React 19, TypeScript, Vite, Tailwind CSS, Lucide Icons, Axios
+- **Backend:** Go (Golang 1.26.1), Fiber v2, GORM, PostgreSQL, JWT Authentication, RBAC
+- **Machine Learning:** Ridge Regression (L2-Regularized OLS) dievaluasi secara native di Go (runtime mandiri tanpa ketergantungan runtime Python)
+- **Database:** PostgreSQL (15 migrasi terkelola)
 
-### Backend
-- **Language:** Go (Golang)
-- **Web Framework:** Go Fiber (v2)
-- **Configuration & Env:** Godotenv
-- **Middleware:** Fiber CORS Middleware
-
-## Struktur Direktori
+## Struktur Repositori
 
 ```text
-mindora/
-├── backend/
-│   ├── cmd/
-│   │   └── api/
-│   │       └── main.go
-│   ├── internal/
-│   │   ├── config/
-│   │   │   └── config.go
-│   │   ├── handlers/
-│   │   │   └── health.go
-│   │   ├── middleware/
-│   │   │   └── cors.go
-│   │   ├── models/
-│   │   │   └── health.go
-│   │   ├── repositories/
-│   │   │   └── repository.go
-│   │   ├── routes/
-│   │   │   └── routes.go
-│   │   └── services/
-│   │       └── service.go
-│   ├── pkg/
-│   │   └── response/
-│   │       └── response.go
-│   ├── .env.example
-│   ├── go.mod
-│   └── go.sum
-├── frontend/
-│   ├── public/
+Mindora App/
+├── Backend/                 # Layanan API Go Fiber & GORM
+│   ├── cmd/                 # CLI migrasi & seeding admin
+│   ├── internal/            # Core logic (handlers, services, repositories, models, middleware)
+│   ├── migrations/          # 15 berkas migrasi SQL PostgreSQL
+│   ├── ml/                  # Referensi model & skrip internal
+│   ├── pkg/                 # Package utilitas bersama (JWT, crypto, OAuth, validator)
+│   ├── .env.example         # Template konfigurasi environment backend
+│   ├── go.mod               # Modul Go & dependensi
+│   └── main.go              # Entrypoint server API
+├── Frontend/                # Aplikasi web antarmuka React
 │   ├── src/
-│   │   ├── assets/
-│   │   ├── components/
-│   │   │   └── index.ts
-│   │   ├── hooks/
-│   │   │   └── index.ts
-│   │   ├── layouts/
-│   │   │   └── RootLayout.tsx
-│   │   ├── pages/
-│   │   │   └── HomePage.tsx
-│   │   ├── services/
-│   │   │   └── api.ts
-│   │   ├── types/
-│   │   │   └── index.ts
-│   │   ├── utils/
-│   │   │   └── index.ts
-│   │   ├── App.tsx
-│   │   ├── index.css
-│   │   └── main.tsx
-│   ├── .env.example
-│   ├── package.json
-│   ├── postcss.config.js
-│   ├── tailwind.config.js
-│   ├── tsconfig.json
-│   └── vite.config.ts
-├── docs/
-│   └── README.md
-├── .gitignore
-└── README.md
+│   │   ├── components/      # Komponen UI modular
+│   │   ├── features/        # Fitur terisolasi (tugas, belajar, fokus, analitik, rekomendasi, dll.)
+│   │   ├── layouts/         # Layout utama aplikasi
+│   │   ├── lib/             # Klien API & helper
+│   │   ├── pages/           # Halaman rute aplikasi
+│   │   └── types/           # Definisi tipe TypeScript
+│   ├── .env.example         # Template konfigurasi environment frontend
+│   ├── package.json         # Dependensi Node.js
+│   └── vite.config.ts       # Konfigurasi bundler Vite
+├── ML/                      # Subsistem Machine Learning
+│   ├── datasets/            # Dataset acuan tantangan prediksi
+│   ├── models/              # Artefak model (model.joblib, model_metadata.json)
+│   ├── scripts/             # Skrip pelatihan (train.py) & inferensi CLI (infer.py)
+│   ├── requirements.txt     # Dependensi Python untuk pelatihan
+│   └── README.md            # Dokumentasi model & bobot matematis
+├── .gitignore               # Konfigurasi pengabaian Git
+└── README.md                # Dokumentasi utama proyek
 ```
 
-## Persyaratan Instalasi
+## Panduan Menjalankan Aplikasi
 
-Pastikan sistem telah terinstal:
-- **Node.js** (v18 ke atas disarankan) dan **npm**
-- **Go** (v1.20 ke atas disarankan)
+### 1. Backend (Go API)
 
-## Panduan Menjalankan Frontend
-
-1. Masuk ke direktori `frontend`:
-   ```bash
-   cd frontend
-   ```
-
-2. Salin environment variable (jika belum ada file `.env`):
-   ```bash
-   cp .env.example .env
-   ```
-
-3. Pasang dependensi:
-   ```bash
-   npm install
-   ```
-
-4. Jalankan development server:
-   ```bash
-   npm run dev
-   ```
-
-5. Buka browser pada URL:
-   `http://localhost:5173`
-
-## Panduan Menjalankan Backend
-
-1. Masuk ke direktori `backend`:
-   ```bash
-   cd backend
-   ```
-
-2. Salin environment variable (jika belum ada file `.env`):
-   ```bash
-   cp .env.example .env
-   ```
-
-3. Unduh dependensi Go:
-   ```bash
-   go mod tidy
-   ```
-
-4. Jalankan backend server:
-   ```bash
-   go run ./cmd/api
-   ```
-
-5. Backend aktif di port 8080:
-   `http://localhost:8080`
-
-## URL Aplikasi & Endpoint Pengujian
-
-- **Frontend URL:** `http://localhost:5173`
-- **Backend Base URL:** `http://localhost:8080`
-- **Health Check Endpoint:** `GET http://localhost:8080/api/health`
-
-### Response Health Check:
-```json
-{
-  "success": true,
-  "message": "Mindora API is running"
-}
+```bash
+cd Backend
+# Salin konfigurasi jika belum ada
+cp .env.example .env
+# Jalankan server
+go run .
 ```
+Backend aktif pada `http://localhost:8080`.
+
+### 2. Frontend (React)
+
+```bash
+cd Frontend
+# Salin konfigurasi jika belum ada
+cp .env.example .env
+# Pasang dependensi
+npm install
+# Jalankan dev server
+npm run dev
+```
+Frontend aktif pada `http://localhost:5173`.
+
+### 3. Machine Learning (Inferensi CLI / Pelatihan)
+
+```bash
+cd ML
+python scripts/infer.py --study 4.0 --sleep 7.0 --phone 2.5 --stress 4.0
+```
+*Catatan: Backend Go mengevaluasi model ML secara native tanpa memerlukan instalasi Python pada lingkungan produksi.*

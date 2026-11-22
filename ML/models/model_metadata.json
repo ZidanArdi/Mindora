@@ -1,0 +1,167 @@
+{
+  "model_version": "mindora-productivity-ridge-v1.0.0",
+  "algorithm": "Ridge Regression (L2-Regularized OLS)",
+  "framework": "scikit-learn 1.9.1",
+  "trained_date": "2026-11-19",
+  "hyperparameters": {
+    "alpha": 1.0,
+    "fit_intercept": true,
+    "random_state": 42
+  },
+  "target": {
+    "name": "productivity_score",
+    "unit": "Productivity Score (0 - 100)",
+    "min_observed": 0.0,
+    "max_observed": 100.0,
+    "mean_observed": 50.146636875,
+    "std_observed": 16.09522999394977
+  },
+  "features": [
+    {
+      "name": "study_hours_per_day",
+      "index": 0,
+      "unit": "hours",
+      "scaler_mean": 5.247772321428595,
+      "scaler_scale": 2.7395364656044996,
+      "coefficient": 11.789324586911583,
+      "imputation_default": 5.247772321428595,
+      "description": "Daily completed study session hours aggregated from study_sessions."
+    },
+    {
+      "name": "sleep_hours",
+      "index": 1,
+      "unit": "hours",
+      "scaler_mean": 6.536850892857139,
+      "scaler_scale": 2.0372977820552127,
+      "coefficient": 5.497139844559539,
+      "imputation_default": 6.536850892857139,
+      "description": "Daily sleep hours recorded in lifestyle_records."
+    },
+    {
+      "name": "phone_usage_hours",
+      "index": 2,
+      "unit": "hours",
+      "scaler_mean": 6.245928571428571,
+      "scaler_scale": 3.3099733887425202,
+      "coefficient": -5.37446525483219,
+      "imputation_default": 6.245928571428571,
+      "description": "Daily smartphone screen time recorded in lifestyle_records."
+    },
+    {
+      "name": "stress_level",
+      "index": 3,
+      "unit": "scale (1-10)",
+      "scaler_mean": 5.469821428571429,
+      "scaler_scale": 2.8705057985555413,
+      "coefficient": -3.0970200605794975,
+      "imputation_default": 5.469821428571429,
+      "description": "Self-reported student stress level (1 to 10) recorded in lifestyle_records."
+    }
+  ],
+  "intercept": 50.23716964285723,
+  "evaluation_metrics": {
+    "baseline_mean": {
+      "val": {
+        "mae": 13.163038444940476,
+        "rmse": 16.19771621000244,
+        "r2": -0.0002710628762161438
+      },
+      "test": {
+        "mae": 13.358612730654762,
+        "rmse": 16.30599616396268,
+        "r2": -0.0028561220960074962
+      }
+    },
+    "linear_regression": {
+      "val": {
+        "mae": 5.999549908445996,
+        "rmse": 7.112740097944529,
+        "r2": 0.8071214141597522
+      },
+      "test": {
+        "mae": 5.997130086901879,
+        "rmse": 7.13622022287304,
+        "r2": 0.8079207522830772
+      }
+    },
+    "ridge_regression": {
+      "val": {
+        "mae": 5.999592758247376,
+        "rmse": 7.112775665298606,
+        "r2": 0.8071194851709198
+      },
+      "test": {
+        "mae": 5.997184233171334,
+        "rmse": 7.136257206404025,
+        "r2": 0.8079187613727647
+      }
+    },
+    "random_forest": {
+      "val": {
+        "mae": 6.150817673407757,
+        "rmse": 7.366755129926629,
+        "r2": 0.7930989940706388
+      },
+      "test": {
+        "mae": 6.207281843925742,
+        "rmse": 7.450764042349499,
+        "r2": 0.7906149941771888
+      }
+    }
+  },
+  "exclusions": [
+    {
+      "feature": "id",
+      "reason": "Arbitrary identifier without semantic meaning."
+    },
+    {
+      "feature": "student_id",
+      "reason": "Arbitrary identifier without semantic meaning."
+    },
+    {
+      "feature": "gender",
+      "reason": "Ethical and fairness restriction; no demographic discrimination."
+    },
+    {
+      "feature": "attendance_percentage",
+      "reason": "Mindora application does not collect attendance."
+    },
+    {
+      "feature": "final_grade",
+      "reason": "Target leakage prevention; academic grade is not available at daily prediction time."
+    },
+    {
+      "feature": "focus_score",
+      "reason": "Synthetic 30-99 score with ungrounded formula; equating focus duration to focus score is invalid."
+    },
+    {
+      "feature": "social_media_hours",
+      "reason": "Dataset coefficient is 0.0000; provides no predictive signal."
+    },
+    {
+      "feature": "youtube_hours",
+      "reason": "Dataset coefficient is 0.0000; provides no predictive signal."
+    },
+    {
+      "feature": "gaming_hours",
+      "reason": "Dataset coefficient is 0.0000; provides no predictive signal."
+    },
+    {
+      "feature": "coffee_intake_mg",
+      "reason": "Dataset coefficient is 0.0000; provides no predictive signal."
+    },
+    {
+      "feature": "exercise_minutes",
+      "reason": "Dataset coefficient is 0.0000; provides no predictive signal."
+    },
+    {
+      "feature": "breaks_per_day",
+      "reason": "Dataset coefficient is 0.0000; provides no predictive signal."
+    },
+    {
+      "feature": "assignments_completed",
+      "reason": "Dataset coefficient is 0.0000; provides no predictive signal."
+    }
+  ],
+  "disclaimer": "Predictions are mathematical estimates based on daily behavioral habits and must NOT be interpreted as actual measured productivity."
+}
