@@ -1,0 +1,81 @@
+﻿import type { UpcomingSchedule } from '../../types';
+import { UpcomingMeetingCard } from '../../components/molecules';
+import { ChevronDownIcon } from '../../components/atoms';
+import { cn, getGreeting } from '../../utils';
+
+export interface UserHeroBannerProps {
+  userName?: string;
+  taskCount?: number;
+  upcomingSchedules?: UpcomingSchedule[];
+  className?: string;
+}
+
+export const UserHeroBanner = ({
+  userName = 'Mahasiswa',
+  taskCount = 0,
+  upcomingSchedules = [],
+  className,
+}: UserHeroBannerProps) => {
+  return (
+    <div
+      className={cn(
+        'relative overflow-hidden rounded-3xl bg-linear-to-r from-emerald-100/70 via-nature-mint/60 to-teal-50/80 border border-emerald-200/60 p-6 sm:p-7 shadow-soft-sm',
+        className
+      )}
+    >
+      {/* Botanical Organic Background Silhouette */}
+      <div className="absolute right-0 bottom-0 pointer-events-none opacity-20 transform translate-x-8 translate-y-6">
+        <svg width="240" height="160" viewBox="0 0 240 160" fill="none">
+          <ellipse cx="120" cy="140" rx="100" ry="60" fill="#168F7A" />
+          <ellipse cx="190" cy="130" rx="70" ry="50" fill="#20B8A5" />
+          <path d="M120 40 L130 90 L110 90 Z" fill="#6F9F78" />
+          <path d="M160 50 L170 95 L150 95 Z" fill="#A8C5A5" />
+        </svg>
+      </div>
+
+      <div className="relative z-10 grid grid-cols-1 md:grid-cols-12 gap-6 items-center">
+        {/* Left: Greeting and summary */}
+        <div className="md:col-span-7 space-y-2">
+          <div className="inline-flex items-center gap-2 cursor-pointer group">
+            <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-primary-900">
+              {getGreeting(userName)}
+            </h2>
+            <ChevronDownIcon className="w-5 h-5 text-primary group-hover:translate-y-0.5 transition-transform" />
+          </div>
+          <p className="text-sm sm:text-base font-medium text-emerald-800/80">
+            {taskCount > 0 ? (
+              <>
+                Anda memiliki{' '}
+                <span className="font-bold text-primary-900 underline decoration-primary/40 decoration-2">
+                  {taskCount} tugas
+                </span>{' '}
+                untuk hari ini
+              </>
+            ) : (
+              'Belum ada tugas terjadwal untuk hari ini'
+            )}
+          </p>
+        </div>
+
+        {/* Right: Up Next schedule cards */}
+        <div className="md:col-span-5 space-y-2.5">
+          <span className="text-[11px] font-bold text-primary-900 uppercase tracking-wider block">
+            Jadwal Berikutnya
+          </span>
+          <div className="space-y-2">
+            {upcomingSchedules.length > 0 ? (
+              upcomingSchedules.slice(0, 2).map((schedule) => (
+                <UpcomingMeetingCard key={schedule.id} schedule={schedule} />
+              ))
+            ) : (
+              <div className="p-3 rounded-xl bg-white/70 border border-emerald-200/60 text-xs text-emerald-900 font-medium">
+                Tidak ada pertemuan atau jadwal mendatang
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+

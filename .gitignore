@@ -2,10 +2,23 @@
 node_modules/
 dist/
 
-# Environment
+# Environment variables and secrets
 .env
 .env.*
 !.env.example
+!.env.template
+
+# Local credentials
+*.pem
+*.key
+credentials.json
+secrets.json
+
+# Local database backups
+*.dump
+*.backup
+*.sql
+!Backend/migrations/*.sql
 
 # Backend
 vendor/
@@ -20,3 +33,4 @@ bin/
 .idea/
 .DS_Store
 Thumbs.db
+

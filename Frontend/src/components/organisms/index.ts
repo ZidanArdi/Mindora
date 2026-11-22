@@ -1,12 +1,29 @@
-export * from './AdminActivityChart';
-export * from './AdminMembersTable';
-export * from './AdminOverviewRow';
-export * from './AIAssistantWidget';
-export * from './FocusTimerWidget';
-export * from './LoginForm';
-export * from './RegisterForm';
+// Layout Shell Organisms
 export * from './Sidebar';
-export * from './StatusCard';
-export * from './TaskSection';
 export * from './TopNavbar';
-export * from './UserHeroBanner';
+export * from './StatusCard';
+
+// Re-export feature organisms for backward compatibility
+export {
+  LoginForm,
+  RegisterForm,
+} from '../../features/auth';
+
+export {
+  UserHeroBanner,
+  AIAssistantWidget,
+} from '../../features/dashboard';
+
+export {
+  TaskSection,
+} from '../../features/tasks';
+
+export {
+  FocusTimerWidget,
+} from '../../features/focus';
+
+export {
+  AdminOverviewRow,
+  AdminActivityChart,
+  AdminMembersTable,
+} from '../../features/admin';
