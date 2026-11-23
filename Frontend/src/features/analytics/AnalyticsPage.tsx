@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useId } from 'react';
+import { useState, useEffect, useId } from 'react';
 import { DashboardTemplate } from '../../components/templates';
 import { Button } from '../../components/atoms';
 import { productivityService } from '../../services/productivityService';
@@ -62,46 +62,58 @@ export default function AnalyticsPage() {
         workspaceName: 'Ruang Kerja Akademik',
       };
 
-  const loadData = useCallback(async () => {
-    setLoading(true);
-    setErrorMessage(null);
-    try {
-      // 1. Load summary and predictions in parallel
-      const [sum, predHist] = await Promise.all([
-        productivityService.getAnalyticsSummary().catch(() => null),
-        productivityService.listPredictions({ page: 1, limit: 5 }).catch(() => null),
-      ]);
-
-      setSummaryData(sum);
-      setPredictionHistory(predHist);
-      if (sum?.latest_prediction) {
-        setLatestPrediction(sum.latest_prediction);
-      } else if (predHist && predHist.items.length > 0) {
-        setLatestPrediction(predHist.items[0]);
-      }
-
-      // 2. Load tab-specific analytics
-      if (activeTab === 'daily') {
-        const d = await productivityService.getDailyAnalytics(selectedDate);
-        setDailyData(d);
-      } else if (activeTab === 'weekly') {
-        const w = await productivityService.getWeeklyAnalytics(selectedDate);
-        setWeeklyData(w);
-      } else if (activeTab === 'monthly') {
-        const m = await productivityService.getMonthlyAnalytics(selectedDate);
-        setMonthlyData(m);
-      }
-    } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : 'Failed to load analytics data';
-      setErrorMessage(msg);
-    } finally {
-      setLoading(false);
-    }
-  }, [activeTab, selectedDate]);
-
   useEffect(() => {
-    loadData();
-  }, [loadData]);
+    let ignore = false;
+
+    const fetchAnalytics = async () => {
+      try {
+        // 1. Load summary and predictions in parallel
+        const [sum, predHist] = await Promise.all([
+          productivityService.getAnalyticsSummary().catch(() => null),
+          productivityService.listPredictions({ page: 1, limit: 5 }).catch(() => null),
+        ]);
+
+        if (ignore) return;
+
+        setSummaryData(sum);
+        setPredictionHistory(predHist);
+        if (sum?.latest_prediction) {
+          setLatestPrediction(sum.latest_prediction);
+        } else if (predHist && predHist.items.length > 0) {
+          setLatestPrediction(predHist.items[0]);
+        }
+
+        // 2. Load tab-specific analytics
+        if (activeTab === 'daily') {
+          const d = await productivityService.getDailyAnalytics(selectedDate);
+          if (!ignore) setDailyData(d);
+        } else if (activeTab === 'weekly') {
+          const w = await productivityService.getWeeklyAnalytics(selectedDate);
+          if (!ignore) setWeeklyData(w);
+        } else if (activeTab === 'monthly') {
+          const m = await productivityService.getMonthlyAnalytics(selectedDate);
+          if (!ignore) setMonthlyData(m);
+        }
+
+        if (!ignore) {
+          setErrorMessage(null);
+          setLoading(false);
+        }
+      } catch (err: unknown) {
+        if (!ignore) {
+          const msg = err instanceof Error ? err.message : 'Failed to load analytics data';
+          setErrorMessage(msg);
+          setLoading(false);
+        }
+      }
+    };
+
+    fetchAnalytics();
+
+    return () => {
+      ignore = true;
+    };
+  }, [activeTab, selectedDate]);
 
   // Handle trigger new prediction
   const handleRunPrediction = async () => {
@@ -156,7 +168,10 @@ export default function AnalyticsPage() {
                 id={dateInputId}
                 type="date"
                 value={selectedDate}
-                onChange={(e) => setSelectedDate(e.target.value)}
+                onChange={(e) => {
+                  setLoading(true);
+                  setSelectedDate(e.target.value);
+                }}
                 className="text-xs font-semibold text-text-primary px-2.5 py-1.5 bg-transparent border-none focus:outline-none"
               />
             </div>
@@ -170,7 +185,10 @@ export default function AnalyticsPage() {
                 <button
                   key={tab}
                   type="button"
-                  onClick={() => setActiveTab(tab)}
+                  onClick={() => {
+                    setLoading(true);
+                    setActiveTab(tab);
+                  }}
                   className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-all capitalize ${
                     activeTab === tab
                       ? 'bg-white text-primary shadow-soft-xs'

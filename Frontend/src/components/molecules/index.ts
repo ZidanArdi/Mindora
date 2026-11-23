@@ -7,3 +7,4 @@ export * from './SearchInput';
 export * from './StatusBadge';
 export * from './TaskItemRow';
 export * from './UpcomingMeetingCard';
+export * from './MarkdownContent';

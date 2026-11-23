@@ -106,8 +106,35 @@ export default function ReportsPage() {
   );
 
   useEffect(() => {
-    loadReport(startDate, endDate);
-  }, [loadReport, startDate, endDate]);
+    let ignore = false;
+    const userTz = Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC';
+
+    Promise.all([
+      productivityService.getRangeAnalytics(startDate, endDate, userTz),
+      productivityService.listPredictions({ page: 1, limit: 1 }).catch(() => null),
+    ])
+      .then(([analytics, predHist]) => {
+        if (!ignore) {
+          setReportData(analytics);
+          if (predHist && predHist.items.length > 0) {
+            setLatestPrediction(predHist.items[0]);
+          }
+          setErrorMessage(null);
+          setLoading(false);
+        }
+      })
+      .catch((err: unknown) => {
+        if (!ignore) {
+          const msg = err instanceof Error ? err.message : 'Failed to load report data';
+          setErrorMessage(msg);
+          setLoading(false);
+        }
+      });
+
+    return () => {
+      ignore = true;
+    };
+  }, [startDate, endDate]);
 
   const handlePresetSelect = (preset: PeriodPreset) => {
     setPeriodPreset(preset);
@@ -116,6 +143,7 @@ export default function ReportsPage() {
     if (preset === '7d') {
       const start = getPastDateString(6);
       const end = getLocalDateString();
+      setLoading(true);
       setStartDate(start);
       setEndDate(end);
       setCustomStart(start);
@@ -123,6 +151,7 @@ export default function ReportsPage() {
     } else if (preset === '30d') {
       const start = getPastDateString(29);
       const end = getLocalDateString();
+      setLoading(true);
       setStartDate(start);
       setEndDate(end);
       setCustomStart(start);
@@ -158,6 +187,7 @@ export default function ReportsPage() {
       return;
     }
 
+    setLoading(true);
     setStartDate(customStart);
     setEndDate(customEnd);
   };

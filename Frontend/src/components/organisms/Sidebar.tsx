@@ -116,9 +116,9 @@ export const Sidebar = ({
 
   const userInsightsNavItems = [
     { label: 'Analitik', icon: <ChartBarIcon className="w-4 h-4" />, href: '/analytics' },
-    { label: 'Pesan', icon: <MessageSquareIcon className="w-4 h-4" />, href: '/messages', tag: 'Fase 4' },
-    { label: 'Laporan', icon: <ExportIcon className="w-4 h-4" />, href: '/reports', tag: 'Fase 4' },
-    { label: 'Rekomendasi', icon: <SparklesIcon className="w-4 h-4" />, href: '/recommendations', tag: 'Fase 4' },
+    { label: 'Pesan', icon: <MessageSquareIcon className="w-4 h-4" />, href: '/messages' },
+    { label: 'Laporan', icon: <ExportIcon className="w-4 h-4" />, href: '/reports' },
+    { label: 'Rekomendasi', icon: <SparklesIcon className="w-4 h-4" />, href: '/recommendations' },
   ];
 
   const userSettingsNavItems = [
@@ -243,11 +243,6 @@ export const Sidebar = ({
                           </span>
                           <span>{item.label}</span>
                         </div>
-                        {item.tag && (
-                          <span className="text-[10px] font-bold text-teal-800 bg-teal-50 px-1.5 py-0.5 rounded border border-teal-200">
-                            {item.tag}
-                          </span>
-                        )}
                       </Link>
                     );
                   })}

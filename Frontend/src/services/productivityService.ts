@@ -528,4 +528,49 @@ export const productivityService = {
     if (!data.data) throw new Error('No updated recommendation data returned');
     return data.data;
   },
+
+  // =========================================================================
+  // 6. Groq LLM Academic Productivity Coach APIs
+  // =========================================================================
+  async askAI(prompt: string): Promise<string> {
+    const res = await apiFetch('/ai/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ prompt: prompt.trim() }),
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.message || 'Gagal menghubungi asisten AI');
+    }
+    const data: ApiResponse<{ reply: string }> = await res.json();
+    return data.data?.reply || '';
+  },
+
+  async explainPrediction(predictionId?: string): Promise<string> {
+    const res = await apiFetch('/ai/explain-prediction', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(predictionId ? { prediction_id: predictionId } : {}),
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.message || 'Gagal menjelaskan prediksi');
+    }
+    const data: ApiResponse<{ reply: string }> = await res.json();
+    return data.data?.reply || '';
+  },
+
+  async generateStudyPlan(): Promise<string> {
+    const res = await apiFetch('/ai/study-plan', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({}),
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.message || 'Gagal menyusun rencana belajar');
+    }
+    const data: ApiResponse<{ reply: string }> = await res.json();
+    return data.data?.reply || '';
+  },
 };

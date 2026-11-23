@@ -391,4 +391,23 @@ export interface RecommendationsResponse {
   generated_at: string;
 }
 
+// =========================================================================
+// Phase 5: Groq LLM Academic Productivity Coach Types
+// =========================================================================
+
+export interface AIResponseData {
+  reply: string;
+  model: string;
+  tokens_used?: number;
+}
+
+export interface AIChatMessage {
+  id: string;
+  sender: 'user' | 'assistant';
+  content: string;
+  timestamp: string;
+  tokensUsed?: number;
+}
+
+
 

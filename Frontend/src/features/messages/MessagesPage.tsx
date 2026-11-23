@@ -1,18 +1,46 @@
+import { useState, useRef, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { DashboardTemplate } from '../../components/templates';
 import { Button } from '../../components/atoms';
+import { MarkdownContent } from '../../components/molecules';
 import {
-  MessageSquareIcon,
   SparklesIcon,
-  ClockIcon,
+  SendIcon,
   ShieldIcon,
-  CheckIcon,
+  ArrowRightIcon,
+  ClockIcon,
 } from '../../components/atoms/Icons';
-import type { UserProfile } from '../../types';
+import type { UserProfile, AIChatMessage } from '../../types';
 import { useAuth } from '../../hooks';
+import { productivityService } from '../../services/productivityService';
+
+function createChatMessage(
+  sender: 'user' | 'assistant',
+  content: string,
+  idOverride?: string
+): AIChatMessage {
+  const now = new Date();
+  return {
+    id: idOverride || `${sender}-${now.getTime()}`,
+    sender,
+    content,
+    timestamp: now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+  };
+}
 
 export default function MessagesPage() {
   const { user } = useAuth();
+  const [messages, setMessages] = useState<AIChatMessage[]>(() => [
+    createChatMessage(
+      'assistant',
+      'Halo! Aku teman belajar Mindora-mu. Kamu bisa ngobrol santai denganku untuk bantu menyusun alur belajar yang fleksibel, memahami ritme produktivitasmu, atau cari tips agar tetap fokus tanpa cepat lelah.\n\nAda yang sedang ingin kamu tanyakan atau diskusikan hari ini?',
+      'welcome'
+    ),
+  ]);
+  const [inputPrompt, setInputPrompt] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const messagesEndRef = useRef<HTMLDivElement | null>(null);
 
   const displayUser: UserProfile = user
     ? {
@@ -38,245 +66,235 @@ export default function MessagesPage() {
         workspaceName: 'Ruang Kerja Akademik',
       };
 
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages, isLoading]);
+
+  const handleSendMessage = async (customPrompt?: string) => {
+    const promptToSend = (customPrompt || inputPrompt).trim();
+    if (!promptToSend || isLoading) return;
+
+    const userMsg = createChatMessage('user', promptToSend);
+
+    setMessages((prev) => [...prev, userMsg]);
+    setInputPrompt('');
+    setIsLoading(true);
+    setErrorMsg(null);
+
+    try {
+      let replyText = '';
+      if (promptToSend === 'Susun Jadwal Belajar Hari Ini' || promptToSend === 'Rencanakan hari saya') {
+        replyText = await productivityService.generateStudyPlan();
+      } else if (
+        promptToSend === 'Jelaskan Estimasi Produktivitas Saya' ||
+        promptToSend === 'Jelaskan estimasi produktivitas'
+      ) {
+        replyText = await productivityService.explainPrediction();
+      } else {
+        replyText = await productivityService.askAI(promptToSend);
+      }
+
+      const aiMsg = createChatMessage('assistant', replyText);
+
+      setMessages((prev) => [...prev, aiMsg]);
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Gagal menghubungi asisten AI';
+      setErrorMsg(msg);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const quickActionPrompts = [
+    { label: '📅 Susun Alur Belajar Hari Ini', action: 'Rencanakan hari saya' },
+    { label: '💡 Jelaskan Ritme Produktivitasku', action: 'Jelaskan estimasi produktivitas' },
+    {
+      label: '⚡ Tips Biar Nggak Tergoda Main HP',
+      action: 'Bagaimana tips praktis agar aku tidak tergoda bermain HP saat sesi belajar?',
+    },
+    {
+      label: '🎯 Cara Mulai Belajar Saat Lagi Mager',
+      action: 'Aku lagi kurang semangat dan agak malas mulai belajar, enaknya gimana ya?',
+    },
+  ];
+
   return (
     <DashboardTemplate role={displayUser.role as 'user' | 'admin'} currentUser={displayUser}>
-      <div className="space-y-6 pb-12 animate-fadeIn max-w-7xl mx-auto">
+      <div className="space-y-6 pb-12 animate-fadeIn max-w-5xl mx-auto">
         {/* Header Section */}
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 border-b border-border pb-5">
           <div>
             <div className="flex items-center gap-2">
-              <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-amber-100 text-amber-800 border border-amber-200">
-                Fase 4.3 · Layanan LLM Ditangguhkan
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-emerald-100 text-emerald-900 border border-emerald-200">
+                <span className="w-2 h-2 rounded-full bg-emerald-600 animate-pulse" />
+                Teman Belajar AI Aktif
               </span>
-              <span className="text-xs text-text-muted">Komunikasi Akademik & Panduan AI</span>
+              <span className="text-xs text-text-muted">Pendamping Belajar & Manajemen Waktu</span>
             </div>
             <h1 className="text-2xl font-black text-primary-900 tracking-tight mt-1">
-              Pesan & Percakapan
+              Ruang Teman Belajar & Konsultasi AI
             </h1>
             <p className="text-sm text-text-secondary">
-              Panduan produktivitas, saluran komunikasi, dan status bantuan percakapan.
+              Konsultasikan alur belajar, strategi fokus, atau minta saran saat kamu merasa lelah.
             </p>
           </div>
 
           <div className="flex items-center gap-2">
             <Link to="/recommendations">
               <Button
-                variant="primary"
+                variant="outline"
                 size="sm"
-                className="gap-2 text-xs font-semibold bg-primary hover:bg-primary-hover text-white"
+                className="gap-2 text-xs font-semibold"
               >
-                <SparklesIcon className="w-4 h-4 text-emerald-300" />
-                Lihat Rekomendasi Aktif
+                <SparklesIcon className="w-4 h-4 text-emerald-600" />
+                Pusat Rekomendasi
               </Button>
             </Link>
           </div>
         </div>
 
-        {/* Technical Status & Architecture Transparency Card */}
-        <div className="p-6 rounded-2xl bg-white border border-border shadow-soft-xs space-y-4">
-          <div className="flex items-start gap-4">
-            <div className="w-12 h-12 rounded-2xl bg-amber-50 border border-amber-200 flex items-center justify-center shrink-0 text-amber-700">
-              <ShieldIcon className="w-6 h-6" />
-            </div>
-            <div className="space-y-1.5 flex-1">
-              <div className="flex flex-wrap items-center justify-between gap-2">
-                <h2 className="text-base font-bold text-primary-900">
-                  Mesin Perencanaan AI Percakapan — Status Ditangguhkan
-                </h2>
-                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-amber-100 text-amber-900">
-                  <span className="w-2 h-2 rounded-full bg-amber-600 animate-pulse" />
-                  Layanan Tidak Terhubung
-                </span>
-              </div>
-              <p className="text-xs text-text-secondary leading-relaxed">
-                Endpoint asisten LLM percakapan (semula direncanakan sebagai{' '}
-                <code className="px-1.5 py-0.5 rounded bg-slate-100 font-mono text-[11px] text-text-primary">
-                  POST /api/v1/ai/plan-day
-                </code>
-                ) sengaja ditangguhkan pada rilis ini. Mindora menganut kebijakan rekayasa yang mengutamakan privasi dan operasi luring (offline-first): tidak ada API LLM cloud eksternal (OpenAI, Gemini, Anthropic) atau chatbot generatif yang tidak terverifikasi aktif, memastikan data aktivitas mahasiswa tetap sepenuhnya rahasia dan terlindungi dari halusinasi kecerdasan buatan.
-              </p>
-            </div>
+        {/* Quick Action Suggestion Bar */}
+        <div className="space-y-2">
+          <div className="text-[11px] font-bold uppercase tracking-wider text-text-secondary flex items-center gap-1.5">
+            <SparklesIcon className="w-3.5 h-3.5 text-primary" />
+            <span>Aksi Cepat Konsultasi:</span>
           </div>
-
-          <div className="p-4 rounded-xl bg-slate-50 border border-slate-200/80 grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs">
-            <div>
-              <span className="font-bold text-text-primary block text-[11px] uppercase tracking-wider">
-                Standar Privasi
-              </span>
-              <p className="text-text-secondary mt-0.5">
-                Nol transmisi LLM pihak ketiga; log belajar pribadi tetap tersimpan secara lokal/on-premise.
-              </p>
-            </div>
-            <div>
-              <span className="font-bold text-text-primary block text-[11px] uppercase tracking-wider">
-                Alternatif Aktif
-              </span>
-              <p className="text-text-secondary mt-0.5">
-                Mesin aturan deterministik terverifikasi (REC-TASK, REC-SLEEP, REC-BREAK, REC-COLD, REC-STUDY).
-              </p>
-            </div>
-            <div>
-              <span className="font-bold text-text-primary block text-[11px] uppercase tracking-wider">
-                Kebijakan AI Tanpa Manipulasi
-              </span>
-              <p className="text-text-secondary mt-0.5">
-                Nol respon palsu atau chatbot tiruan; seluruh data produktivitas yang ditampilkan 100% terverifikasi.
-              </p>
-            </div>
+          <div className="flex flex-wrap gap-2">
+            {quickActionPrompts.map((item, idx) => (
+              <button
+                key={idx}
+                type="button"
+                disabled={isLoading}
+                onClick={() => handleSendMessage(item.action)}
+                className="px-3 py-1.5 rounded-xl bg-white border border-border hover:border-primary/50 hover:bg-primary-50/50 text-xs font-medium text-text-primary transition-all cursor-pointer shadow-soft-xs disabled:opacity-50"
+              >
+                {item.label}
+              </button>
+            ))}
           </div>
         </div>
 
-        {/* Two-Column Grid: Active Productivity Hub vs Future Peer Collaboration Roadmap */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Column 1: Active Guidance Tools (Working Today) */}
-          <div className="p-6 rounded-2xl bg-gradient-to-br from-[#123C32] to-[#0A261F] text-white shadow-soft-md flex flex-col justify-between space-y-6">
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-emerald-400/20 text-emerald-300 border border-emerald-400/30">
-                  <SparklesIcon className="w-3 h-3 text-emerald-400" />
-                  Siap Produksi (Fase 4.1)
-                </span>
-                <span className="text-[11px] font-mono text-white/60">Mesin Deterministik</span>
-              </div>
-
-              <div>
-                <h3 className="text-lg font-bold text-white">
-                  Mesin Rekomendasi Deterministik
-                </h3>
-                <p className="text-xs text-white/70 mt-1 leading-relaxed">
-                  Alih-alih chatbot probabilistik yang rentan halusinasi, Mindora mengevaluasi kebiasaan terverifikasi Anda terhadap aturan matematis yang ketat untuk menghasilkan rekomendasi terpersonalisasi:
-                </p>
-              </div>
-
-              <div className="space-y-2.5 text-xs text-white/90">
-                <div className="flex items-start gap-2.5 p-2.5 rounded-xl bg-white/5 border border-white/10">
-                  <CheckIcon className="w-4 h-4 text-emerald-400 mt-0.5 shrink-0" />
-                  <div>
-                    <strong className="text-emerald-300">Intervensi Tugas Terlewat:</strong> Peringatan waktu nyata untuk tenggat waktu prioritas tinggi.
+        {/* Main Conversation Container */}
+        <div className="rounded-2xl border border-border bg-surface-subtle shadow-soft-sm flex flex-col h-[580px] overflow-hidden">
+          {/* Chat Messages Stream */}
+          <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-4">
+            {messages.map((msg) => (
+              <div
+                key={msg.id}
+                className={`flex gap-3 ${
+                  msg.sender === 'user' ? 'justify-end' : 'justify-start'
+                }`}
+              >
+                {msg.sender === 'assistant' && (
+                  <div className="w-8 h-8 rounded-xl bg-primary text-white flex items-center justify-center shrink-0 shadow-soft-xs">
+                    <SparklesIcon className="w-4 h-4" />
                   </div>
-                </div>
+                )}
 
-                <div className="flex items-start gap-2.5 p-2.5 rounded-xl bg-white/5 border border-white/10">
-                  <CheckIcon className="w-4 h-4 text-emerald-400 mt-0.5 shrink-0" />
-                  <div>
-                    <strong className="text-emerald-300">Pengingat Kalibrasi Kebiasaan:</strong> Panduan awal saat log tidur atau waktu layar harian belum tercatat.
-                  </div>
-                </div>
-
-                <div className="flex items-start gap-2.5 p-2.5 rounded-xl bg-white/5 border border-white/10">
-                  <CheckIcon className="w-4 h-4 text-emerald-400 mt-0.5 shrink-0" />
-                  <div>
-                    <strong className="text-emerald-300">Penyelarasan Fokus-Istirahat:</strong> Peringatan pemulihan kelelahan Pomodoro saat fokus melebihi 100 menit tanpa istirahat memadai.
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div className="pt-4 border-t border-white/10">
-              <Link to="/recommendations" className="block">
-                <Button
-                  variant="primary"
-                  size="md"
-                  className="w-full justify-center bg-emerald-500 hover:bg-emerald-600 text-slate-900 font-bold border-none"
+                <div
+                  className={`max-w-[85%] sm:max-w-[75%] rounded-2xl p-4 text-xs sm:text-sm leading-relaxed ${
+                    msg.sender === 'user'
+                      ? 'bg-primary text-white shadow-soft-xs rounded-br-xs'
+                      : 'bg-white border border-border/80 text-text-primary shadow-soft-xs rounded-bl-xs'
+                  }`}
                 >
-                  Jelajahi Pusat Rekomendasi
-                </Button>
-              </Link>
-            </div>
-          </div>
-
-          {/* Column 2: Peer Collaboration & Study Groups Roadmap */}
-          <div className="p-6 rounded-2xl bg-white border border-border shadow-soft-xs flex flex-col justify-between space-y-6">
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-slate-100 text-text-muted">
-                  <MessageSquareIcon className="w-3 h-3 text-text-muted" />
-                  Tahapan Mendatang
-                </span>
-                <span className="text-[11px] font-mono text-text-muted">Saluran Kolaborasi</span>
-              </div>
-
-              <div>
-                <h3 className="text-lg font-bold text-primary-900">
-                  Kelompok Belajar & Kolaborasi Rekan
-                </h3>
-                <p className="text-xs text-text-secondary mt-1 leading-relaxed">
-                  Arsitektur perpesanan antar-mahasiswa disiapkan untuk rilis kolaboratif multipengguna. Kemampuan yang direncanakan meliputi:
-                </p>
-              </div>
-
-              <div className="space-y-2.5 text-xs text-text-secondary">
-                <div className="flex items-start gap-2.5 p-3 rounded-xl bg-slate-50 border border-slate-200/80">
-                  <span className="w-5 h-5 rounded-full bg-primary-100 text-primary font-bold text-[10px] flex items-center justify-center shrink-0">
-                    1
-                  </span>
-                  <div>
-                    <strong className="text-text-primary block">Saluran Belajar Berbasis Mata Kuliah</strong>
-                    Diskusi dan berbagi materi yang diorganisasi per mata kuliah akademik.
+                  <MarkdownContent content={msg.content} />
+                  <div
+                    className={`text-[10px] mt-2 flex items-center gap-1 ${
+                      msg.sender === 'user' ? 'text-primary-100 justify-end' : 'text-text-muted justify-end'
+                    }`}
+                  >
+                    <ClockIcon className="w-3 h-3" />
+                    <span>{msg.timestamp}</span>
                   </div>
                 </div>
 
-                <div className="flex items-start gap-2.5 p-3 rounded-xl bg-slate-50 border border-slate-200/80">
-                  <span className="w-5 h-5 rounded-full bg-primary-100 text-primary font-bold text-[10px] flex items-center justify-center shrink-0">
-                    2
-                  </span>
-                  <div>
-                    <strong className="text-text-primary block">Ruang Fokus Pomodoro Bersama</strong>
-                    Interval fokus tersinkronisasi dan timer akuntabilitas bersama rekan belajar.
+                {msg.sender === 'user' && (
+                  <div className="w-8 h-8 rounded-xl bg-primary-100 text-primary-900 font-bold text-xs flex items-center justify-center shrink-0">
+                    {displayUser.avatarText}
                   </div>
-                </div>
+                )}
+              </div>
+            ))}
 
-                <div className="flex items-start gap-2.5 p-3 rounded-xl bg-slate-50 border border-slate-200/80">
-                  <span className="w-5 h-5 rounded-full bg-primary-100 text-primary font-bold text-[10px] flex items-center justify-center shrink-0">
-                    3
-                  </span>
-                  <div>
-                    <strong className="text-text-primary block">Konsultasi Akademik Langsung</strong>
-                    Pesan privat antara mahasiswa dan asisten dosen pengampu.
+            {/* Loading Typing Indicator */}
+            {isLoading && (
+              <div className="flex gap-3 justify-start animate-fadeIn">
+                <div className="w-8 h-8 rounded-xl bg-primary text-white flex items-center justify-center shrink-0 shadow-soft-xs">
+                  <SparklesIcon className="w-4 h-4" />
+                </div>
+                <div className="bg-white border border-border/80 rounded-2xl rounded-bl-xs p-3.5 shadow-soft-xs flex items-center gap-2.5 text-xs text-text-secondary">
+                  <div className="flex gap-1">
+                    <span className="w-2 h-2 rounded-full bg-primary animate-bounce [animation-delay:-0.3s]" />
+                    <span className="w-2 h-2 rounded-full bg-primary animate-bounce [animation-delay:-0.15s]" />
+                    <span className="w-2 h-2 rounded-full bg-primary animate-bounce" />
                   </div>
+                  <span>Mindora AI sedang menganalisis dan menyusun rekomendasi...</span>
                 </div>
               </div>
-            </div>
+            )}
 
-            <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 text-xs text-text-muted flex items-center justify-between">
-              <span>Status: Direncanakan untuk Kerangka Kolaboratif</span>
-              <span className="font-semibold text-text-secondary">Luring</span>
-            </div>
-          </div>
-        </div>
+            {/* Error Notification inside Stream */}
+            {errorMsg && (
+              <div className="p-3.5 rounded-xl bg-rose-50 border border-rose-200 text-xs text-rose-800 flex items-center justify-between gap-2 animate-fadeIn">
+                <span>{errorMsg}</span>
+                <button
+                  type="button"
+                  onClick={() => setErrorMsg(null)}
+                  className="font-bold underline hover:no-underline cursor-pointer"
+                >
+                  Tutup
+                </button>
+              </div>
+            )}
 
-        {/* Empty / Deferred Channel State Notice */}
-        <div className="p-10 rounded-2xl bg-white border border-border shadow-soft-xs text-center space-y-3">
-          <div className="w-12 h-12 rounded-2xl bg-slate-100 text-text-muted flex items-center justify-center mx-auto">
-            <MessageSquareIcon className="w-6 h-6" />
+            <div ref={messagesEndRef} />
           </div>
-          <h3 className="text-sm font-bold text-text-primary">
-            Tidak Ada Percakapan Pesan Aktif
-          </h3>
-          <p className="text-xs text-text-muted max-w-md mx-auto leading-relaxed">
-            Saluran perpesanan dinonaktifkan selama layanan LLM percakapan eksternal ditangguhkan. Untuk merencanakan hari dan mengoptimalkan beban akademik Anda, gunakan modul produktivitas Mindora yang terverifikasi.
-          </p>
-          <div className="pt-2 flex flex-wrap items-center justify-center gap-3">
-            <Link to="/study">
-              <Button variant="secondary" size="sm" className="text-xs font-bold gap-1.5">
-                <ClockIcon className="w-3.5 h-3.5" />
-                Pelacakan Belajar
-              </Button>
+
+          {/* Privacy & Safety Note */}
+          <div className="px-4 py-2 bg-slate-50 border-t border-border/60 flex items-center justify-between text-[11px] text-text-muted">
+            <span className="inline-flex items-center gap-1.5">
+              <ShieldIcon className="w-3.5 h-3.5 text-emerald-600" />
+              <span>Privasi Terjamin: Identitas dan kata sandi Anda tidak pernah ditransmisikan.</span>
+            </span>
+            <Link
+              to="/analytics"
+              className="font-semibold text-primary hover:underline hidden sm:inline-flex items-center gap-1"
+            >
+              <span>Lihat Analisis Belajar</span>
+              <ArrowRightIcon className="w-3 h-3" />
             </Link>
-            <Link to="/focus">
-              <Button variant="outline" size="sm" className="text-xs font-bold">
-                Timer Fokus
-              </Button>
-            </Link>
-            <Link to="/reports">
-              <Button variant="outline" size="sm" className="text-xs font-bold">
-                Laporan Produktivitas
-              </Button>
-            </Link>
+          </div>
+
+          {/* Chat Input Bar */}
+          <div className="p-4 bg-white border-t border-border">
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                handleSendMessage();
+              }}
+              className="relative flex items-center"
+            >
+              <input
+                type="text"
+                value={inputPrompt}
+                disabled={isLoading}
+                onChange={(e) => setInputPrompt(e.target.value)}
+                placeholder="Tulis pesan atau pertanyaan santai untuk teman belajar Mindora..."
+                className="w-full pl-4 pr-12 py-3.5 rounded-xl border border-border bg-surface-subtle text-sm text-text-primary placeholder:text-text-secondary/70 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary focus:bg-white transition-all shadow-soft-sm disabled:opacity-50"
+              />
+              <button
+                type="submit"
+                disabled={isLoading || !inputPrompt.trim()}
+                className="absolute right-2 p-2 rounded-lg bg-primary hover:bg-primary-hover text-white transition-colors cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+                aria-label="Kirim Pesan"
+              >
+                <SendIcon className="w-4 h-4" />
+              </button>
+            </form>
           </div>
         </div>
       </div>
     </DashboardTemplate>
   );
 }
-

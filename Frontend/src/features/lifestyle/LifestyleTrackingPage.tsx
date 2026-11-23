@@ -154,7 +154,7 @@ export default function LifestyleTrackingPage() {
   const [stressLevel, setStressLevel] = useState<string>('');
   const [notes, setNotes] = useState<string>('');
 
-  const [loadingRecord, setLoadingRecord] = useState(false);
+  const [loadingRecord, setLoadingRecord] = useState(true);
   const [saving, setSaving] = useState(false);
   const [feedbackMsg, setFeedbackMsg] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const [history, setHistory] = useState<LifestyleRecord[]>([]);
@@ -168,44 +168,76 @@ export default function LifestyleTrackingPage() {
     }
   }, []);
 
-  const loadRecordForDate = useCallback(async (date: string) => {
-    try {
-      setLoadingRecord(true);
-      setFeedbackMsg(null);
-      const record = await productivityService.getLifestyleRecord(date);
-      if (record) {
-        setSleepHours(record.sleep_hours !== null && record.sleep_hours !== undefined ? String(record.sleep_hours) : '');
-        setPhoneUsageHours(record.phone_usage_hours !== null && record.phone_usage_hours !== undefined ? String(record.phone_usage_hours) : '');
-        setSocialMediaHours(record.social_media_hours !== null && record.social_media_hours !== undefined ? String(record.social_media_hours) : '');
-        setYoutubeHours(record.youtube_hours !== null && record.youtube_hours !== undefined ? String(record.youtube_hours) : '');
-        setGamingHours(record.gaming_hours !== null && record.gaming_hours !== undefined ? String(record.gaming_hours) : '');
-        setCoffeeIntakeMg(record.coffee_intake_mg !== null && record.coffee_intake_mg !== undefined ? String(record.coffee_intake_mg) : '');
-        setExerciseMinutes(record.exercise_minutes !== null && record.exercise_minutes !== undefined ? String(record.exercise_minutes) : '');
-        setStressLevel(record.stress_level !== null && record.stress_level !== undefined ? String(record.stress_level) : '');
-        setNotes(record.notes || '');
-      } else {
-        // Reset form to blank (preserving NULL/unrecorded)
-        setSleepHours('');
-        setPhoneUsageHours('');
-        setSocialMediaHours('');
-        setYoutubeHours('');
-        setGamingHours('');
-        setCoffeeIntakeMg('');
-        setExerciseMinutes('');
-        setStressLevel('');
-        setNotes('');
-      }
-    } catch (err: unknown) {
-      console.error('Failed to load lifestyle record:', err);
-    } finally {
-      setLoadingRecord(false);
+  const applyRecordData = (record: LifestyleRecord | null) => {
+    if (record) {
+      setSleepHours(record.sleep_hours !== null && record.sleep_hours !== undefined ? String(record.sleep_hours) : '');
+      setPhoneUsageHours(record.phone_usage_hours !== null && record.phone_usage_hours !== undefined ? String(record.phone_usage_hours) : '');
+      setSocialMediaHours(record.social_media_hours !== null && record.social_media_hours !== undefined ? String(record.social_media_hours) : '');
+      setYoutubeHours(record.youtube_hours !== null && record.youtube_hours !== undefined ? String(record.youtube_hours) : '');
+      setGamingHours(record.gaming_hours !== null && record.gaming_hours !== undefined ? String(record.gaming_hours) : '');
+      setCoffeeIntakeMg(record.coffee_intake_mg !== null && record.coffee_intake_mg !== undefined ? String(record.coffee_intake_mg) : '');
+      setExerciseMinutes(record.exercise_minutes !== null && record.exercise_minutes !== undefined ? String(record.exercise_minutes) : '');
+      setStressLevel(record.stress_level !== null && record.stress_level !== undefined ? String(record.stress_level) : '');
+      setNotes(record.notes || '');
+    } else {
+      // Reset form to blank (preserving NULL/unrecorded)
+      setSleepHours('');
+      setPhoneUsageHours('');
+      setSocialMediaHours('');
+      setYoutubeHours('');
+      setGamingHours('');
+      setCoffeeIntakeMg('');
+      setExerciseMinutes('');
+      setStressLevel('');
+      setNotes('');
     }
-  }, []);
+  };
+
+  const handleDateChange = (newDate: string) => {
+    setLoadingRecord(true);
+    setFeedbackMsg(null);
+    setSelectedDate(newDate);
+  };
 
   useEffect(() => {
-    loadRecordForDate(selectedDate);
-    loadHistory();
-  }, [selectedDate, loadRecordForDate, loadHistory]);
+    let ignore = false;
+    productivityService
+      .getLifestyleRecord(selectedDate)
+      .then((record) => {
+        if (!ignore) {
+          applyRecordData(record);
+          setLoadingRecord(false);
+        }
+      })
+      .catch((err: unknown) => {
+        if (!ignore) {
+          console.error('Failed to load lifestyle record:', err);
+          setLoadingRecord(false);
+        }
+      });
+
+    return () => {
+      ignore = true;
+    };
+  }, [selectedDate]);
+
+  useEffect(() => {
+    let ignore = false;
+    productivityService
+      .listLifestyleHistory({ limit: 14 })
+      .then((data) => {
+        if (!ignore) {
+          setHistory(data.records);
+        }
+      })
+      .catch((err: unknown) => {
+        console.error('Failed to load lifestyle history:', err);
+      });
+
+    return () => {
+      ignore = true;
+    };
+  }, []);
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -279,7 +311,7 @@ export default function LifestyleTrackingPage() {
               type="date"
               value={selectedDate}
               max={todayString}
-              onChange={(e) => setSelectedDate(e.target.value)}
+              onChange={(e) => handleDateChange(e.target.value)}
               className="text-xs font-bold text-[#123C32] bg-transparent outline-none cursor-pointer"
             />
           </div>
@@ -712,7 +744,7 @@ export default function LifestyleTrackingPage() {
                       <td className="py-3.5 px-3 text-right">
                         <button
                           type="button"
-                          onClick={() => setSelectedDate(record.record_date)}
+                          onClick={() => handleDateChange(record.record_date)}
                           className="text-xs font-semibold text-primary hover:text-primary-800 underline"
                         >
                           Ubah

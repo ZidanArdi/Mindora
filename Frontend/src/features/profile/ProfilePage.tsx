@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import { DashboardTemplate } from '../../components/templates';
 import { Button } from '../../components/atoms';
 import {
@@ -47,24 +47,32 @@ export default function ProfilePage() {
         workspaceName: 'Ruang Kerja Akademik',
       };
 
-  const fetchProfile = useCallback(async () => {
-    setLoading(true);
-    setErrorMessage(null);
-    try {
-      const data = await authService.getProfile();
-      setProfile(data);
-      setNameInput(data.name);
-    } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : 'Gagal memuat profil pengguna';
-      setErrorMessage(msg);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
   useEffect(() => {
-    fetchProfile();
-  }, [fetchProfile]);
+    let isMounted = true;
+    authService
+      .getProfile()
+      .then((data) => {
+        if (isMounted) {
+          setProfile(data);
+          setNameInput(data.name);
+        }
+      })
+      .catch((err: unknown) => {
+        if (isMounted) {
+          const msg = err instanceof Error ? err.message : 'Gagal memuat profil pengguna';
+          setErrorMessage(msg);
+        }
+      })
+      .finally(() => {
+        if (isMounted) {
+          setLoading(false);
+        }
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   const handleSaveName = async (e: React.FormEvent) => {
     e.preventDefault();

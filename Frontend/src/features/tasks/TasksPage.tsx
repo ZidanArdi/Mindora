@@ -56,8 +56,35 @@ export default function TasksPage() {
   }, [statusFilter, priorityFilter, categoryFilter, searchQuery, sortBy]);
 
   useEffect(() => {
-    fetchTasks();
-  }, [fetchTasks]);
+    let ignore = false;
+    productivityService
+      .listTasks({
+        status: statusFilter || undefined,
+        priority: priorityFilter || undefined,
+        category: categoryFilter || undefined,
+        search: searchQuery || undefined,
+        sort_by: sortBy,
+        sort_order: sortBy === 'deadline' ? 'asc' : 'desc',
+        limit: 100,
+      })
+      .then((data) => {
+        if (!ignore) {
+          setTasks(data.tasks);
+          setLoading(false);
+        }
+      })
+      .catch((err: unknown) => {
+        if (!ignore) {
+          const msg = err instanceof Error ? err.message : 'Failed to load tasks';
+          setError(msg);
+          setLoading(false);
+        }
+      });
+
+    return () => {
+      ignore = true;
+    };
+  }, [statusFilter, priorityFilter, categoryFilter, searchQuery, sortBy]);
 
   const handleOpenCreate = () => {
     setFormTitle('');

@@ -26,6 +26,33 @@ export default function StudyTrackingPage() {
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
   const timerRef = useRef<number | null>(null);
 
+  const applyStudyData = (
+    active: StudySession | null,
+    hist: { sessions: StudySession[] },
+    stats: StudyDailyStats | null,
+    taskData: { tasks: TaskItem[] }
+  ) => {
+    setActiveSession(active);
+    setHistory(hist.sessions);
+    if (stats) setDailyStats(stats);
+    setAvailableTasks(taskData.tasks);
+
+    if (active) {
+      if (active.status === 'active') {
+        const startedAtMs = new Date(active.started_at).getTime();
+        const initialElapsed = Math.max(
+          active.duration_seconds,
+          Math.floor((Date.now() - startedAtMs) / 1000)
+        );
+        setElapsedSeconds(initialElapsed);
+      } else {
+        setElapsedSeconds(active.duration_seconds);
+      }
+    } else {
+      setElapsedSeconds(0);
+    }
+  };
+
   const loadData = async () => {
     try {
       setLoading(true);
@@ -35,25 +62,7 @@ export default function StudyTrackingPage() {
         productivityService.getDailyStudyStats(),
         productivityService.listTasks({ status: 'pending', limit: 50 }),
       ]);
-      setActiveSession(active);
-      setHistory(hist.sessions);
-      setDailyStats(stats);
-      setAvailableTasks(taskData.tasks);
-
-      if (active) {
-        if (active.status === 'active') {
-          const startedAtMs = new Date(active.started_at).getTime();
-          const initialElapsed = Math.max(
-            active.duration_seconds,
-            Math.floor((Date.now() - startedAtMs) / 1000)
-          );
-          setElapsedSeconds(initialElapsed);
-        } else {
-          setElapsedSeconds(active.duration_seconds);
-        }
-      } else {
-        setElapsedSeconds(0);
-      }
+      applyStudyData(active, hist, stats, taskData);
     } catch (err: unknown) {
       console.error('Failed to load study data:', err);
     } finally {
@@ -62,7 +71,30 @@ export default function StudyTrackingPage() {
   };
 
   useEffect(() => {
-    loadData();
+    let isMounted = true;
+    Promise.all([
+      productivityService.getActiveStudySession(),
+      productivityService.listStudySessions({ limit: 10 }),
+      productivityService.getDailyStudyStats(),
+      productivityService.listTasks({ status: 'pending', limit: 50 }),
+    ])
+      .then(([active, hist, stats, taskData]) => {
+        if (isMounted) {
+          applyStudyData(active, hist, stats, taskData);
+        }
+      })
+      .catch((err: unknown) => {
+        console.error('Failed to load study data:', err);
+      })
+      .finally(() => {
+        if (isMounted) {
+          setLoading(false);
+        }
+      });
+
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
   // Timer ticker

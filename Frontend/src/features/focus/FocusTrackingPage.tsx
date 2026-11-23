@@ -47,6 +47,30 @@ export default function FocusTrackingPage() {
   const focusPresets = [15, 25, 45, 60];
   const breakPresets = [5, 10, 15, 30];
 
+  const applyFocusData = (
+    active: FocusSession | null,
+    hist: { intervals: FocusSession[] },
+    stats: FocusDailyStats | null
+  ) => {
+    setActiveInterval(active);
+    setHistory(hist.intervals);
+    if (stats) setDailyStats(stats);
+
+    if (active) {
+      setSessionType(active.session_type);
+      setInterruptions(active.interruption_count);
+      const startedAtMs = new Date(active.started_at).getTime();
+      const initialElapsed = Math.max(
+        active.duration_minutes * 60,
+        Math.floor((Date.now() - startedAtMs) / 1000)
+      );
+      setElapsedSeconds(initialElapsed);
+    } else {
+      setElapsedSeconds(0);
+      setInterruptions(0);
+    }
+  };
+
   const loadData = async () => {
     try {
       setLoading(true);
@@ -55,23 +79,7 @@ export default function FocusTrackingPage() {
         productivityService.listFocusIntervals({ limit: 15 }),
         productivityService.getDailyFocusStats(),
       ]);
-      setActiveInterval(active);
-      setHistory(hist.intervals);
-      setDailyStats(stats);
-
-      if (active) {
-        setSessionType(active.session_type);
-        setInterruptions(active.interruption_count);
-        const startedAtMs = new Date(active.started_at).getTime();
-        const initialElapsed = Math.max(
-          active.duration_minutes * 60,
-          Math.floor((Date.now() - startedAtMs) / 1000)
-        );
-        setElapsedSeconds(initialElapsed);
-      } else {
-        setElapsedSeconds(0);
-        setInterruptions(0);
-      }
+      applyFocusData(active, hist, stats);
     } catch (err: unknown) {
       console.error('Failed to load focus intervals:', err);
     } finally {
@@ -80,8 +88,28 @@ export default function FocusTrackingPage() {
   };
 
   useEffect(() => {
-    loadData();
+    let isMounted = true;
+    Promise.all([
+      productivityService.getActiveFocusInterval(),
+      productivityService.listFocusIntervals({ limit: 15 }),
+      productivityService.getDailyFocusStats(),
+    ])
+      .then(([active, hist, stats]) => {
+        if (isMounted) {
+          applyFocusData(active, hist, stats);
+        }
+      })
+      .catch((err: unknown) => {
+        console.error('Failed to load focus intervals:', err);
+      })
+      .finally(() => {
+        if (isMounted) {
+          setLoading(false);
+        }
+      });
+
     return () => {
+      isMounted = false;
       if (timerRef.current) clearInterval(timerRef.current);
     };
   }, []);

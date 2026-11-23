@@ -23,7 +23,7 @@ export default function RecommendationsPage() {
   const [recommendations, setRecommendations] = useState<RecommendationItem[]>([]);
   const [dataTier, setDataTier] = useState<string>('cold_start');
   const [loading, setLoading] = useState<boolean>(true);
-  const [evaluating, setEvaluating] = useState<boolean>(false);
+  const [evaluating, setEvaluating] = useState<boolean>(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [actionSuccessMessage, setActionSuccessMessage] = useState<string | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
@@ -75,9 +75,32 @@ export default function RecommendationsPage() {
   }, []);
 
   useEffect(() => {
-    // Initial load: trigger on-demand evaluation per Phase 4.1 recommendations hub contract
-    fetchRecommendations(true);
-  }, [fetchRecommendations]);
+    let isMounted = true;
+    productivityService
+      .getRecommendations({ evaluate: true })
+      .then((res) => {
+        if (isMounted) {
+          setRecommendations(res.items || []);
+          setDataTier(res.user_data_tier || 'cold_start');
+        }
+      })
+      .catch((err: unknown) => {
+        if (isMounted) {
+          const msg = err instanceof Error ? err.message : 'Gagal memuat rekomendasi';
+          setErrorMessage(msg);
+        }
+      })
+      .finally(() => {
+        if (isMounted) {
+          setLoading(false);
+          setEvaluating(false);
+        }
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   const handleStatusUpdate = async (id: string, status: 'dismissed' | 'completed') => {
     try {
