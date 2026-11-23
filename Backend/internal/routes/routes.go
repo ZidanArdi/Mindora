@@ -10,6 +10,7 @@ import (
 	"mindora/backend/internal/middleware"
 	"mindora/backend/internal/repositories"
 	"mindora/backend/internal/services"
+	"mindora/backend/pkg/groq"
 	"mindora/backend/pkg/hash"
 	"mindora/backend/pkg/jwt"
 	"mindora/backend/pkg/oauth"
@@ -114,6 +115,8 @@ func SetupRoutes(app *fiber.App, db *database.Database, cfg *config.Config) {
 	predictionService := services.NewPredictionService(predictionRepo, studyRepo, lifestyleRepo)
 	analyticsService := services.NewAnalyticsService(studyRepo, focusRepo, taskRepo, lifestyleRepo, predictionRepo)
 	recService := services.NewRecommendationService(recRepo, taskRepo, studyRepo, focusRepo, lifestyleRepo, predictionRepo, userRepo)
+	groqClient := groq.NewClient(cfg.Groq.APIKey, cfg.Groq.Model, cfg.Groq.BaseURL, cfg.Groq.Timeout)
+	aiService := services.NewAIService(groqClient, taskRepo, studyRepo, focusRepo, lifestyleRepo, predictionRepo, recRepo)
 
 	taskHandler := handlers.NewTaskHandler(taskService)
 	studyHandler := handlers.NewStudyHandler(studyService)
@@ -123,6 +126,7 @@ func SetupRoutes(app *fiber.App, db *database.Database, cfg *config.Config) {
 	predictionHandler := handlers.NewPredictionHandler(predictionService)
 	analyticsHandler := handlers.NewAnalyticsHandler(analyticsService)
 	recHandler := handlers.NewRecommendationHandler(recService)
+	aiHandler := handlers.NewAIHandler(aiService)
 
 	// 1. Tasks Management
 	tasks := v1.Group("/tasks", jwtAuth, middleware.RequireRole("user", "admin"))
@@ -190,6 +194,14 @@ func SetupRoutes(app *fiber.App, db *database.Database, cfg *config.Config) {
 	recommendations.Get("/", recHandler.GetRecommendations)
 	recommendations.Patch("/:id/status", recHandler.UpdateStatus)
 
+	// =========================================================================
+	// Phase 5: Groq LLM Academic Productivity Coach
+	// =========================================================================
+	ai := v1.Group("/ai", jwtAuth, middleware.RequireRole("user", "admin"))
+	ai.Post("/chat", aiHandler.Chat)
+	ai.Post("/explain-prediction", aiHandler.ExplainPrediction)
+	ai.Post("/study-plan", aiHandler.GenerateStudyPlan)
+
 	// Root /api aliases for contract compatibility
 	apiAnalytics := api.Group("/analytics", jwtAuth, middleware.RequireRole("user", "admin"))
 	apiAnalytics.Get("/daily", analyticsHandler.GetDaily)
@@ -206,4 +218,9 @@ func SetupRoutes(app *fiber.App, db *database.Database, cfg *config.Config) {
 	apiRecs := api.Group("/recommendations", jwtAuth, middleware.RequireRole("user"))
 	apiRecs.Get("/", recHandler.GetRecommendations)
 	apiRecs.Patch("/:id/status", recHandler.UpdateStatus)
+
+	apiAI := api.Group("/ai", jwtAuth, middleware.RequireRole("user", "admin"))
+	apiAI.Post("/chat", aiHandler.Chat)
+	apiAI.Post("/explain-prediction", aiHandler.ExplainPrediction)
+	apiAI.Post("/study-plan", aiHandler.GenerateStudyPlan)
 }

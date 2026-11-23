@@ -72,6 +72,14 @@ type ProxyConfig struct {
 	TrustedProxies          []string
 }
 
+// GroqConfig holds LLM integration parameters for Groq Cloud API.
+type GroqConfig struct {
+	APIKey  string
+	Model   string
+	BaseURL string
+	Timeout time.Duration
+}
+
 // Config encapsulates entire backend configuration.
 type Config struct {
 	Port        string
@@ -84,6 +92,7 @@ type Config struct {
 	Turnstile   TurnstileConfig
 	Cookie      CookieConfig
 	Proxy       ProxyConfig
+	Groq        GroqConfig
 }
 
 // LoadConfig loads environment variables from .env and populates the Config struct.
@@ -159,6 +168,12 @@ func LoadConfig() *Config {
 	}
 	enableTrustedProxy := getEnvAsBool("ENABLE_TRUSTED_PROXY_CHECK", len(trustedProxies) > 0)
 
+	// Groq LLM configurations
+	groqAPIKey := os.Getenv("GROQ_API_KEY")
+	groqModel := getEnv("GROQ_MODEL", "openai/gpt-oss-20b")
+	groqBaseURL := getEnv("GROQ_BASE_URL", "https://api.groq.com/openai/v1")
+	groqTimeout := getEnvAsDuration("GROQ_TIMEOUT", 30*time.Second)
+
 	return &Config{
 		Port:        port,
 		Env:         env,
@@ -202,6 +217,12 @@ func LoadConfig() *Config {
 		Proxy: ProxyConfig{
 			EnableTrustedProxyCheck: enableTrustedProxy,
 			TrustedProxies:          trustedProxies,
+		},
+		Groq: GroqConfig{
+			APIKey:  groqAPIKey,
+			Model:   groqModel,
+			BaseURL: groqBaseURL,
+			Timeout: groqTimeout,
 		},
 	}
 }

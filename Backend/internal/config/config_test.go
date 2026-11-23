@@ -152,3 +152,27 @@ func TestConfigProxySettings(t *testing.T) {
 		t.Errorf("expected default TrustedProxies to be non-empty")
 	}
 }
+
+func TestConfigGroqSettings(t *testing.T) {
+	oldModel := os.Getenv("GROQ_MODEL")
+	defer func() {
+		if oldModel != "" {
+			_ = os.Setenv("GROQ_MODEL", oldModel)
+		} else {
+			_ = os.Unsetenv("GROQ_MODEL")
+		}
+	}()
+
+	_ = os.Setenv("GROQ_MODEL", "test-model-variant")
+	cfg := config.LoadConfig()
+
+	if cfg.Groq.Model != "test-model-variant" {
+		t.Errorf("expected GROQ_MODEL 'test-model-variant', got %q", cfg.Groq.Model)
+	}
+	if cfg.Groq.BaseURL == "" {
+		t.Errorf("expected default Groq.BaseURL, got empty")
+	}
+	if cfg.Groq.Timeout <= 0 {
+		t.Errorf("expected positive Groq.Timeout, got %v", cfg.Groq.Timeout)
+	}
+}
