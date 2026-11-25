@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
+import { toast } from 'sonner';
 import { DashboardTemplate } from '../../components/templates';
 import { UserHeroBanner } from './UserHeroBanner';
 import { AIAssistantWidget } from './AIAssistantWidget';
@@ -101,7 +102,13 @@ export default function UserDashboardPage() {
       // Refresh summary
       const updated = await productivityService.getDashboardSummary();
       setSummary(updated);
+      if (nextStatus === 'completed') {
+        toast.success('Tugas berhasil diselesaikan.');
+      } else {
+        toast.info('Status tugas diubah menjadi belum selesai.');
+      }
     } catch (err: unknown) {
+      toast.error('Gagal memperbarui status tugas.');
       console.error('Failed to update task:', err);
     }
   };

@@ -42,7 +42,7 @@ export function AppRoutes() {
       <Route
         path="/dashboard"
         element={
-          <ProtectedRoute allowedRoles={['user', 'admin']}>
+          <ProtectedRoute allowedRoles={['user']}>
             <UserDashboardPage />
           </ProtectedRoute>
         }
@@ -50,7 +50,7 @@ export function AppRoutes() {
       <Route
         path="/tasks"
         element={
-          <ProtectedRoute allowedRoles={['user', 'admin']}>
+          <ProtectedRoute allowedRoles={['user']}>
             <TasksPage />
           </ProtectedRoute>
         }
@@ -61,7 +61,7 @@ export function AppRoutes() {
       <Route
         path="/calendar"
         element={
-          <ProtectedRoute allowedRoles={['user', 'admin']}>
+          <ProtectedRoute allowedRoles={['user']}>
             <CalendarPage />
           </ProtectedRoute>
         }
@@ -69,7 +69,7 @@ export function AppRoutes() {
       <Route
         path="/study"
         element={
-          <ProtectedRoute allowedRoles={['user', 'admin']}>
+          <ProtectedRoute allowedRoles={['user']}>
             <StudyTrackingPage />
           </ProtectedRoute>
         }
@@ -77,7 +77,7 @@ export function AppRoutes() {
       <Route
         path="/focus"
         element={
-          <ProtectedRoute allowedRoles={['user', 'admin']}>
+          <ProtectedRoute allowedRoles={['user']}>
             <FocusTrackingPage />
           </ProtectedRoute>
         }
@@ -85,7 +85,7 @@ export function AppRoutes() {
       <Route
         path="/lifestyle"
         element={
-          <ProtectedRoute allowedRoles={['user', 'admin']}>
+          <ProtectedRoute allowedRoles={['user']}>
             <LifestyleTrackingPage />
           </ProtectedRoute>
         }
@@ -95,7 +95,7 @@ export function AppRoutes() {
       <Route
         path="/analytics"
         element={
-          <ProtectedRoute allowedRoles={['user', 'admin']}>
+          <ProtectedRoute allowedRoles={['user']}>
             <AnalyticsPage />
           </ProtectedRoute>
         }
@@ -105,7 +105,7 @@ export function AppRoutes() {
       <Route
         path="/messages"
         element={
-          <ProtectedRoute allowedRoles={['user', 'admin']}>
+          <ProtectedRoute allowedRoles={['user']}>
             <MessagesPage />
           </ProtectedRoute>
         }
@@ -113,7 +113,7 @@ export function AppRoutes() {
       <Route
         path="/reports"
         element={
-          <ProtectedRoute allowedRoles={['user', 'admin']}>
+          <ProtectedRoute allowedRoles={['user']}>
             <ReportsPage />
           </ProtectedRoute>
         }

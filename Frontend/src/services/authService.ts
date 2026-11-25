@@ -14,7 +14,8 @@ export const authService = {
       body: JSON.stringify({
         email: payload.email,
         password: payload.password,
-        turnstile_token: payload.turnstile_token || 'dummy-test-token',
+        turnstile_token: payload.turnstile_token || '',
+        portal: payload.portal || 'user',
       }),
     });
 
@@ -38,7 +39,7 @@ export const authService = {
         name: payload.name,
         email: payload.email,
         password: payload.password,
-        turnstile_token: payload.turnstile_token || 'dummy-test-token',
+        turnstile_token: payload.turnstile_token || '',
       }),
     });
 

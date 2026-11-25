@@ -16,7 +16,6 @@ import {
   FolderIcon,
   ShieldIcon,
   LogoutIcon,
-  ChevronLeftIcon,
   CloseIcon,
   Avatar,
 } from '../atoms';
@@ -342,16 +341,6 @@ export const Sidebar = ({
                 </nav>
               </div>
 
-              {/* Back to main app button */}
-              <div className="pt-2 border-t border-border-subtle">
-                <Link
-                  to="/dashboard"
-                  className="flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-semibold text-text-secondary hover:text-primary hover:bg-surface-muted transition-colors border border-border"
-                >
-                  <ChevronLeftIcon className="w-4 h-4" />
-                  <span>Kembali ke Ruang Kerja</span>
-                </Link>
-              </div>
             </div>
           )}
         </div>

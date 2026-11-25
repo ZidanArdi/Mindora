@@ -27,6 +27,7 @@ export interface LoginPayload {
   email: string;
   password: string;
   turnstile_token?: string;
+  portal?: 'user' | 'admin';
 }
 
 export interface RegisterPayload {

@@ -38,7 +38,8 @@ export const RegisterForm = ({ className }: RegisterFormProps) => {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [turnstileToken, setTurnstileToken] = useState('1x0000000000000000000000000000000AA');
+  const [turnstileToken, setTurnstileToken] = useState('');
+  const [turnstileResetKey, setTurnstileResetKey] = useState(0);
 
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -71,6 +72,10 @@ export const RegisterForm = ({ className }: RegisterFormProps) => {
       setErrorMessage('Kata sandi tidak cocok');
       return;
     }
+    if (!turnstileToken) {
+      setErrorMessage('Silakan selesaikan verifikasi keamanan sebelum melanjutkan.');
+      return;
+    }
 
     setLoading(true);
 
@@ -86,6 +91,8 @@ export const RegisterForm = ({ className }: RegisterFormProps) => {
       navigate('/dashboard');
     } catch (err: unknown) {
       setErrorMessage(translateErrorMessage(err, 'Gagal membuat akun. Silakan periksa data Anda dan coba lagi.'));
+      setTurnstileToken('');
+      setTurnstileResetKey((k) => k + 1);
     } finally {
       setLoading(false);
     }
@@ -252,6 +259,7 @@ export const RegisterForm = ({ className }: RegisterFormProps) => {
         <TurnstileWidget
           action="register"
           onVerify={(token) => setTurnstileToken(token)}
+          resetKey={turnstileResetKey}
         />
 
         {/* Submit Button */}
@@ -260,7 +268,7 @@ export const RegisterForm = ({ className }: RegisterFormProps) => {
             type="submit"
             variant="primary"
             size="lg"
-            disabled={loading || (password.length > 0 && (!isPasswordValid || !isMatch))}
+            disabled={loading || !turnstileToken || (password.length > 0 && (!isPasswordValid || !isMatch))}
             className="w-full gap-2 text-sm font-bold justify-center shadow-soft-md"
           >
             <span>{loading ? 'Membuat Akun...' : 'Buat Akun'}</span>

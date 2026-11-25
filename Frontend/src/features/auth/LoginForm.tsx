@@ -32,7 +32,8 @@ export const LoginForm = ({ className }: LoginFormProps) => {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(true);
-  const [turnstileToken, setTurnstileToken] = useState('1x0000000000000000000000000000000AA');
+  const [turnstileToken, setTurnstileToken] = useState('');
+  const [turnstileResetKey, setTurnstileResetKey] = useState(0);
   
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(() => {
@@ -46,17 +47,19 @@ export const LoginForm = ({ className }: LoginFormProps) => {
   // If already authenticated, redirect to appropriate workspace
   useEffect(() => {
     if (isAuthenticated && user) {
-      if (user.role === 'admin' && role === 'admin') {
+      if (user.role === 'admin') {
         navigate('/admin');
       } else {
         navigate('/dashboard');
       }
     }
-  }, [isAuthenticated, user, navigate, role]);
+  }, [isAuthenticated, user, navigate]);
 
   const handleRoleChange = (newRole: 'user' | 'admin') => {
     setRole(newRole);
     setErrorMessage(null);
+    setTurnstileToken('');
+    setTurnstileResetKey((k) => k + 1);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -72,6 +75,10 @@ export const LoginForm = ({ className }: LoginFormProps) => {
       setErrorMessage('Silakan masukkan kata sandi Anda');
       return;
     }
+    if (!turnstileToken) {
+      setErrorMessage('Silakan selesaikan verifikasi keamanan sebelum melanjutkan.');
+      return;
+    }
 
     setLoading(true);
 
@@ -80,21 +87,14 @@ export const LoginForm = ({ className }: LoginFormProps) => {
         email: email.trim(),
         password,
         turnstile_token: turnstileToken,
+        portal: role,
       });
 
-      // Role check and routing
-      if (role === 'admin') {
-        if (result.user.role === 'admin') {
-          navigate('/admin');
-        } else {
-          setInfoMessage('Akun Anda memiliki hak akses pengguna. Mengarahkan ke ruang kerja pengguna...');
-          setTimeout(() => navigate('/dashboard'), 800);
-        }
-      } else {
-        navigate('/dashboard');
-      }
+      navigate(result.user.role === 'admin' ? '/admin' : '/dashboard');
     } catch (err: unknown) {
       setErrorMessage(translateErrorMessage(err, 'Gagal masuk. Silakan periksa kredensial Anda dan coba lagi.'));
+      setTurnstileToken('');
+      setTurnstileResetKey((k) => k + 1);
     } finally {
       setLoading(false);
     }
@@ -252,6 +252,7 @@ export const LoginForm = ({ className }: LoginFormProps) => {
         <TurnstileWidget
           action="login"
           onVerify={(token) => setTurnstileToken(token)}
+          resetKey={turnstileResetKey}
         />
 
         {/* Primary Submit Button */}
@@ -260,7 +261,7 @@ export const LoginForm = ({ className }: LoginFormProps) => {
             type="submit"
             variant="primary"
             size="lg"
-            disabled={loading}
+            disabled={loading || !turnstileToken}
             className="w-full gap-2 text-sm font-bold justify-center shadow-soft-md"
           >
             <span>{loading ? 'Mengautentikasi...' : `Masuk ke ${role === 'admin' ? 'Konsol Admin' : 'Ruang Kerja'}`}</span>

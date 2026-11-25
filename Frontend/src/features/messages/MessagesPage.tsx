@@ -40,6 +40,7 @@ export default function MessagesPage() {
   const [inputPrompt, setInputPrompt] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [lastFailedPrompt, setLastFailedPrompt] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
 
   const displayUser: UserProfile = user
@@ -80,6 +81,7 @@ export default function MessagesPage() {
     setInputPrompt('');
     setIsLoading(true);
     setErrorMsg(null);
+    setLastFailedPrompt(null);
 
     try {
       let replyText = '';
@@ -100,6 +102,7 @@ export default function MessagesPage() {
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Gagal menghubungi asisten AI';
       setErrorMsg(msg);
+      setLastFailedPrompt(promptToSend);
     } finally {
       setIsLoading(false);
     }
@@ -238,13 +241,27 @@ export default function MessagesPage() {
             {errorMsg && (
               <div className="p-3.5 rounded-xl bg-rose-50 border border-rose-200 text-xs text-rose-800 flex items-center justify-between gap-2 animate-fadeIn">
                 <span>{errorMsg}</span>
-                <button
-                  type="button"
-                  onClick={() => setErrorMsg(null)}
-                  className="font-bold underline hover:no-underline cursor-pointer"
-                >
-                  Tutup
-                </button>
+                <div className="flex items-center gap-3 shrink-0">
+                  {lastFailedPrompt && (
+                    <button
+                      type="button"
+                      onClick={() => handleSendMessage(lastFailedPrompt)}
+                      className="font-bold text-rose-700 underline hover:no-underline cursor-pointer"
+                    >
+                      Coba Lagi
+                    </button>
+                  )}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setErrorMsg(null);
+                      setLastFailedPrompt(null);
+                    }}
+                    className="font-bold underline hover:no-underline cursor-pointer"
+                  >
+                    Tutup
+                  </button>
+                </div>
               </div>
             )}
 

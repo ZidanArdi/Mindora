@@ -1,6 +1,19 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { useSearchParams } from 'react-router-dom';
+import { toast } from 'sonner';
 import { DashboardTemplate } from '../../components/templates';
 import { Button, TrashIcon, ListIcon, Input, PlusIcon, CloseIcon } from '../../components/atoms';
+import { SearchInput } from '../../components/molecules';
+import {
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogFooter,
+  AlertDialogTitle,
+  AlertDialogDescription,
+  AlertDialogAction,
+  AlertDialogCancel,
+} from '../../components/ui/alert-dialog';
 import { productivityService } from '../../services/productivityService';
 import type { TaskItem, TaskPriority, TaskStatus } from '../../types';
 import { useAuth } from '../../hooks';
@@ -8,6 +21,9 @@ import { translatePriority, translateCategory, formatDate } from '../../utils/i1
 
 export default function TasksPage() {
   const { user } = useAuth();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const urlSearch = searchParams.get('search') || '';
+
   const [tasks, setTasks] = useState<TaskItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -16,7 +32,7 @@ export default function TasksPage() {
   const [statusFilter, setStatusFilter] = useState<string>('');
   const [priorityFilter, setPriorityFilter] = useState<string>('');
   const [categoryFilter, setCategoryFilter] = useState<string>('');
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState(urlSearch);
   const [sortBy, setSortBy] = useState('created_at');
   const [viewMode, setViewMode] = useState<'list' | 'card' | 'kanban'>('list');
 
@@ -24,6 +40,7 @@ export default function TasksPage() {
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [editingTask, setEditingTask] = useState<TaskItem | null>(null);
   const [deletingTask, setDeletingTask] = useState<TaskItem | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   // Form State
   const [formTitle, setFormTitle] = useState('');
@@ -32,6 +49,14 @@ export default function TasksPage() {
   const [formPriority, setFormPriority] = useState<TaskPriority>('medium');
   const [formDeadline, setFormDeadline] = useState('');
   const [formSubmitting, setFormSubmitting] = useState(false);
+
+  useEffect(() => {
+    const q = searchParams.get('search') ?? '';
+    const timer = setTimeout(() => {
+      setSearchQuery((current) => (current !== q ? q : current));
+    }, 0);
+    return () => clearTimeout(timer);
+  }, [searchParams]);
 
   const fetchTasks = useCallback(async () => {
     try {
@@ -121,13 +146,21 @@ export default function TasksPage() {
       if (editingTask) {
         await productivityService.updateTask(editingTask.id, payload);
         setEditingTask(null);
+        toast.success('Perubahan berhasil disimpan.');
       } else {
         await productivityService.createTask(payload);
         setIsCreateOpen(false);
+        toast.success('Tugas berhasil dibuat.');
       }
       fetchTasks();
     } catch (err: unknown) {
-      alert(err instanceof Error ? err.message : 'Operation failed');
+      toast.error(
+        err instanceof Error
+          ? err.message
+          : editingTask
+          ? 'Gagal memperbarui tugas.'
+          : 'Tugas gagal dibuat.'
+      );
     } finally {
       setFormSubmitting(false);
     }
@@ -141,19 +174,29 @@ export default function TasksPage() {
         prev.map((t) => (t.id === task.id ? { ...t, status: nextStatus } : t))
       );
       await productivityService.updateTaskStatus(task.id, nextStatus);
-    } catch {
+      if (nextStatus === 'completed') {
+        toast.success('Tugas berhasil diselesaikan.');
+      } else {
+        toast.info('Status tugas diubah menjadi tertunda.');
+      }
+    } catch (err: unknown) {
       fetchTasks(); // Revert on failure
+      toast.error(err instanceof Error ? err.message : 'Gagal memperbarui status tugas.');
     }
   };
 
   const handleDeleteTask = async () => {
-    if (!deletingTask) return;
+    if (!deletingTask || isDeleting) return;
     try {
+      setIsDeleting(true);
       await productivityService.deleteTask(deletingTask.id);
+      toast.success('Tugas berhasil dihapus.');
       setDeletingTask(null);
       fetchTasks();
     } catch (err: unknown) {
-      alert(err instanceof Error ? err.message : 'Delete failed');
+      toast.error(err instanceof Error ? err.message : 'Gagal menghapus tugas.');
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -198,10 +241,27 @@ export default function TasksPage() {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 items-center">
             {/* Search Input */}
             <div className="lg:col-span-2">
-              <Input
+              <SearchInput
                 placeholder="Cari tugas berdasarkan judul atau detail..."
                 value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
+                onChange={(e) => {
+                  setSearchQuery(e.target.value);
+                  setSearchParams((prev) => {
+                    if (e.target.value) {
+                      prev.set('search', e.target.value);
+                    } else {
+                      prev.delete('search');
+                    }
+                    return prev;
+                  });
+                }}
+                onClear={() => {
+                  setSearchQuery('');
+                  setSearchParams((prev) => {
+                    prev.delete('search');
+                    return prev;
+                  });
+                }}
                 className="w-full text-xs"
               />
             </div>
@@ -559,36 +619,40 @@ export default function TasksPage() {
           </div>
         )}
 
-        {/* Delete Confirmation Modal */}
-        {deletingTask && (
-          <div className="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center p-4">
-            <div className="bg-white rounded-3xl max-w-sm w-full p-6 shadow-soft-xl border border-border space-y-4 text-center">
-              <div className="w-12 h-12 rounded-full bg-red-100 text-red-600 flex items-center justify-center mx-auto">
+        {/* Shadcn/UI Accessible AlertDialog for Task Deletion */}
+        <AlertDialog
+          open={!!deletingTask}
+          onOpenChange={(open) => {
+            if (!open && !isDeleting) {
+              setDeletingTask(null);
+            }
+          }}
+        >
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <div className="w-12 h-12 rounded-full bg-red-100 text-red-600 flex items-center justify-center mx-auto mb-1">
                 <TrashIcon className="w-6 h-6" />
               </div>
-              <h3 className="text-base font-bold text-text-primary">Hapus Tugas?</h3>
-              <p className="text-xs text-text-secondary leading-relaxed">
-                Apakah Anda yakin ingin menghapus <strong className="text-text-primary">"{deletingTask.title}"</strong>? Tindakan ini akan menghapus tugas tetapi tetap menyimpan riwayat belajar terkait.
-              </p>
-              <div className="flex items-center justify-center gap-3 pt-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setDeletingTask(null)}
-                >
-                  Batal
-                </Button>
-                <button
-                  type="button"
-                  onClick={handleDeleteTask}
-                  className="px-4 py-2 rounded-xl text-xs font-semibold bg-red-600 text-white hover:bg-red-700 transition-colors"
-                >
-                  Hapus
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
+              <AlertDialogTitle className="text-center">Hapus Tugas?</AlertDialogTitle>
+              <AlertDialogDescription className="text-center">
+                Tugas <strong className="text-text-primary">"{deletingTask?.title}"</strong> akan dihapus dari daftar Anda. Tindakan ini tidak dapat dibatalkan.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter className="sm:justify-center">
+              <AlertDialogCancel disabled={isDeleting}>Batal</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={(e) => {
+                  e.preventDefault();
+                  handleDeleteTask();
+                }}
+                disabled={isDeleting}
+                className="bg-red-600 hover:bg-red-700"
+              >
+                {isDeleting ? 'Menghapus...' : 'Hapus'}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     </DashboardTemplate>
   );

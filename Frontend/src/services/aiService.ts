@@ -45,6 +45,15 @@ export const aiService = {
 
     if (!res.ok) {
       const errData = await res.json().catch(() => null);
+      if (res.status === 404) {
+        throw new Error(errData?.message || 'Data prediksi belum tersedia untuk dijelaskan.');
+      }
+      if (res.status === 429) {
+        throw new Error(errData?.message || 'Permintaan AI sedang dibatasi. Coba beberapa saat lagi.');
+      }
+      if (res.status === 503 || res.status === 502 || res.status === 504) {
+        throw new Error(errData?.message || 'Layanan AI sedang tidak tersedia. Silakan coba kembali.');
+      }
       throw new Error(errData?.message || `Gagal menjelaskan prediksi (${res.status})`);
     }
 

@@ -19,6 +19,7 @@ export const AIAssistantWidget = ({
   const [loadingAI, setLoadingAI] = useState<boolean>(false);
   const [aiResponse, setAiResponse] = useState<string | null>(null);
   const [aiError, setAiError] = useState<string | null>(null);
+  const [lastFailedPrompt, setLastFailedPrompt] = useState<string | null>(null);
   const [urgentRecs, setUrgentRecs] = useState<RecommendationItem[]>([]);
   const [loadingRecs, setLoadingRecs] = useState<boolean>(true);
 
@@ -75,6 +76,7 @@ export const AIAssistantWidget = ({
     setLoadingAI(true);
     setAiError(null);
     setAiResponse(null);
+    setLastFailedPrompt(null);
 
     try {
       let reply = '';
@@ -90,6 +92,7 @@ export const AIAssistantWidget = ({
     } catch (err: unknown) {
       const errMsg = err instanceof Error ? err.message : 'Gagal menghubungi asisten AI';
       setAiError(errMsg);
+      setLastFailedPrompt(text);
     } finally {
       setLoadingAI(false);
       setPrompt('');
@@ -243,15 +246,29 @@ export const AIAssistantWidget = ({
 
       {/* Error state */}
       {aiError && (
-        <div className="p-3.5 rounded-xl bg-rose-50 border border-rose-200 text-xs text-rose-800 leading-relaxed font-medium animate-fadeIn flex items-start justify-between gap-2">
+        <div className="p-3.5 rounded-xl bg-rose-50 border border-rose-200 text-xs text-rose-800 leading-relaxed font-medium animate-fadeIn flex items-center justify-between gap-2">
           <span>{aiError}</span>
-          <button
-            type="button"
-            onClick={() => setAiError(null)}
-            className="text-rose-500 hover:text-rose-700 shrink-0 cursor-pointer"
-          >
-            <CloseIcon className="w-3.5 h-3.5" />
-          </button>
+          <div className="flex items-center gap-2 shrink-0">
+            {lastFailedPrompt && (
+              <button
+                type="button"
+                onClick={() => handleSend(lastFailedPrompt)}
+                className="font-bold text-rose-700 underline hover:no-underline cursor-pointer"
+              >
+                Coba Lagi
+              </button>
+            )}
+            <button
+              type="button"
+              onClick={() => {
+                setAiError(null);
+                setLastFailedPrompt(null);
+              }}
+              className="text-rose-500 hover:text-rose-700 p-0.5 cursor-pointer"
+            >
+              <CloseIcon className="w-3.5 h-3.5" />
+            </button>
+          </div>
         </div>
       )}
 

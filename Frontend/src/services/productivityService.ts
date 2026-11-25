@@ -540,6 +540,12 @@ export const productivityService = {
     });
     if (!res.ok) {
       const err = await res.json().catch(() => ({}));
+      if (res.status === 429) {
+        throw new Error(err.message || 'Permintaan AI sedang dibatasi. Coba beberapa saat lagi.');
+      }
+      if (res.status === 503 || res.status === 502 || res.status === 504) {
+        throw new Error(err.message || 'Layanan AI sedang tidak tersedia. Silakan coba kembali.');
+      }
       throw new Error(err.message || 'Gagal menghubungi asisten AI');
     }
     const data: ApiResponse<{ reply: string }> = await res.json();
@@ -554,6 +560,15 @@ export const productivityService = {
     });
     if (!res.ok) {
       const err = await res.json().catch(() => ({}));
+      if (res.status === 404) {
+        throw new Error(err.message || 'Data prediksi belum tersedia untuk dijelaskan.');
+      }
+      if (res.status === 429) {
+        throw new Error(err.message || 'Permintaan AI sedang dibatasi. Coba beberapa saat lagi.');
+      }
+      if (res.status === 503 || res.status === 502 || res.status === 504) {
+        throw new Error(err.message || 'Layanan AI sedang tidak tersedia. Silakan coba kembali.');
+      }
       throw new Error(err.message || 'Gagal menjelaskan prediksi');
     }
     const data: ApiResponse<{ reply: string }> = await res.json();
@@ -568,6 +583,12 @@ export const productivityService = {
     });
     if (!res.ok) {
       const err = await res.json().catch(() => ({}));
+      if (res.status === 429) {
+        throw new Error(err.message || 'Permintaan AI sedang dibatasi. Coba beberapa saat lagi.');
+      }
+      if (res.status === 503 || res.status === 502 || res.status === 504) {
+        throw new Error(err.message || 'Layanan AI sedang tidak tersedia. Silakan coba kembali.');
+      }
       throw new Error(err.message || 'Gagal menyusun rencana belajar');
     }
     const data: ApiResponse<{ reply: string }> = await res.json();
