@@ -260,4 +260,55 @@ func TestUserAdminPortalAuthorization(t *testing.T) {
 			t.Errorf("expected 200 OK for accessing own tasks, got: %d", ownResp.StatusCode)
 		}
 	})
+
+	// -------------------------------------------------------------------------
+	// Requirement 8: Invalid credentials rejected with 401
+	// -------------------------------------------------------------------------
+	t.Run("InvalidCredentials_Returns401Unauthorized", func(t *testing.T) {
+		body, _ := json.Marshal(map[string]string{
+			"email":           userEmail,
+			"password":        "WrongPass!999",
+			"turnstile_token": "valid-token",
+			"portal":          "user",
+		})
+		req := httptest.NewRequest(http.MethodPost, "/api/v1/auth/login", bytes.NewReader(body))
+		req.Header.Set("Content-Type", "application/json")
+
+		resp, err := app.Test(req, 5000)
+		if err != nil {
+			t.Fatalf("request error: %v", err)
+		}
+		if resp.StatusCode != fiber.StatusUnauthorized {
+			t.Errorf("expected 401 Unauthorized for invalid credentials, got: %d", resp.StatusCode)
+		}
+	})
+
+	// -------------------------------------------------------------------------
+	// Requirement 9: Suspended/disabled account rejected with 403
+	// -------------------------------------------------------------------------
+	t.Run("DisabledAccount_Returns403Forbidden", func(t *testing.T) {
+		defer func() {
+			_ = db.DB.Exec("UPDATE users SET status = 'active' WHERE id = ?", studentUserID)
+		}()
+		if err := db.DB.Exec("UPDATE users SET status = 'suspended' WHERE id = ?", studentUserID).Error; err != nil {
+			t.Fatalf("failed to suspend student user: %v", err)
+		}
+
+		body, _ := json.Marshal(map[string]string{
+			"email":           userEmail,
+			"password":        userPassword,
+			"turnstile_token": "valid-token",
+			"portal":          "user",
+		})
+		req := httptest.NewRequest(http.MethodPost, "/api/v1/auth/login", bytes.NewReader(body))
+		req.Header.Set("Content-Type", "application/json")
+
+		resp, err := app.Test(req, 5000)
+		if err != nil {
+			t.Fatalf("request error: %v", err)
+		}
+		if resp.StatusCode != fiber.StatusForbidden {
+			t.Errorf("expected 403 Forbidden for suspended account, got: %d", resp.StatusCode)
+		}
+	})
 }

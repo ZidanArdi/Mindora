@@ -31,7 +31,7 @@ var (
 	ErrIdempotencyExpired             = errors.New("refresh idempotency window expired")
 	ErrEmailConflictExternalIdentity  = errors.New("this email is already registered using another sign-in method; please sign in with your email and password")
 	ErrAdminPublicRegistrationBlocked = errors.New("administrative accounts cannot be created via public registration")
-	ErrAdminPortalAccessDenied        = errors.New("Akun Anda tidak memiliki izin untuk masuk melalui Konsol Admin.")
+	ErrAdminPortalAccessDenied        = errors.New("Akun Anda tidak memiliki izin untuk masuk ke Konsol Admin.")
 	ErrUserPortalAccessDenied         = errors.New("Akun Administrator tidak dapat masuk melalui Ruang Kerja Pengguna.")
 	ErrInvalidPortal                  = errors.New("Portal yang diminta tidak valid.")
 )
