@@ -539,14 +539,7 @@ export const productivityService = {
       body: JSON.stringify({ prompt: prompt.trim() }),
     });
     if (!res.ok) {
-      const err = await res.json().catch(() => ({}));
-      if (res.status === 429) {
-        throw new Error(err.message || 'Permintaan AI sedang dibatasi. Coba beberapa saat lagi.');
-      }
-      if (res.status === 503 || res.status === 502 || res.status === 504) {
-        throw new Error(err.message || 'Layanan AI sedang tidak tersedia. Silakan coba kembali.');
-      }
-      throw new Error(err.message || 'Gagal menghubungi asisten AI');
+      throw new Error(await parseAIResponseError(res, 'Gagal menghubungi asisten AI.'));
     }
     const data: ApiResponse<{ reply: string }> = await res.json();
     return data.data?.reply || '';
@@ -559,17 +552,9 @@ export const productivityService = {
       body: JSON.stringify(predictionId ? { prediction_id: predictionId } : {}),
     });
     if (!res.ok) {
-      const err = await res.json().catch(() => ({}));
-      if (res.status === 404) {
-        throw new Error(err.message || 'Data prediksi belum tersedia untuk dijelaskan.');
-      }
-      if (res.status === 429) {
-        throw new Error(err.message || 'Permintaan AI sedang dibatasi. Coba beberapa saat lagi.');
-      }
-      if (res.status === 503 || res.status === 502 || res.status === 504) {
-        throw new Error(err.message || 'Layanan AI sedang tidak tersedia. Silakan coba kembali.');
-      }
-      throw new Error(err.message || 'Gagal menjelaskan prediksi');
+      throw new Error(
+        await parseAIResponseError(res, 'Gagal menjelaskan prediksi.', 'Data prediksi belum tersedia untuk dijelaskan.')
+      );
     }
     const data: ApiResponse<{ reply: string }> = await res.json();
     return data.data?.reply || '';
@@ -582,16 +567,32 @@ export const productivityService = {
       body: JSON.stringify({}),
     });
     if (!res.ok) {
-      const err = await res.json().catch(() => ({}));
-      if (res.status === 429) {
-        throw new Error(err.message || 'Permintaan AI sedang dibatasi. Coba beberapa saat lagi.');
-      }
-      if (res.status === 503 || res.status === 502 || res.status === 504) {
-        throw new Error(err.message || 'Layanan AI sedang tidak tersedia. Silakan coba kembali.');
-      }
-      throw new Error(err.message || 'Gagal menyusun rencana belajar');
+      throw new Error(await parseAIResponseError(res, 'Gagal menyusun rencana belajar.'));
     }
     const data: ApiResponse<{ reply: string }> = await res.json();
     return data.data?.reply || '';
   },
 };
+
+async function parseAIResponseError(res: Response, fallback: string, notFoundMsg?: string): Promise<string> {
+  const err = await res.json().catch(() => ({} as { message?: string }));
+  if (res.status === 401) {
+    return 'Sesi login tidak valid. Silakan login kembali.';
+  }
+  if (res.status === 403) {
+    return err.message || 'Anda tidak memiliki izin untuk mengakses asisten AI.';
+  }
+  if (res.status === 404) {
+    return err.message || notFoundMsg || 'Layanan AI tidak ditemukan pada server backend.';
+  }
+  if (res.status === 429) {
+    return err.message || 'Layanan AI sedang sibuk. Silakan coba beberapa saat lagi.';
+  }
+  if (res.status === 504) {
+    return err.message || 'Koneksi ke layanan AI mengalami timeout.';
+  }
+  if (res.status === 502 || res.status === 503) {
+    return err.message || 'Layanan AI sedang tidak tersedia.';
+  }
+  return err.message || fallback;
+}

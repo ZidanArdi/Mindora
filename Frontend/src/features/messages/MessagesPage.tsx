@@ -71,14 +71,15 @@ export default function MessagesPage() {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, isLoading]);
 
-  const handleSendMessage = async (customPrompt?: string) => {
+  const handleSendMessage = async (customPrompt?: string, isRetry = false) => {
     const promptToSend = (customPrompt || inputPrompt).trim();
     if (!promptToSend || isLoading) return;
 
-    const userMsg = createChatMessage('user', promptToSend);
-
-    setMessages((prev) => [...prev, userMsg]);
-    setInputPrompt('');
+    if (!isRetry) {
+      const userMsg = createChatMessage('user', promptToSend);
+      setMessages((prev) => [...prev, userMsg]);
+      setInputPrompt('');
+    }
     setIsLoading(true);
     setErrorMsg(null);
     setLastFailedPrompt(null);
@@ -100,7 +101,12 @@ export default function MessagesPage() {
 
       setMessages((prev) => [...prev, aiMsg]);
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : 'Gagal menghubungi asisten AI';
+      const msg =
+        err instanceof TypeError
+          ? 'Tidak dapat terhubung ke server backend. Periksa koneksi atau status server.'
+          : err instanceof Error
+          ? err.message
+          : 'Gagal menghubungi asisten AI.';
       setErrorMsg(msg);
       setLastFailedPrompt(promptToSend);
     } finally {
@@ -245,8 +251,9 @@ export default function MessagesPage() {
                   {lastFailedPrompt && (
                     <button
                       type="button"
-                      onClick={() => handleSendMessage(lastFailedPrompt)}
-                      className="font-bold text-rose-700 underline hover:no-underline cursor-pointer"
+                      disabled={isLoading}
+                      onClick={() => handleSendMessage(lastFailedPrompt, true)}
+                      className="font-bold text-rose-700 underline hover:no-underline cursor-pointer disabled:opacity-50"
                     >
                       Coba Lagi
                     </button>
