@@ -37,9 +37,26 @@ export const LoginForm = ({ className }: LoginFormProps) => {
   
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(() => {
-    return searchParams.get('session_expired') === 'true'
-      ? 'Sesi Anda telah berakhir. Silakan masuk kembali untuk melanjutkan.'
-      : null;
+    if (searchParams.get('session_expired') === 'true') {
+      return 'Sesi Anda telah berakhir. Silakan masuk kembali untuk melanjutkan.';
+    }
+    if (searchParams.get('auth') === 'error') {
+      const code = searchParams.get('error');
+      if (code === 'access_denied') {
+        return 'Autentikasi Google dibatalkan. Silakan coba lagi atau masuk dengan email.';
+      }
+      if (code === 'email_conflict') {
+        return 'Email ini sudah terdaftar dengan metode masuk lain. Silakan masuk menggunakan email dan kata sandi Anda.';
+      }
+      if (code === 'unverified_email') {
+        return 'Email akun Google Anda belum terverifikasi.';
+      }
+      if (code === 'admin_portal_denied') {
+        return 'Akun Administrator tidak dapat masuk melalui Google Sign-In.';
+      }
+      return searchParams.get('message') || 'Autentikasi Google gagal. Silakan coba lagi.';
+    }
+    return null;
   });
   const [infoMessage, setInfoMessage] = useState<string | null>(null);
   const [showForgotModal, setShowForgotModal] = useState(false);
@@ -109,7 +126,11 @@ export const LoginForm = ({ className }: LoginFormProps) => {
       setInfoMessage('Integrasi Google OAuth dinonaktifkan sementara selama tahap pengembangan.');
       return;
     }
-    loginWithGoogle(turnstileToken);
+    if (role === 'admin') {
+      setErrorMessage('Akun Administrator tidak dapat masuk melalui Google Sign-In.');
+      return;
+    }
+    loginWithGoogle();
   };
 
   return (
@@ -174,8 +195,8 @@ export const LoginForm = ({ className }: LoginFormProps) => {
         </div>
       )}
 
-      {/* Google OAuth Initiation */}
-      {FEATURES.ENABLE_GOOGLE_OAUTH && (
+      {/* Google OAuth Initiation (strictly for User Workspace) */}
+      {FEATURES.ENABLE_GOOGLE_OAUTH && role === 'user' && (
         <>
           <div>
             <Button
@@ -187,7 +208,7 @@ export const LoginForm = ({ className }: LoginFormProps) => {
               className="w-full gap-3 text-xs sm:text-sm font-semibold justify-center hover:bg-surface-muted border-border shadow-soft-sm"
             >
               <GoogleIcon className="w-4 h-4" />
-              <span>Lanjutkan dengan Google</span>
+              <span>Masuk dengan Google</span>
             </Button>
           </div>
 

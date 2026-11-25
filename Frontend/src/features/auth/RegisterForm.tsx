@@ -103,7 +103,7 @@ export const RegisterForm = ({ className }: RegisterFormProps) => {
       setErrorMessage('Pendaftaran Google OAuth dinonaktifkan sementara selama tahap pengembangan.');
       return;
     }
-    loginWithGoogle(turnstileToken);
+    loginWithGoogle();
   };
 
   return (
