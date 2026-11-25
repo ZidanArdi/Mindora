@@ -55,6 +55,10 @@ export const LoginForm = ({ className }: LoginFormProps) => {
     }
   }, [isAuthenticated, user, navigate]);
 
+  const isEmailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
+  const isPasswordValid = password.length > 0;
+  const isCredentialsReady = isEmailValid && isPasswordValid;
+
   const handleRoleChange = (newRole: 'user' | 'admin') => {
     setRole(newRole);
     setErrorMessage(null);
@@ -67,11 +71,11 @@ export const LoginForm = ({ className }: LoginFormProps) => {
     setErrorMessage(null);
     setInfoMessage(null);
 
-    if (!email.trim()) {
-      setErrorMessage('Silakan masukkan alamat email Anda');
+    if (!isEmailValid) {
+      setErrorMessage('Silakan masukkan alamat email yang valid');
       return;
     }
-    if (!password) {
+    if (!isPasswordValid) {
       setErrorMessage('Silakan masukkan kata sandi Anda');
       return;
     }
@@ -261,7 +265,7 @@ export const LoginForm = ({ className }: LoginFormProps) => {
             type="submit"
             variant="primary"
             size="lg"
-            disabled={loading || !turnstileToken}
+            disabled={loading || !isCredentialsReady || !turnstileToken}
             className="w-full gap-2 text-sm font-bold justify-center shadow-soft-md"
           >
             <span>{loading ? 'Mengautentikasi...' : `Masuk ke ${role === 'admin' ? 'Konsol Admin' : 'Ruang Kerja'}`}</span>
