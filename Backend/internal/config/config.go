@@ -57,6 +57,8 @@ type TurnstileConfig struct {
 	SecretKey        string
 	ExpectedHostname string
 	ExpectedAction   string
+	VerifyURL        string
+	AllowTestTokens  bool
 }
 
 // CookieConfig holds HTTP cookie parameters for refresh tokens.
@@ -149,6 +151,11 @@ func LoadConfig() *Config {
 	turnstileEnabled := getEnvAsBool("TURNSTILE_ENABLED", turnstileSecretKey != "")
 	turnstileHostname := getEnv("TURNSTILE_EXPECTED_HOSTNAME", "localhost")
 	turnstileAction := getEnv("TURNSTILE_EXPECTED_ACTION", "")
+	turnstileVerifyURL := getEnv("TURNSTILE_VERIFY_URL", "https://challenges.cloudflare.com/turnstile/v0/siteverify")
+	turnstileAllowTestTokens := getEnvAsBool("TURNSTILE_ALLOW_TEST_TOKENS", false)
+	if env == "production" {
+		turnstileAllowTestTokens = false // Fail closed in production: test tokens are strictly prohibited
+	}
 
 	// Cookie configurations
 	cookieDomain := os.Getenv("COOKIE_DOMAIN")
@@ -208,6 +215,8 @@ func LoadConfig() *Config {
 			SecretKey:        turnstileSecretKey,
 			ExpectedHostname: turnstileHostname,
 			ExpectedAction:   turnstileAction,
+			VerifyURL:        turnstileVerifyURL,
+			AllowTestTokens:  turnstileAllowTestTokens,
 		},
 		Cookie: CookieConfig{
 			Domain:   cookieDomain,
@@ -232,6 +241,9 @@ func (c *Config) Validate() error {
 	if c.Env == "production" {
 		if !c.Turnstile.Enabled || strings.TrimSpace(c.Turnstile.SecretKey) == "" {
 			return fmt.Errorf("Cloudflare Turnstile bot protection is required in production environment; TURNSTILE_ENABLED must be true and TURNSTILE_SECRET_KEY must be provided")
+		}
+		if c.Turnstile.AllowTestTokens {
+			return fmt.Errorf("Cloudflare Turnstile test token bypass is strictly prohibited in production")
 		}
 		if c.JWT.Secret == "mindora-dev-jwt-super-secret-key-32chars-minimum" {
 			return fmt.Errorf("insecure default JWT_SECRET is prohibited in production")

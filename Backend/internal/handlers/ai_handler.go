@@ -86,7 +86,7 @@ func (h *AIHandler) ExplainPrediction(c *fiber.Ctx) error {
 	resp, err := h.aiService.ExplainPrediction(c.Context(), userID, predIDPtr)
 	if err != nil {
 		if errors.Is(err, services.ErrAIPredictionNotFound) {
-			return c.Status(fiber.StatusNotFound).JSON(response.Error("Data prediksi produktivitas tidak ditemukan"))
+			return c.Status(fiber.StatusNotFound).JSON(response.Error("Data prediksi belum tersedia untuk dijelaskan"))
 		}
 		return h.handleAIError(c, err, "Gagal memproses penjelasan prediksi")
 	}
@@ -111,15 +111,15 @@ func (h *AIHandler) GenerateStudyPlan(c *fiber.Ctx) error {
 
 func (h *AIHandler) handleAIError(c *fiber.Ctx, err error, defaultMsg string) error {
 	if errors.Is(err, groq.ErrRateLimitExceeded) {
-		return c.Status(fiber.StatusTooManyRequests).JSON(response.Error("Batas permintaan AI terlampaui. Silakan tunggu sesaat lagi."))
+		return c.Status(fiber.StatusTooManyRequests).JSON(response.Error("Permintaan AI sedang dibatasi. Coba beberapa saat lagi."))
 	}
 	if errors.Is(err, groq.ErrUnauthorized) || errors.Is(err, services.ErrAIClientNotConfigured) || errors.Is(err, groq.ErrMissingAPIKey) {
-		return c.Status(fiber.StatusServiceUnavailable).JSON(response.Error("Layanan asisten cerdas Mindora sedang tidak tersedia atau belum terkonfigurasi"))
+		return c.Status(fiber.StatusServiceUnavailable).JSON(response.Error("Layanan AI sedang tidak tersedia atau belum terkonfigurasi"))
 	}
 	if errors.Is(err, groq.ErrServiceUnavailable) {
-		return c.Status(fiber.StatusServiceUnavailable).JSON(response.Error("Layanan Groq AI sedang sibuk atau tidak dapat dijangkau. Silakan coba kembali beberapa saat lagi."))
+		return c.Status(fiber.StatusServiceUnavailable).JSON(response.Error("Layanan AI sedang tidak tersedia. Silakan coba kembali."))
 	}
-	if errors.Is(err, context.DeadlineExceeded) || strings.Contains(err.Error(), "timed out") {
+	if errors.Is(err, context.DeadlineExceeded) || strings.Contains(strings.ToLower(err.Error()), "timed out") || strings.Contains(strings.ToLower(err.Error()), "deadline exceeded") {
 		return c.Status(fiber.StatusGatewayTimeout).JSON(response.Error("Permintaan asisten AI membutuhkan waktu terlalu lama. Silakan coba kembali."))
 	}
 	log.Printf("[ERROR] [AIHandler] %v", err)

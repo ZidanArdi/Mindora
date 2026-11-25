@@ -297,7 +297,6 @@ func TestAIService_Chat_Success(t *testing.T) {
 		t.Errorf("expected 120 tokens used, got %d", resp.TokensUsed)
 	}
 
-	// Verify request messages
 	if len(mockClient.CapturedReq.Messages) != 2 {
 		t.Fatalf("expected 2 messages (system and user), got %d", len(mockClient.CapturedReq.Messages))
 	}
@@ -395,6 +394,69 @@ func TestAIService_ExplainPrediction_Success(t *testing.T) {
 	}
 }
 
+func TestAIService_ExplainPrediction_UserIsolation(t *testing.T) {
+	userA := uuid.New()
+	userB := uuid.New()
+	predID := uuid.New()
+
+	predUserB := &models.ProductivityPrediction{
+		ID:             predID,
+		UserID:         userB,
+		PredictedScore: 90.0,
+		StateLabel:     "Personalized Estimate",
+	}
+
+	predRepo := &mockAIPredictionRepo{
+		byID: map[uuid.UUID]*models.ProductivityPrediction{predID: predUserB},
+	}
+
+	svc := services.NewAIService(&mockGroqClient{}, &mockAITaskRepo{}, &mockAIStudyRepo{}, &mockAIFocusRepo{}, &mockAILifestyleRepo{}, predRepo, &mockAIRecRepo{})
+
+	// User A tries to access User B's prediction ID
+	_, err := svc.ExplainPrediction(context.Background(), userA, &predID)
+	if !errors.Is(err, services.ErrAIPredictionNotFound) {
+		t.Fatalf("expected ErrAIPredictionNotFound when User A accesses User B's prediction, got: %v", err)
+	}
+}
+
+func TestAIService_ExplainPrediction_BaselineNotice(t *testing.T) {
+	userID := uuid.New()
+	baselinePred := &models.ProductivityPrediction{
+		ID:             uuid.New(),
+		UserID:         userID,
+		PredictedScore: 50.0,
+		IsBaseline:     true,
+		StateLabel:     "Estimasi Awal",
+	}
+
+	mockClient := &mockGroqClient{
+		Response: &groq.ChatCompletionResponse{
+			Model: "openai/gpt-oss-20b",
+			Choices: []groq.ChatChoice{
+				{
+					Message: groq.ChatMessage{
+						Content: "Ini adalah estimasi awal berdasarkan baseline...",
+					},
+				},
+			},
+		},
+	}
+
+	predRepo := &mockAIPredictionRepo{latest: baselinePred}
+	svc := services.NewAIService(mockClient, &mockAITaskRepo{}, &mockAIStudyRepo{}, &mockAIFocusRepo{}, &mockAILifestyleRepo{}, predRepo, &mockAIRecRepo{})
+
+	_, err := svc.ExplainPrediction(context.Background(), userID, nil)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	// Verify baseline note in prompt
+	userContent := mockClient.CapturedReq.Messages[1].Content
+	if !strings.Contains(userContent, "CATATAN KHUSUS: Skor ini adalah estimasi awal berdasarkan baseline") {
+		t.Errorf("expected baseline explanation in prompt")
+	}
+}
+
 func TestAIService_ExplainPrediction_NotFound(t *testing.T) {
 	userID := uuid.New()
 	svc := services.NewAIService(&mockGroqClient{}, &mockAITaskRepo{}, &mockAIStudyRepo{}, &mockAIFocusRepo{}, &mockAILifestyleRepo{}, &mockAIPredictionRepo{}, &mockAIRecRepo{})
@@ -456,5 +518,31 @@ func TestAIService_GroqClientError(t *testing.T) {
 	_, err := svc.Chat(context.Background(), userID, "Pertanyaan tes")
 	if !errors.Is(err, groq.ErrRateLimitExceeded) {
 		t.Errorf("expected ErrRateLimitExceeded, got: %v", err)
+	}
+}
+
+func TestAIService_EmptyAssistantResponseFallback(t *testing.T) {
+	userID := uuid.New()
+	mockClient := &mockGroqClient{
+		Response: &groq.ChatCompletionResponse{
+			Model: "openai/gpt-oss-20b",
+			Choices: []groq.ChatChoice{
+				{
+					Message: groq.ChatMessage{
+						Content: "   ",
+					},
+				},
+			},
+		},
+	}
+
+	svc := services.NewAIService(mockClient, &mockAITaskRepo{}, &mockAIStudyRepo{}, &mockAIFocusRepo{}, &mockAILifestyleRepo{}, &mockAIPredictionRepo{}, &mockAIRecRepo{})
+
+	resp, err := svc.Chat(context.Background(), userID, "Pertanyaan tes")
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if !strings.Contains(resp.Reply, "belum dapat menghasilkan respons") {
+		t.Errorf("expected fallback message for empty assistant response, got: %s", resp.Reply)
 	}
 }

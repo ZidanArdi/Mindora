@@ -18,6 +18,14 @@ var (
 	ErrActionMismatch     = errors.New("turnstile action mismatch")
 )
 
+// IsTurnstileError checks if an error was caused by a Turnstile verification failure.
+func IsTurnstileError(err error) bool {
+	return errors.Is(err, ErrTokenRequired) ||
+		errors.Is(err, ErrVerificationFailed) ||
+		errors.Is(err, ErrHostnameMismatch) ||
+		errors.Is(err, ErrActionMismatch)
+}
+
 // Verifier defines the interface for verifying Cloudflare Turnstile tokens.
 type Verifier interface {
 	Verify(ctx context.Context, token, remoteIP, action string) error
@@ -58,6 +66,9 @@ func NewClient(cfg Config) *Client {
 
 // NewClientWithURL initializes a client with a custom siteverify URL (useful for testing).
 func NewClientWithURL(cfg Config, url string) *Client {
+	if url == "" {
+		url = "https://challenges.cloudflare.com/turnstile/v0/siteverify"
+	}
 	timeout := cfg.Timeout
 	if timeout <= 0 {
 		timeout = 5 * time.Second
@@ -108,7 +119,7 @@ func (c *Client) Verify(ctx context.Context, token, remoteIP, action string) err
 
 	resp, err := c.httpClient.Do(req)
 	if err != nil {
-		return fmt.Errorf("failed to contact turnstile service: %w", err)
+		return fmt.Errorf("%w: failed to contact turnstile service: %v", ErrVerificationFailed, err)
 	}
 	defer resp.Body.Close()
 
@@ -118,7 +129,7 @@ func (c *Client) Verify(ctx context.Context, token, remoteIP, action string) err
 
 	var siteResp SiteverifyResponse
 	if err := json.NewDecoder(resp.Body).Decode(&siteResp); err != nil {
-		return fmt.Errorf("failed to decode turnstile response: %w", err)
+		return fmt.Errorf("%w: failed to decode turnstile response: %v", ErrVerificationFailed, err)
 	}
 
 	if !siteResp.Success {

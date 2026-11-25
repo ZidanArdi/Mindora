@@ -54,7 +54,7 @@ func (h *AuthHandler) Register(c *fiber.Ctx) error {
 				Message: err.Error(),
 			})
 		}
-		if errors.Is(err, turnstile.ErrVerificationFailed) || errors.Is(err, turnstile.ErrTokenRequired) {
+		if turnstile.IsTurnstileError(err) {
 			return c.Status(fiber.StatusForbidden).JSON(response.Response{
 				Success: false,
 				Message: err.Error(),
@@ -112,7 +112,15 @@ func (h *AuthHandler) Login(c *fiber.Ctx) error {
 				Message: err.Error(),
 			})
 		}
-		if errors.Is(err, turnstile.ErrVerificationFailed) || errors.Is(err, turnstile.ErrTokenRequired) {
+		if errors.Is(err, services.ErrAdminPortalAccessDenied) ||
+			errors.Is(err, services.ErrUserPortalAccessDenied) ||
+			errors.Is(err, services.ErrInvalidPortal) {
+			return c.Status(fiber.StatusForbidden).JSON(response.Response{
+				Success: false,
+				Message: err.Error(),
+			})
+		}
+		if turnstile.IsTurnstileError(err) {
 			return c.Status(fiber.StatusForbidden).JSON(response.Response{
 				Success: false,
 				Message: err.Error(),
@@ -418,6 +426,14 @@ func (h *AuthHandler) GoogleCallback(c *fiber.Ctx) error {
 			})
 		}
 		if errors.Is(err, services.ErrAccountNotActive) || errors.Is(err, services.ErrAccountSuspended) {
+			return c.Status(fiber.StatusForbidden).JSON(response.Response{
+				Success: false,
+				Message: err.Error(),
+			})
+		}
+		if errors.Is(err, services.ErrAdminPortalAccessDenied) ||
+			errors.Is(err, services.ErrUserPortalAccessDenied) ||
+			errors.Is(err, services.ErrInvalidPortal) {
 			return c.Status(fiber.StatusForbidden).JSON(response.Response{
 				Success: false,
 				Message: err.Error(),

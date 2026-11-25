@@ -190,6 +190,11 @@ func (s *aiService) ExplainPrediction(ctx context.Context, userID uuid.UUID, pre
 		}
 	}
 
+	var baselineNotice string
+	if pred.IsBaseline {
+		baselineNotice = "\n- CATATAN KHUSUS: Skor ini adalah estimasi awal berdasarkan baseline rata-rata karena data sesi belajar dan gaya hidup belum mencukupi. Jelaskan secara ramah bahwa ini adalah acuan awal dan skor personal yang lebih akurat akan terbentuk setelah kamu mencatat sesi belajar dan kebiasaan harian secara konsisten."
+	}
+
 	explanationPrompt := fmt.Sprintf(`Jelaskan hasil estimasi produktivitas ini kepada temanmu secara santai, hangat, dan mudah dipahami:
 
 Informasi:
@@ -197,12 +202,13 @@ Informasi:
 - Waktu belajar: %.1f jam
 - Jam tidur: %s
 - Layar HP: %s
-- Tingkat stres: %s
+- Tingkat stres: %s%s
 
 Aturan penyampaian:
 - Sampaikan dalam 2-3 paragraf naratif pendek yang mengalir (JANGAN gunakan bullet points, JANGAN gunakan tabel, dan JANGAN gunakan bab bernomor).
 - Jelaskan arti skor %.1f secara wajar dan positif.
 - Ceritakan secara natural kaitan antara istirahat/tidur, layar HP, waktu belajar, dan stres terhadap energimu.
+- Jika ini adalah estimasi awal (baseline), jelaskan dengan tenang bahwa skor ini acuan permulaan dan akan menyesuaikan ritme aslimu seiring waktu.
 - Berikan saran santai untuk menjaga ritme hari ini tanpa penutup klise.`,
 		pred.PredictedScore,
 		stateLabel,
@@ -210,6 +216,7 @@ Aturan penyampaian:
 		sleepText,
 		phoneText,
 		stressText,
+		baselineNotice,
 		pred.PredictedScore,
 	)
 

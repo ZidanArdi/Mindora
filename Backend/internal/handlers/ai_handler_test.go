@@ -46,11 +46,10 @@ func (m *mockAIService) GenerateStudyPlan(ctx context.Context, userID uuid.UUID)
 	return &services.AIResponse{Reply: "Jadwal belajar", Model: "openai/gpt-oss-20b", TokensUsed: 100}, nil
 }
 
-func setupTestApp(svc services.AIService, tokenMgr *jwt.TokenManager) *fiber.App {
+func setupAITestApp(svc services.AIService, tokenMgr *jwt.TokenManager) *fiber.App {
 	app := fiber.New()
 	handler := handlers.NewAIHandler(svc)
 
-	// In-memory mock middleware injecting userID
 	authMiddleware := func(c *fiber.Ctx) error {
 		authHeader := c.Get("Authorization")
 		if !strings.HasPrefix(authHeader, "Bearer ") {
@@ -84,6 +83,12 @@ func TestAIHandler_Chat(t *testing.T) {
 			if prompt == "rate_limit_me" {
 				return nil, groq.ErrRateLimitExceeded
 			}
+			if prompt == "timeout_me" {
+				return nil, context.DeadlineExceeded
+			}
+			if prompt == "unauthorized_provider" {
+				return nil, groq.ErrUnauthorized
+			}
 			return &services.AIResponse{
 				Reply:      "Halo dari AI Coach!",
 				Model:      "openai/gpt-oss-20b",
@@ -92,7 +97,7 @@ func TestAIHandler_Chat(t *testing.T) {
 		},
 	}
 
-	app := setupTestApp(mockSvc, tokenMgr)
+	app := setupAITestApp(mockSvc, tokenMgr)
 
 	// 1. Success case
 	body, _ := json.Marshal(map[string]string{"prompt": "Bagaimana tips belajar kalkulus?"})
@@ -142,12 +147,46 @@ func TestAIHandler_Chat(t *testing.T) {
 		t.Errorf("expected status 429 for rate limit, got %d", respRate.StatusCode)
 	}
 
-	// 5. Unauthorized -> 401
+	// 5. Timeout mapping -> 504
+	timeoutBody, _ := json.Marshal(map[string]string{"prompt": "timeout_me"})
+	reqTimeout := httptest.NewRequest("POST", "/api/v1/ai/chat", bytes.NewReader(timeoutBody))
+	reqTimeout.Header.Set("Content-Type", "application/json")
+	reqTimeout.Header.Set("Authorization", "Bearer "+token)
+
+	respTimeout, _ := app.Test(reqTimeout)
+	if respTimeout.StatusCode != fiber.StatusGatewayTimeout {
+		t.Errorf("expected status 504 for timeout, got %d", respTimeout.StatusCode)
+	}
+
+	// 6. Provider unauthorized -> 503
+	unauthBody, _ := json.Marshal(map[string]string{"prompt": "unauthorized_provider"})
+	reqProviderUnauth := httptest.NewRequest("POST", "/api/v1/ai/chat", bytes.NewReader(unauthBody))
+	reqProviderUnauth.Header.Set("Content-Type", "application/json")
+	reqProviderUnauth.Header.Set("Authorization", "Bearer "+token)
+
+	respProviderUnauth, _ := app.Test(reqProviderUnauth)
+	if respProviderUnauth.StatusCode != fiber.StatusServiceUnavailable {
+		t.Errorf("expected status 503 for provider auth error, got %d", respProviderUnauth.StatusCode)
+	}
+
+	// 7. Missing token -> 401
 	reqUnauth := httptest.NewRequest("POST", "/api/v1/ai/chat", bytes.NewReader(body))
 	reqUnauth.Header.Set("Content-Type", "application/json")
 	respUnauth, _ := app.Test(reqUnauth)
 	if respUnauth.StatusCode != fiber.StatusUnauthorized {
 		t.Errorf("expected status 401 when no token provided, got %d", respUnauth.StatusCode)
+	}
+
+	// 8. Expired JWT -> 401
+	expiredMgr := jwt.NewTokenManager("test-secret-key-32chars-minimum-12345", -1*time.Minute, 24*time.Hour)
+	expiredToken, _, _ := expiredMgr.GenerateAccessToken(userID, "student@mindora.app", "user")
+	reqExpired := httptest.NewRequest("POST", "/api/v1/ai/chat", bytes.NewReader(body))
+	reqExpired.Header.Set("Content-Type", "application/json")
+	reqExpired.Header.Set("Authorization", "Bearer "+expiredToken)
+
+	respExpired, _ := app.Test(reqExpired)
+	if respExpired.StatusCode != fiber.StatusUnauthorized {
+		t.Errorf("expected status 401 for expired token, got %d", respExpired.StatusCode)
 	}
 }
 
@@ -169,7 +208,7 @@ func TestAIHandler_ExplainPrediction(t *testing.T) {
 		},
 	}
 
-	app := setupTestApp(mockSvc, tokenMgr)
+	app := setupAITestApp(mockSvc, tokenMgr)
 
 	// 1. Success case with ID
 	body, _ := json.Marshal(map[string]string{"prediction_id": predID.String()})
@@ -224,7 +263,7 @@ func TestAIHandler_GenerateStudyPlan(t *testing.T) {
 		},
 	}
 
-	app := setupTestApp(mockSvc, tokenMgr)
+	app := setupAITestApp(mockSvc, tokenMgr)
 
 	req := httptest.NewRequest("POST", "/api/v1/ai/study-plan", nil)
 	req.Header.Set("Authorization", "Bearer "+token)

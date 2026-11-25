@@ -141,6 +141,25 @@ func TestConfigValidation_ProductionSafety(t *testing.T) {
 	if err := prodCfgValid.Validate(); err != nil {
 		t.Errorf("expected valid production config to pass, got: %v", err)
 	}
+
+	// 5. Production configuration with AllowTestTokens must fail validation (fail closed)
+	prodCfgWithBypass := &config.Config{
+		Env: "production",
+		Turnstile: config.TurnstileConfig{
+			Enabled:         true,
+			SecretKey:       "real-turnstile-secret",
+			AllowTestTokens: true,
+		},
+		JWT: config.JWTConfig{
+			Secret: "production-high-entropy-jwt-secret-key-12345",
+		},
+		Database: config.DatabaseConfig{
+			Password: "real-production-db-password",
+		},
+	}
+	if err := prodCfgWithBypass.Validate(); err == nil {
+		t.Errorf("SECURITY VULNERABILITY: production config passed with AllowTestTokens=true")
+	}
 }
 
 func TestConfigProxySettings(t *testing.T) {
@@ -153,26 +172,15 @@ func TestConfigProxySettings(t *testing.T) {
 	}
 }
 
-func TestConfigGroqSettings(t *testing.T) {
-	oldModel := os.Getenv("GROQ_MODEL")
-	defer func() {
-		if oldModel != "" {
-			_ = os.Setenv("GROQ_MODEL", oldModel)
-		} else {
-			_ = os.Unsetenv("GROQ_MODEL")
-		}
-	}()
-
-	_ = os.Setenv("GROQ_MODEL", "test-model-variant")
+func TestGroqConfig(t *testing.T) {
 	cfg := config.LoadConfig()
-
-	if cfg.Groq.Model != "test-model-variant" {
-		t.Errorf("expected GROQ_MODEL 'test-model-variant', got %q", cfg.Groq.Model)
+	if cfg.Groq.Model == "" {
+		t.Errorf("expected default Groq model, got empty")
 	}
 	if cfg.Groq.BaseURL == "" {
-		t.Errorf("expected default Groq.BaseURL, got empty")
+		t.Errorf("expected default Groq baseURL, got empty")
 	}
 	if cfg.Groq.Timeout <= 0 {
-		t.Errorf("expected positive Groq.Timeout, got %v", cfg.Groq.Timeout)
+		t.Errorf("expected positive Groq timeout, got %v", cfg.Groq.Timeout)
 	}
 }

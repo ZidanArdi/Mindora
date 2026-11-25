@@ -31,6 +31,9 @@ var (
 	ErrIdempotencyExpired             = errors.New("refresh idempotency window expired")
 	ErrEmailConflictExternalIdentity  = errors.New("this email is already registered using another sign-in method; please sign in with your email and password")
 	ErrAdminPublicRegistrationBlocked = errors.New("administrative accounts cannot be created via public registration")
+	ErrAdminPortalAccessDenied        = errors.New("Akun Anda tidak memiliki izin untuk masuk melalui Konsol Admin.")
+	ErrUserPortalAccessDenied         = errors.New("Akun Administrator tidak dapat masuk melalui Ruang Kerja Pengguna.")
+	ErrInvalidPortal                  = errors.New("Portal yang diminta tidak valid.")
 )
 
 // RegisterRequest represents the user registration payload.
@@ -46,6 +49,7 @@ type LoginRequest struct {
 	Email          string `json:"email" validate:"required,email"`
 	Password       string `json:"password" validate:"required"`
 	TurnstileToken string `json:"turnstile_token"`
+	Portal         string `json:"portal"`
 }
 
 // UserResponse is the safe public representation of a User.
@@ -260,7 +264,31 @@ func (s *authService) Login(ctx context.Context, req LoginRequest, remoteIP, use
 		return nil, ErrInvalidCredentials
 	}
 
-	// 6. Issue Access and Refresh tokens
+	// 6. Enforce Strict Server-Side Portal Authorization Policy
+	// The portal requested by the client is only the destination.
+	// We strictly evaluate the actual authenticated account role against the portal matrix.
+	userRole := strings.ToLower(strings.TrimSpace(user.Role.Name))
+	if userRole != "user" && userRole != "admin" {
+		return nil, ErrInvalidCredentials
+	}
+
+	requestedPortal := strings.ToLower(strings.TrimSpace(req.Portal))
+	if requestedPortal != "" {
+		switch requestedPortal {
+		case "admin":
+			if userRole != "admin" {
+				return nil, ErrAdminPortalAccessDenied
+			}
+		case "user":
+			if userRole != "user" {
+				return nil, ErrUserPortalAccessDenied
+			}
+		default:
+			return nil, ErrInvalidPortal
+		}
+	}
+
+	// 7. Issue Access and Refresh tokens
 	accessToken, accessExpiresAt, err := s.tokenManager.GenerateAccessToken(user.ID, user.Email, user.Role.Name)
 	if err != nil {
 		return nil, err
@@ -518,6 +546,11 @@ func (s *authService) HandleGoogleCallback(
 		}
 		if user.Status != models.UserStatusActive {
 			return nil, ErrInvalidCredentials
+		}
+
+		// Google Sign-In is strictly authorized for user workspace; administrator accounts cannot sign in via Google
+		if strings.ToLower(strings.TrimSpace(user.Role.Name)) != "user" {
+			return nil, ErrUserPortalAccessDenied
 		}
 
 		// Issue tokens

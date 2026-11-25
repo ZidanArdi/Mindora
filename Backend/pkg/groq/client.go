@@ -13,17 +13,18 @@ import (
 )
 
 var (
-	ErrMissingAPIKey       = errors.New("groq api key is required")
-	ErrEmptyMessages       = errors.New("chat completion requires at least one message")
-	ErrRateLimitExceeded   = errors.New("groq rate limit exceeded, please retry later")
-	ErrUnauthorized        = errors.New("invalid or unauthorized groq api key")
-	ErrServiceUnavailable  = errors.New("groq service is temporarily unavailable")
+	ErrMissingAPIKey      = errors.New("groq api key is required")
+	ErrEmptyMessages      = errors.New("chat completion requires at least one message")
+	ErrRateLimitExceeded  = errors.New("groq rate limit exceeded, please retry later")
+	ErrUnauthorized       = errors.New("invalid or unauthorized groq api key")
+	ErrServiceUnavailable = errors.New("groq service is temporarily unavailable")
 )
 
 // ChatMessage represents a single message in a chat conversation.
 type ChatMessage struct {
-	Role    string `json:"role"`
-	Content string `json:"content"`
+	Role      string `json:"role"`
+	Content   string `json:"content"`
+	Reasoning string `json:"reasoning,omitempty"`
 }
 
 // ChatCompletionRequest encapsulates the payload sent to Groq's OpenAI-compatible chat API.
@@ -161,8 +162,8 @@ func (c *clientImpl) CreateChatCompletion(ctx context.Context, req ChatCompletio
 		if errors.Is(ctx.Err(), context.Canceled) {
 			return nil, ctx.Err()
 		}
-		if errors.Is(ctx.Err(), context.DeadlineExceeded) {
-			return nil, fmt.Errorf("groq request timed out: %w", ctx.Err())
+		if errors.Is(ctx.Err(), context.DeadlineExceeded) || strings.Contains(strings.ToLower(err.Error()), "timeout") || strings.Contains(strings.ToLower(err.Error()), "deadline exceeded") {
+			return nil, fmt.Errorf("groq request timed out: %w", context.DeadlineExceeded)
 		}
 		return nil, fmt.Errorf("network error communicating with groq: %w", err)
 	}

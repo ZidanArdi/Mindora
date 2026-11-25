@@ -98,28 +98,28 @@ func TestGroqClient_SuccessfulCompletion(t *testing.T) {
 
 func TestGroqClient_ErrorHandling(t *testing.T) {
 	tests := []struct {
-		name        string
-		statusCode  int
+		name         string
+		statusCode   int
 		responseBody string
-		expectedErr error
+		expectedErr  error
 	}{
 		{
-			name:        "Unauthorized 401",
-			statusCode:  http.StatusUnauthorized,
+			name:         "Unauthorized 401",
+			statusCode:   http.StatusUnauthorized,
 			responseBody: `{"error":{"message":"Invalid API Key","type":"invalid_request_error"}}`,
-			expectedErr: groq.ErrUnauthorized,
+			expectedErr:  groq.ErrUnauthorized,
 		},
 		{
-			name:        "Rate Limit 429",
-			statusCode:  http.StatusTooManyRequests,
+			name:         "Rate Limit 429",
+			statusCode:   http.StatusTooManyRequests,
 			responseBody: `{"error":{"message":"Rate limit exceeded","type":"rate_limit_error"}}`,
-			expectedErr: groq.ErrRateLimitExceeded,
+			expectedErr:  groq.ErrRateLimitExceeded,
 		},
 		{
-			name:        "Service Unavailable 503",
-			statusCode:  http.StatusServiceUnavailable,
+			name:         "Service Unavailable 503",
+			statusCode:   http.StatusServiceUnavailable,
 			responseBody: `Service Unavailable`,
-			expectedErr: groq.ErrServiceUnavailable,
+			expectedErr:  groq.ErrServiceUnavailable,
 		},
 	}
 
@@ -159,5 +159,24 @@ func TestGroqClient_ContextCancellation(t *testing.T) {
 	})
 	if !errors.Is(err, context.Canceled) {
 		t.Fatalf("expected context.Canceled, got: %v", err)
+	}
+}
+
+func TestGroqClient_Timeout(t *testing.T) {
+	mockServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		time.Sleep(200 * time.Millisecond)
+		w.WriteHeader(http.StatusOK)
+	}))
+	defer mockServer.Close()
+
+	client := groq.NewClient("dummy-key", "openai/gpt-oss-20b", mockServer.URL, 50*time.Millisecond)
+	_, err := client.CreateChatCompletion(context.Background(), groq.ChatCompletionRequest{
+		Messages: []groq.ChatMessage{{Role: "user", Content: "Hi"}},
+	})
+	if err == nil {
+		t.Fatal("expected timeout error, got nil")
+	}
+	if !errors.Is(err, context.DeadlineExceeded) {
+		t.Fatalf("expected context.DeadlineExceeded, got: %v", err)
 	}
 }
