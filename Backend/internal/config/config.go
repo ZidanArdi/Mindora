@@ -100,12 +100,15 @@ type Config struct {
 // LoadConfig loads environment variables from .env and populates the Config struct.
 func LoadConfig() *Config {
 	// Traverse up directory tree to locate .env file (supports tests running from subdirectories)
+	// Also check ./Backend/.env when started from the monorepo root.
 	if currDir, err := os.Getwd(); err == nil {
+		loaded := false
 		dir := currDir
 		for i := 0; i < 5; i++ {
 			envPath := filepath.Join(dir, ".env")
 			if info, err := os.Stat(envPath); err == nil && !info.IsDir() {
 				_ = godotenv.Load(envPath)
+				loaded = true
 				break
 			}
 			parent := filepath.Dir(dir)
@@ -113,6 +116,12 @@ func LoadConfig() *Config {
 				break
 			}
 			dir = parent
+		}
+		if !loaded {
+			backendEnv := filepath.Join(currDir, "Backend", ".env")
+			if info, err := os.Stat(backendEnv); err == nil && !info.IsDir() {
+				_ = godotenv.Load(backendEnv)
+			}
 		}
 	}
 
@@ -141,9 +150,9 @@ func LoadConfig() *Config {
 	jwtRefreshExpiry := getEnvAsDuration("JWT_REFRESH_EXPIRY", 7*24*time.Hour)
 
 	// Google OAuth configurations
-	googleClientID := os.Getenv("GOOGLE_CLIENT_ID")
-	googleClientSecret := os.Getenv("GOOGLE_CLIENT_SECRET")
-	googleRedirectURL := getEnv("GOOGLE_REDIRECT_URL", "http://localhost:8080/api/v1/auth/google/callback")
+	googleClientID := strings.TrimSpace(os.Getenv("GOOGLE_CLIENT_ID"))
+	googleClientSecret := strings.TrimSpace(os.Getenv("GOOGLE_CLIENT_SECRET"))
+	googleRedirectURL := strings.TrimSpace(getEnv("GOOGLE_REDIRECT_URL", "http://localhost:8080/api/v1/auth/google/callback"))
 	googleOAuthEnabled := getEnvAsBool("GOOGLE_OAUTH_ENABLED", googleClientID != "" && googleClientSecret != "")
 
 	// Turnstile configurations

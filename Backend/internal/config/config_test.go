@@ -184,3 +184,27 @@ func TestGroqConfig(t *testing.T) {
 		t.Errorf("expected positive Groq timeout, got %v", cfg.Groq.Timeout)
 	}
 }
+
+func TestGoogleOAuthConfigLoading(t *testing.T) {
+	t.Setenv("GOOGLE_CLIENT_ID", " 12345.apps.googleusercontent.com ")
+	t.Setenv("GOOGLE_CLIENT_SECRET", " test-secret-value ")
+	t.Setenv("GOOGLE_OAUTH_ENABLED", "")
+
+	cfg := config.LoadConfig()
+	if !cfg.GoogleOAuth.Enabled {
+		t.Errorf("expected GoogleOAuth.Enabled to auto-enable when client ID and secret are set")
+	}
+	if cfg.GoogleOAuth.ClientID != "12345.apps.googleusercontent.com" {
+		t.Errorf("expected trimmed Google ClientID, got %q", cfg.GoogleOAuth.ClientID)
+	}
+	if cfg.GoogleOAuth.RedirectURL != "http://localhost:8080/api/v1/auth/google/callback" {
+		t.Errorf("unexpected default RedirectURL: %q", cfg.GoogleOAuth.RedirectURL)
+	}
+
+	t.Setenv("GOOGLE_CLIENT_ID", "")
+	t.Setenv("GOOGLE_CLIENT_SECRET", "")
+	cfgDisabled := config.LoadConfig()
+	if cfgDisabled.GoogleOAuth.Enabled {
+		t.Errorf("expected GoogleOAuth.Enabled to be false when credentials are missing")
+	}
+}
