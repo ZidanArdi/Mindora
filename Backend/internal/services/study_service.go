@@ -188,9 +188,10 @@ func (s *studyService) ListSessions(ctx context.Context, userID uuid.UUID, start
 }
 
 func (s *studyService) GetDailyStats(ctx context.Context, userID uuid.UUID, date time.Time) (*repositories.StudyDailyStats, error) {
-	// Midnight to end of day in UTC
+	// Midnight to end of day in local/provided timezone, converted to UTC window
+	loc := date.Location()
 	year, month, day := date.Date()
-	start := time.Date(year, month, day, 0, 0, 0, 0, time.UTC)
-	end := time.Date(year, month, day, 23, 59, 59, 999999999, time.UTC)
+	start := time.Date(year, month, day, 0, 0, 0, 0, loc).UTC()
+	end := time.Date(year, month, day, 23, 59, 59, 999999999, loc).UTC()
 	return s.studyRepo.GetDailyStatistics(ctx, userID, start, end)
 }

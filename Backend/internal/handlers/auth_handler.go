@@ -54,7 +54,7 @@ func (h *AuthHandler) Register(c *fiber.Ctx) error {
 				Message: err.Error(),
 			})
 		}
-		if errors.Is(err, turnstile.ErrVerificationFailed) || errors.Is(err, turnstile.ErrTokenRequired) {
+		if turnstile.IsTurnstileError(err) {
 			return c.Status(fiber.StatusForbidden).JSON(response.Response{
 				Success: false,
 				Message: err.Error(),
@@ -112,7 +112,15 @@ func (h *AuthHandler) Login(c *fiber.Ctx) error {
 				Message: err.Error(),
 			})
 		}
-		if errors.Is(err, turnstile.ErrVerificationFailed) || errors.Is(err, turnstile.ErrTokenRequired) {
+		if errors.Is(err, services.ErrAdminPortalAccessDenied) ||
+			errors.Is(err, services.ErrUserPortalAccessDenied) ||
+			errors.Is(err, services.ErrInvalidPortal) {
+			return c.Status(fiber.StatusForbidden).JSON(response.Response{
+				Success: false,
+				Message: err.Error(),
+			})
+		}
+		if turnstile.IsTurnstileError(err) {
 			return c.Status(fiber.StatusForbidden).JSON(response.Response{
 				Success: false,
 				Message: err.Error(),
@@ -377,7 +385,26 @@ func (h *AuthHandler) GoogleCallback(c *fiber.Ctx) error {
 		SameSite: "Lax",
 	})
 
+	isBrowser := h.cfg.FrontendURL != "" && strings.Contains(c.Get("Accept"), "text/html")
+
+	if oauthErr := c.Query("error"); oauthErr != "" {
+		if isBrowser {
+			errCode := "oauth_failed"
+			if oauthErr == "access_denied" {
+				errCode = "access_denied"
+			}
+			return c.Redirect(h.cfg.FrontendURL+"/login?auth=error&error="+errCode, http.StatusTemporaryRedirect)
+		}
+		return c.Status(fiber.StatusBadRequest).JSON(response.Response{
+			Success: false,
+			Message: "Google authentication cancelled or denied",
+		})
+	}
+
 	if code == "" {
+		if isBrowser {
+			return c.Redirect(h.cfg.FrontendURL+"/login?auth=error&error=missing_code", http.StatusTemporaryRedirect)
+		}
 		return c.Status(fiber.StatusBadRequest).JSON(response.Response{
 			Success: false,
 			Message: "Authorization code missing from Google callback",
@@ -399,6 +426,20 @@ func (h *AuthHandler) GoogleCallback(c *fiber.Ctx) error {
 	)
 
 	if err != nil {
+		if isBrowser {
+			errCode := "oauth_failed"
+			switch {
+			case errors.Is(err, services.ErrEmailConflictExternalIdentity):
+				errCode = "email_conflict"
+			case errors.Is(err, oauth.ErrUnverifiedEmail):
+				errCode = "unverified_email"
+			case errors.Is(err, services.ErrUserPortalAccessDenied) || errors.Is(err, services.ErrAdminPortalAccessDenied):
+				errCode = "admin_portal_denied"
+			case errors.Is(err, oauth.ErrInvalidState):
+				errCode = "invalid_state"
+			}
+			return c.Redirect(h.cfg.FrontendURL+"/login?auth=error&error="+errCode, http.StatusTemporaryRedirect)
+		}
 		if errors.Is(err, oauth.ErrInvalidState) {
 			return c.Status(fiber.StatusBadRequest).JSON(response.Response{
 				Success: false,
@@ -418,6 +459,14 @@ func (h *AuthHandler) GoogleCallback(c *fiber.Ctx) error {
 			})
 		}
 		if errors.Is(err, services.ErrAccountNotActive) || errors.Is(err, services.ErrAccountSuspended) {
+			return c.Status(fiber.StatusForbidden).JSON(response.Response{
+				Success: false,
+				Message: err.Error(),
+			})
+		}
+		if errors.Is(err, services.ErrAdminPortalAccessDenied) ||
+			errors.Is(err, services.ErrUserPortalAccessDenied) ||
+			errors.Is(err, services.ErrInvalidPortal) {
 			return c.Status(fiber.StatusForbidden).JSON(response.Response{
 				Success: false,
 				Message: err.Error(),

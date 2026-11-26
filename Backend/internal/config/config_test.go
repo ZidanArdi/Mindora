@@ -141,6 +141,25 @@ func TestConfigValidation_ProductionSafety(t *testing.T) {
 	if err := prodCfgValid.Validate(); err != nil {
 		t.Errorf("expected valid production config to pass, got: %v", err)
 	}
+
+	// 5. Production configuration with AllowTestTokens must fail validation (fail closed)
+	prodCfgWithBypass := &config.Config{
+		Env: "production",
+		Turnstile: config.TurnstileConfig{
+			Enabled:         true,
+			SecretKey:       "real-turnstile-secret",
+			AllowTestTokens: true,
+		},
+		JWT: config.JWTConfig{
+			Secret: "production-high-entropy-jwt-secret-key-12345",
+		},
+		Database: config.DatabaseConfig{
+			Password: "real-production-db-password",
+		},
+	}
+	if err := prodCfgWithBypass.Validate(); err == nil {
+		t.Errorf("SECURITY VULNERABILITY: production config passed with AllowTestTokens=true")
+	}
 }
 
 func TestConfigProxySettings(t *testing.T) {
@@ -150,5 +169,18 @@ func TestConfigProxySettings(t *testing.T) {
 	}
 	if len(cfg.Proxy.TrustedProxies) == 0 {
 		t.Errorf("expected default TrustedProxies to be non-empty")
+	}
+}
+
+func TestGroqConfig(t *testing.T) {
+	cfg := config.LoadConfig()
+	if cfg.Groq.Model == "" {
+		t.Errorf("expected default Groq model, got empty")
+	}
+	if cfg.Groq.BaseURL == "" {
+		t.Errorf("expected default Groq baseURL, got empty")
+	}
+	if cfg.Groq.Timeout <= 0 {
+		t.Errorf("expected positive Groq timeout, got %v", cfg.Groq.Timeout)
 	}
 }
